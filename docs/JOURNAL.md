@@ -38,3 +38,30 @@ Searched the skills registry for 20 topics. Results are listed in `docs/SKILLS.m
 ### Step 5. Wayfinder charting started
 
 The work follows the wayfinder method: name the destination, list the open decisions, create a map and tickets, then run research agents on the research tickets. The first act is a round of questions to the owner to pin down the destination.
+
+### Step 6. Destination fixed
+
+The owner answered yes to all eight round-one questions:
+
+1. The effort ends at a spec set (capability map, one spec per module, build order). No app code.
+2. The map and tickets live as GitHub Issues on this repo.
+3. HSOS is a personal tool for one owner on Windows 11. No public release.
+4. The terminal is a general PowerShell terminal with tabs and split panes. Claude Code is the first-class use.
+5. Files: a tree plus a viewer with light editing. Not a full IDE.
+6. Markdown graph: read-mostly, over the open project and one vault folder.
+7. The agent HUD ports the existing mod at `MMACABRE/SKILLS` under `mods/agent-hud`.
+8. Six research agents approved.
+
+The owner added one standing instruction: aim one step above every comparable tool, and prefer the more capable design over the minimal one.
+
+### Step 7. Map and tickets created
+
+- Map: [HSOS spec map](https://github.com/MMACABRE/OS.AI/issues/1).
+- Nine research tickets: comparable tools, stack options, terminal embedding, AI-driven browser, agent HUD data sources, specs for weak models, markdown link graph, GitHub login and sync, file protection and crash survival.
+- Eight grilling tickets: choose the stack, what puts HSOS a step above, agent HUD scope, file safety rules, GitHub sync behaviour, customisation model, spec format and implementer protocol, module map and build order.
+- One prototype ticket: visual direction.
+- Every ticket is a sub-issue of the map. Each grilling and prototype ticket is blocked by the research or decision it waits on.
+
+### Step 8. Research agents launched
+
+Six background agents are running, one per approved research ticket. Each writes to `docs/research/<name>.md` on its own `research/<name>` branch, pushes the branch, and comments on its ticket. The other three research tickets (markdown link graph, GitHub login and sync, file protection) wait for the owner's approval to spawn.
