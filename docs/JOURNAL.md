@@ -75,3 +75,24 @@ All six research agents stopped on 2026-11-16 when the account hit its 5-hour us
 ### Step 10. Research agents stopped
 
 The owner asked for all six research agents to be stopped. All six were stopped before finishing. Their saved state remains, so each can be resumed later. The six research tickets stay open.
+
+### Step 11. Research moved into the main session
+
+The owner decided that the main session does the research itself. Subagents are allowed only for very simple tasks, on Haiku 5.5. The six stopped agents are abandoned.
+
+### Step 12. Six research tickets resolved
+
+Findings are on the branch `research/round-1` under `docs/research/`. Each file marks which claims were checked against a source and which were not.
+
+| Ticket | Answer in one line | File |
+|---|---|---|
+| How comparable tools were built | No tool combines all seven parts. Wave is closest in shape, opcode in Claude awareness. | `comparable-tools.md` |
+| Stack options for a Windows exe | Electron with TypeScript recommended. Tauri 2 second. | `stack-options.md` |
+| Terminal embedding on Windows | xterm.js 6 with node-pty over ConPTY, PTYs in a separate host process. | `terminal-embedding.md` |
+| Embedded browser the AI can drive | A Chromium view controlled over CDP, exposed through an MCP server HSOS runs. | `ai-browser.md` |
+| Claude Code data sources for the agent HUD | Limits from the statusline input, activity from HTTP hooks. | `agent-hud-data.md` |
+| Writing specs a weak model follows | Feature list, progress log, start script, one task per session, tests written in advance. | `spec-for-weak-models.md` |
+
+The six tickets are closed and indexed on the map. Four grilling tickets are now unblocked: Choose the stack, What puts HSOS a step above, Agent HUD scope, Spec format and implementer protocol.
+
+Still open research: Markdown link graph at scale, GitHub login and sync mechanics, Protecting files and surviving crashes.
