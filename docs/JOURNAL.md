@@ -301,3 +301,33 @@ Decisions:
 - Bare note names resolve to the closest file by folder, then the shortest path. A project note can link to a skill by name.
 - MCP tools only show things, read HSOS state or drive the browser. None writes files, runs commands or touches git; that stays with Claude Code and its own permissions. Tool groups can be turned off to save Claude's context.
 - No automated test runs the real Claude Code with a prompt, because that spends usage. Those checks are marked manual.
+
+### Step 30. Implementer tooling and task cards written
+
+- `spec/reference/guard.mjs`: the pre-commit guard. It blocks edits to the spec and tasks, any change to `features.json` other than flipping a feature to passing, rewriting `PROGRESS.md`, and removing or changing existing test lines. It was tested in a scratch repo against eight allowed and blocked cases, all correct.
+- `spec/reference/init.ps1`: the session start script.
+- `CLAUDE.md`: instructions for the implementer, and for a spec author changing the spec.
+- `tasks/stage-0.md` to `tasks/stage-6.md`: 90 task cards, each with the files it may touch, steps, tests, the command that proves it done, and its commit message. Six spike cards in stage 0 prove the risky Electron and native-module APIs first.
+- `features.json`: 54 features, each flipped by one named card.
+
+Two design gaps were found and fixed while writing the cards:
+
+- A rule needed to know which process sent a request. The bus contract now gives every handler the caller's identity, set by the receiving side from the port, never from the payload (BUS-7).
+- MCP tools needed to open panels without stealing focus. The workspace contract gained `requestOpenPanel` and `listOpenPanels` (WS-36, WS-37).
+
+### Step 31. Spec checked and complete
+
+Checks run on the finished spec:
+
+- All contracts compile under TypeScript 7.0.2 and zod 4.6.7 with the strict settings the implementer must use.
+- The three reference parsers pass their self-checks. The git status parser's expected format matches real git output on this machine.
+- All 471 rule ids referenced anywhere are defined, and every one has a test row.
+- Every feature id is flipped by exactly the card it names. Card numbers run 001 to 090 with no gaps.
+
+The destination of the map is reached: a spec set a Haiku-class model can follow. The map issue is closed.
+
+Known limits, recorded for the owner:
+
+- The visual direction was chosen without a prototype, because the owner asked for no questions. The owner should look at the running app after stage 0 and may change any token in a theme file.
+- Third-party API names were checked in documentation only where noted. The spike cards exist to catch the rest before anything depends on them.
+- The performance budgets are targets, measured in stage 6, not yet proven.

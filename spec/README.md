@@ -15,8 +15,8 @@ HSOS is a Windows 11 desktop app for one owner. It is a working environment buil
 | `design/` | Visual direction, tokens, layout, motion |
 | `contracts/` | The TypeScript types every module shares. These are real source files. |
 | `modules/<id>.md` | One spec per module |
-| `reference/` | Finished code for the hardest parts |
-| `../tasks/` | Numbered task cards. The implementer works these in order. |
+| `reference/` | Finished code to copy unchanged: `ring-buffer.ts`, `git-status-parser.ts`, `markdown-links.ts` (each with a self-check run by `npx tsx <file>`), `guard.mjs`, `init.ps1` |
+| `../tasks/stage-<n>.md` | 90 task cards, numbered 001 to 090 across seven stages. The implementer works them in order, one per session. |
 | `../features.json` | Every user-visible feature with test steps and a pass flag |
 
 ## Rules for reading
@@ -25,6 +25,10 @@ HSOS is a Windows 11 desktop app for one owner. It is a working environment buil
 - A module spec lists numbered behaviour rules such as `TERM-12`. Tests and task cards cite those ids.
 - Words in **bold** on first use are defined in `../GLOSSARY.md`.
 - Nothing in this spec is optional unless it says "later".
+
+## Size
+
+18 modules. 471 numbered rules, each with at least one test row. 54 features. 90 task cards. Every contract file compiles under the pinned TypeScript and zod versions with the strict settings in `03-stack.md`.
 
 ## Who decides what
 
