@@ -144,3 +144,7 @@ The owner pointed to an existing app they like, shown in a browser tab with a tr
 A first draft of the module map and build order is in `docs/drafts/capability-map.md`: five processes, sixteen modules with one-way dependencies, and seven build stages that each end with a working packaged app. It is a proposal. The ticket "Module map and build order" stays open until the owner confirms it.
 
 The reference app could not be viewed: no browser was running on the owner's computer, and the owner was away from it. The owner offered to send screenshots of the transcript instead.
+
+### Step 18. Reference tool reviewed from a transcript
+
+The owner pasted the transcript of a video about another person's "agentic OS" and asked for the parts about the tool. Fourteen features are listed and compared with HSOS in `docs/drafts/reference-agentic-os.md`. The app itself has not been seen, so its look is still unknown. Which of its features join HSOS is a question for the owner.
