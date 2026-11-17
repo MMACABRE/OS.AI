@@ -2,7 +2,9 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-17):** spec complete. Implementation not started: next is task card 001 in `tasks/stage-0.md`.
+**Status (2026-11-17):** spec complete except one open change: Claude session recovery (no session lost after a crash or power cut, auto-resume). Design is in `docs/drafts/session-recovery.md`, not yet in `spec/`.
+
+**Next:** spec author writes that draft into `spec/` and `tasks/` (new module `sessions`, cards after 055, renumber). Implementation not started; after that comes task card 001 in `tasks/stage-0.md`.
 
 ## If you are the implementer
 

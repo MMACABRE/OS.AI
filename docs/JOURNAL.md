@@ -331,3 +331,7 @@ Known limits, recorded for the owner:
 - The visual direction was chosen without a prototype, because the owner asked for no questions. The owner should look at the running app after stage 0 and may change any token in a theme file.
 - Third-party API names were checked in documentation only where noted. The spike cards exist to catch the rest before anything depends on them.
 - The performance budgets are targets, measured in stage 6, not yet proven.
+
+### Step 32. Session recovery requested, design drafted
+
+The owner asked that no Claude session is ever lost to a terminal crash, a power cut or a quit, because running `claude` again starts an empty chat. Findings: transcripts are never deleted on a crash, plain `claude` just starts a new session; `--session-id <uuid>` lets HSOS choose the id before launch. Design: new module `sessions` with an fsynced append-only ledger, auto-resume on terminal restore, transcript backup and a picker. It's drafted in `docs/drafts/session-recovery.md`. Paused at the owner's request before writing it into `spec/`.
