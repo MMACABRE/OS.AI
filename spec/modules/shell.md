@@ -62,6 +62,8 @@ The frame everything else runs in: starts and supervises processes, owns the win
 - **SHELL-24.** The main window refuses all navigation and all new windows (SEC-2).
 - **SHELL-25.** The title bar is drawn by the renderer. The window is created frameless with the native window controls overlay enabled, so minimise, maximise and close stay native.
 
+- **SHELL-26.** At launch `main` creates a token of 32 random bytes, hex encoded. `getLaunchToken` returns it only to a caller in `link-service`. A call arriving from the renderer returns `BAD_REQUEST`. The token is never logged (P-8).
+
 ## Preload API
 
 ```ts

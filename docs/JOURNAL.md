@@ -230,3 +230,24 @@ Decisions:
 - A changed-on-disk file is never overwritten without the owner choosing "Overwrite" in a bar that also offers "Compare" and "Reload".
 - Just before Claude edits a file, HSOS snapshots it. This uses Claude Code's pre-tool hook, so the version before Claude's change is always kept, even for a file HSOS had never seen. `claude-link` therefore depends on `history`.
 - History stores each distinct content once, by hash, outside the project.
+
+### Step 26. Claude link module specified
+
+`spec/modules/claude-link.md` (rules LINK-1 to LINK-61) and `spec/contracts/channels/claude-link.ts`.
+
+Before writing it, the spec author read the rest of Claude Code's hooks reference and the CLI reference. Facts confirmed today:
+
+- HTTP hooks post each event's JSON to a URL. A connection failure, a non-2xx status or a timeout is a non-blocking error.
+- Header values can take environment variables listed in `allowedEnvVars`. The URL cannot.
+- Hooks from different sources merge. A plugin's hooks are added to the owner's own.
+- `claude --plugin-dir` loads a plugin for one session. `claude --settings` overrides chosen settings keys for one session.
+- `SubagentStart` carries `agent_id` and `agent_type` only. The `Agent` tool's input carries the model when one is named.
+- `Stop` carries the last assistant message and the list of background tasks.
+
+Decisions:
+
+- HSOS never edits the owner's Claude Code settings. Inside HSOS terminals, a small PowerShell function wraps `claude` and adds `--plugin-dir` and `--settings` pointing at files HSOS generates at each launch. Sessions outside HSOS are untouched.
+- The statusline command is a single `curl.exe` call that posts the statusline JSON to HSOS and prints the reply. Usage limits come from that JSON.
+- HSOS answers every hook with an empty success reply. It never blocks or alters what Claude does.
+- A subagent's model is shown when it was named at spawn. Otherwise the HUD shows the agent type.
+- Before Claude writes or edits a file, HSOS snapshots it, waiting at most 1.5 seconds.

@@ -33,6 +33,8 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
 - **TERM-5.** When `launch` is set, that text followed by a carriage return is written to the shell 300 ms after its first output, or after 2 000 ms if there is no output.
 - **TERM-6.** When a shell exits, its terminal becomes `exited` with the exit code, `exited` is emitted, and the terminal stays in the registry until `kill` is called so the panel can still show its last output.
 
+- **TERM-7.** When the extra environment holds `HSOS_SHELL_INIT` and the shell's file name is `pwsh.exe` or `powershell.exe`, the shell is started with the configured `shellArgs` followed by `-NoExit -Command ". $env:HSOS_SHELL_INIT"`. For any other shell the variable is passed and nothing else changes. See LINK-3 and LINK-4.
+
 ### Output
 
 - **TERM-10.** Output from a shell is collected and emitted as one `data` event at most every 8 ms, or sooner when 65 536 bytes are waiting.
@@ -140,6 +142,8 @@ There is no empty state: a terminal panel always has or is starting a shell.
 | TERM-4 | integration | a factory that throws on spawn | `create` | `TERM_SPAWN_FAILED`; `list` is empty |
 | TERM-5 | integration | `launch: 'claude'`, fake clock, the fake emits output | 300 ms pass | `claude\r` was written once |
 | TERM-6 | integration | a running terminal | the fake exits with code 3 | `exited` is emitted with 3; `list` shows state `exited` |
+| TERM-7 | integration | extra env with `HSOS_SHELL_INIT`, shell `pwsh.exe` | `create` | the spawn args end with `-NoExit`, `-Command`, `. $env:HSOS_SHELL_INIT` |
+| TERM-7 | integration | the same env, shell `cmd.exe` | `create` | the spawn args equal `shellArgs` |
 | TERM-10 | integration | fake clock | the fake emits 10 chunks within 5 ms | one `data` event is emitted after 8 ms holding all bytes in order |
 | TERM-10 | integration | fake clock | the fake emits 70 000 bytes at once | a `data` event is emitted without waiting 8 ms |
 | TERM-11 | integration | a terminal | three batches are emitted | their `seq` values are 1, 2, 3 |

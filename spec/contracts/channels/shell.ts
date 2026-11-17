@@ -56,6 +56,12 @@ export const shellChannels = {
     zEmpty,
   ),
 
+  /**
+   * The random token created at launch for local listeners (P-7). Only link-service may call
+   * this; main refuses callers from the renderer with BAD_REQUEST (SHELL-26).
+   */
+  getLaunchToken: request('shell.getLaunchToken', 'main', zEmpty, z.object({ token: z.string().min(32) })),
+
   /** Writes text to the system clipboard. */
   writeClipboard: request('shell.writeClipboard', 'main', z.object({ text: z.string().max(5_000_000) }), zEmpty),
 } as const;
