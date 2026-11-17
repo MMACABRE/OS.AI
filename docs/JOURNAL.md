@@ -121,3 +121,20 @@ Open decision tickets, all now unblocked except where noted:
 - Spec format and implementer protocol
 - Visual direction (waits on "What puts HSOS a step above")
 - Module map and build order (waits on "What puts HSOS a step above" and "Spec format and implementer protocol")
+
+### Step 15. Six decisions confirmed by the owner
+
+The owner said yes to all six recommendations. The tickets are closed and indexed on the map.
+
+1. **What puts HSOS a step above.** Seven capabilities in the first build: an all-pane HUD, HSOS as an MCP server, shells that survive a UI crash, local history with restore, a graph that includes Claude's files, live theming, per-project workspaces.
+2. **Agent HUD scope.** Everything the existing mod shows, plus context used, cost and current tool per agent.
+3. **File safety rules.** No permanent delete, no overwrite of a changed file without asking, no writes to the vault from the graph, no history-rewriting git commands.
+4. **GitHub sync behaviour.** Fetch and fast-forward pull are automatic. Commit and push are one click. Auto commit-and-push is opt-in per repo.
+5. **Customisation model.** JSON settings and themes, drag and drop layout per project, in-codebase modules, no marketplace.
+6. **Spec format and implementer protocol.** The file set from the research on writing specs for weak models.
+
+Two tickets remain: Visual direction, and Module map and build order.
+
+### Step 16. Reference app from the owner
+
+The owner pointed to an existing app they like, shown in a browser tab with a transcript. The Chrome extension was not connected, so it has not been reviewed yet. It feeds the Visual direction ticket.
