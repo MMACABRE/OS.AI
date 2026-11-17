@@ -71,3 +71,7 @@ Six background agents are running, one per approved research ticket. Each writes
 ### Step 9. Research agents resumed
 
 All six research agents stopped on 2026-11-16 when the account hit its 5-hour usage limit. None had finished. After the limit reset, each agent was resumed from its saved state with the same brief. No findings are recorded yet.
+
+### Step 10. Research agents stopped
+
+The owner asked for all six research agents to be stopped. All six were stopped before finishing. Their saved state remains, so each can be resumed later. The six research tickets stay open.
