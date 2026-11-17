@@ -154,6 +154,7 @@ Conventions shown:
 ## Boundaries, enforced by lint
 
 - `src/modules/<a>/**` may import: its own folder, `@hsos/contracts/**`, and third-party packages allowed for that module in its spec.
+- `src/modules/*/panel/**` may also import `@hsos/ui-kit`, the public entry of the `ui-kit` module. This is the one module imported directly, because it holds components, not behaviour.
 - `src/modules/*/panel/**` and `src/ui/**` may not import Node built-ins, `electron`, or anything under `service/`.
 - `src/modules/*/service/**` may not import `react` or anything under `panel/`.
 - Only `src/main/**` and `src/preload/**` import `electron`, with one exception: `src/modules/browser/service/**`.

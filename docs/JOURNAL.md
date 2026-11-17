@@ -195,3 +195,9 @@ Items 5 and 6 form a new module, `review`. The capability map now has eighteen m
 - `spec/contracts/`: `result.ts`, `ids.ts`, `bus.ts`, `module.ts`, `paths.ts`, `theme.ts`. These are real TypeScript files the app imports.
 
 Next: one spec and one channel contract per module, stage by stage.
+
+### Step 23. Stage 0 module specs written
+
+Four module specs with numbered behaviour rules and test tables: `diagnostics` (10 rules), `shell` (25 rules), `settings` (20 rules), `ui-kit` (component list, icon set, palette and key handling rules). Channel contracts added: `schemas.ts`, `channels/shell.ts`, `channels/settings.ts`, `channels/diagnostics.ts`.
+
+Decision: panels may import `ui-kit` directly. Every other module is reached only through contracts.
