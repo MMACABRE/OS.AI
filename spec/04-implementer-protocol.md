@@ -18,7 +18,7 @@ A git pre-commit hook (`scripts/guard.mjs`, created in task 001) rejects a commi
 
 1. Run `pwsh scripts/init.ps1`. It installs, type checks and runs the smoke test. If it fails, fixing that is the whole session.
 2. Read the last entry of `PROGRESS.md` and run `git log --oneline -10`.
-3. Open the lowest-numbered card in `tasks/` whose `Status` line in `PROGRESS.md` is not `done`.
+3. Find the lowest-numbered card that `PROGRESS.md` does not list with `Status: done`. Cards live in `tasks/stage-<n>.md`, one `## <number> <name>` section each, numbered across all stages from 001.
 4. Read the card's "Read first" files. Read nothing else from `spec/` unless the card says so.
 5. **Red.** Write the tests the card lists, from the test tables in the module spec. Run them. They must fail for the right reason: the thing under test does not exist yet.
 6. **Green.** Write the code. Only the files in the card's list.
@@ -54,12 +54,12 @@ Next: <next task number>
 
 ## Task card format
 
-Every card in `tasks/` has these sections, in this order:
+Every card has these parts, in this order. Paths in a card are from the repo root. A path ending in `/` means "files inside this folder that the steps name".
 
 - **Goal.** One sentence.
 - **Stage.** The build stage number.
 - **Read first.** At most four files, with section numbers.
-- **Files.** The exact list to create or change. Six at most.
+- **Files.** The exact list to create or change. Six at most, not counting test files. Card 001 is the one exception, because it creates the project's configuration.
 - **Steps.** Numbered. Each step names the function or component to write and the rules it implements.
 - **Tests.** The test files to create and the rule ids each covers.
 - **Done when.** Commands that must pass and the feature ids that flip.

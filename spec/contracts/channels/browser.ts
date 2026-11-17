@@ -26,8 +26,8 @@ export type SnapshotNode = {
   ref: string;
   role: string;
   name: string;
-  value?: string;
-  children?: SnapshotNode[];
+  value?: string | undefined;
+  children?: SnapshotNode[] | undefined;
 };
 
 export const SnapshotNodeSchema: z.ZodType<SnapshotNode> = z.lazy(() =>
