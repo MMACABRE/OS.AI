@@ -201,3 +201,17 @@ Next: one spec and one channel contract per module, stage by stage.
 Four module specs with numbered behaviour rules and test tables: `diagnostics` (10 rules), `shell` (25 rules), `settings` (20 rules), `ui-kit` (component list, icon set, palette and key handling rules). Channel contracts added: `schemas.ts`, `channels/shell.ts`, `channels/settings.ts`, `channels/diagnostics.ts`.
 
 Decision: panels may import `ui-kit` directly. Every other module is reached only through contracts.
+
+### Step 24. Stage 1 module specs written
+
+- `spec/modules/workspace.md` (35 rules): projects, panels, save and restore, the app frame.
+- `spec/modules/terminal.md` (61 rules): creating shells, output batching, reattach, flow control, input, view, projects.
+- `spec/contracts/channels/workspace.ts` and `terminal.ts`.
+- `spec/reference/ring-buffer.ts`: finished code for the replay buffer. Its self-check was run and passed.
+
+Decisions:
+
+- Shells of a project keep running when another project is opened, and reattach on return. A setting turns this off.
+- After a reattach the terminal is resized by one row and back, so a full-screen program redraws.
+- Scrollback is serialised by the view and stored by the PTY host, so history returns after a restart.
+- The working folder restored for a terminal is the folder it was started in. Tracking folder changes inside the shell is left out.
