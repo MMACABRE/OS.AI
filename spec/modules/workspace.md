@@ -63,6 +63,8 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 - **WS-33.** Window width below 1100 collapses the right area; below 800 the left area too. Widening again restores the areas that were open before the automatic collapse, and only those.
 - **WS-34.** Dock key bindings and drag behaviour follow `design/layout.md`.
 - **WS-35.** On `focusPanelRequested`, the panel is brought to the front of its group and focused.
+- **WS-36.** `requestOpenPanel` is re-emitted by `main` as `openPanelRequested`. The UI handles it as `openPanel`, except that with `focus: false` the panel is added behind the active tab of the focused group and focus does not move.
+- **WS-37.** `listOpenPanels` is answered by `main` from the last list the UI reported. The UI reports the list 300 ms after any dock change. `target` is the panel's file path or URL when it has one.
 
 ## Commands
 

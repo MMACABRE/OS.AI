@@ -75,6 +75,29 @@ export const workspaceChannels = {
     zEmpty,
   ),
 
+  /**
+   * A service asks the UI to open a panel (used by `mcp`). `main` re-emits it as
+   * `openPanelRequested`. With `focus: false` the panel opens as a background tab (MCP-11).
+   */
+  requestOpenPanel: request(
+    'workspace.requestOpenPanel',
+    'main',
+    z.object({ type: z.string(), state: z.unknown(), focus: z.boolean() }),
+    zEmpty,
+  ),
+  openPanelRequested: event(
+    'workspace.openPanelRequested',
+    'main',
+    z.object({ type: z.string(), state: z.unknown(), focus: z.boolean() }),
+  ),
+  /** Lists open dock panels for `hsos_list_panels`. The UI answers through `main`. */
+  listOpenPanels: request(
+    'workspace.listOpenPanels',
+    'main',
+    zEmpty,
+    z.array(z.object({ panelId: zPanelId, type: z.string(), title: z.string(), target: z.string().nullable() })),
+  ),
+
   /** Asks the UI to focus a panel, for example after a notification is clicked. */
   focusPanelRequested: event('workspace.focusPanelRequested', 'main', z.object({ panelId: zPanelId })),
 } as const;
