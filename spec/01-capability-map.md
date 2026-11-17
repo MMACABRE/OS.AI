@@ -15,10 +15,10 @@ Module ids are fixed. They name folders, test files, rule prefixes and task card
 | `terminal` | `TERM` | PTY host, terminal panels, splits, reattach, scrollback restore, grouping by worktree | `workspace` |
 | `files` | `FILE` | File tree, watcher, viewer, light editor, atomic save, change detection | `workspace` |
 | `history` | `HIST` | Local history snapshots, per-file timeline, diff, restore | `files` |
-| `git` | `GIT` | GitHub login, status, fetch, pull, commit, push, conflict list, worktrees | `files` |
 | `claude-link` | `LINK` | Hook receiver, statusline forwarder, registry of Claude sessions and subagents, snapshot before Claude edits a file | `shell`, `terminal`, `history` |
-| `skills` | `SKILL` | Skill index, favourites, paste into terminal, background run, skills-repo sync | `claude-link`, `git` |
-| `hud` | `HUD` | HUD panel: attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `ui-kit` |
+| `git` | `GIT` | GitHub sign-in, status, fetch, pull, commit, push, worktrees, opt-in automatic sync | `files`, `claude-link` |
+| `skills` | `SKILL` | Skill index, favourites, background runs, skills-repo sync | `files`, `git` |
+| `hud` | `HUD` | HUD panel: attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `terminal`, `ui-kit` |
 | `activity` | `ACT` | Activity timeline across files, artifacts inbox | `history`, `claude-link` |
 | `review` | `REV` | Changes panel with live diff; feedback tray that sends pinned comments to a terminal | `git`, `history`, `terminal` |
 | `browser` | `BROW` | Browser panels, tabs, isolated profile, DevTools Protocol control, element capture | `workspace`, `review` |

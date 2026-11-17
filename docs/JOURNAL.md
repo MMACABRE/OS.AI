@@ -251,3 +251,18 @@ Decisions:
 - HSOS answers every hook with an empty success reply. It never blocks or alters what Claude does.
 - A subagent's model is shown when it was named at spawn. Otherwise the HUD shows the agent type.
 - Before Claude writes or edits a file, HSOS snapshots it, waiting at most 1.5 seconds.
+
+### Step 27. Git and skills modules specified
+
+- `spec/modules/git.md` (rules GIT-1 to GIT-61), `spec/contracts/channels/git.ts`.
+- `spec/reference/git-status-parser.ts`: finished parser. Its self-check passed, and its expected format was compared with the output of the real `git` on this machine.
+- `spec/modules/skills.md` (rules SKILL-1 to SKILL-34), `spec/contracts/channels/skills.ts`.
+
+Decisions:
+
+- HSOS runs the installed `git.exe` and never holds a GitHub token. Push and pull use git's own credential helper. Signing in means running `gh auth login` in a terminal. The OAuth device flow from the research is dropped: it needed the owner to register an OAuth app and added nothing.
+- Every git command passes a safety check that refuses a fixed list of history-rewriting arguments and any subcommand outside a short allowed list.
+- Commit messages are built from file names by default. Asking Claude for a message is an option, off by default, because it spends usage.
+- Automatic commit and push stays off unless a repo is listed for it, and waits while a Claude session in the project is working.
+- Background skill runs default to Haiku, one at a time, and start only from a dialog that names the model.
+- Skills sync only pushes local skills to the repo. It never copies from the repo to this computer and never deletes a skill folder.
