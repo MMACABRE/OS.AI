@@ -48,6 +48,7 @@ All communication between processes goes through one typed bus. Contract: `contr
 - **BUS-4.** When a service dies, every pending `req` to it resolves with error code `SERVICE_DOWN`.
 - **BUS-5.** Events are not queued for absent subscribers. A panel that mounts asks for current state with a `req`, then subscribes.
 - **BUS-6.** Payloads are plain JSON values, plus `Uint8Array` for terminal data and file bytes.
+- **BUS-7.** Each handler receives `CallMeta` as its second argument. `meta.from` is set by the receiving bus from the port or IPC channel the request arrived on: the process's own name for an in-process call, the service's name for its port, `ui` for the renderer. Forwarded service-to-service requests keep the original sender, set by the broker. A payload can never set it.
 
 ## 3. Results and errors
 

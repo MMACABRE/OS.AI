@@ -60,6 +60,7 @@ A path is checked after resolving `..` and symbolic links.
 - **FILE-24.** A write failure returns `FILE_WRITE_FAILED` with the system's reason. The original file is unchanged.
 - **FILE-25.** `save` returns the new `FileVersion`, which the editor uses as its next `baseHash`.
 - **FILE-26.** Saves to the same path run one at a time, in the order received.
+- **FILE-27.** `writeBytes` writes given bytes atomically with every observer run and cause `restore`. It shares the write queue of FILE-26. It accepts calls only from inside `workspace-service`; a call that arrived over a port from another process returns `BAD_REQUEST`.
 
 ### Creating, renaming, deleting
 

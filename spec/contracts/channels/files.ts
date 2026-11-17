@@ -109,6 +109,19 @@ export const filesChannels = {
   stat: request('files.stat', 'workspace-service', z.object({ path: zAbsPath }), FileVersion),
   save: request('files.save', 'workspace-service', SaveRequest, FileVersion, 30_000),
 
+  /**
+   * Writes raw bytes atomically with observers run, for `history` restores only.
+   * The renderer may not call it: the handler returns BAD_REQUEST for callers outside
+   * workspace-service (FILE-27).
+   */
+  writeBytes: request(
+    'files.writeBytes',
+    'workspace-service',
+    z.object({ path: zAbsPath, bytes: z.instanceof(Uint8Array), cause: z.literal('restore') }),
+    FileVersion,
+    30_000,
+  ),
+
   createFile: request('files.createFile', 'workspace-service', z.object({ path: zAbsPath }), FileVersion),
   createDir: request('files.createDir', 'workspace-service', z.object({ path: zAbsPath }), zEmpty),
   rename: request('files.rename', 'workspace-service', z.object({ from: zAbsPath, to: zAbsPath }), zEmpty),

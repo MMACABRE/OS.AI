@@ -205,7 +205,7 @@ At the end of this stage HSOS opens a themed, empty window with a command palett
 **Steps.**
 1. `transport.ts`: a type `Transport` with `send(envelope)` and `onMessage(listener)`, and `createLoopbackTransport()` for tests.
 2. `createBus({ process, transport, clock, log })` returns a `Bus`. It routes by `channel.owner`: calls to a channel owned by `process` run the handler directly (SHELL-17).
-3. Implement BUS-1 to BUS-6 and SHELL-18, SHELL-19.
+3. Implement BUS-1 to BUS-7 and SHELL-18, SHELL-19.
 4. `FakeClock` implements `Clock` with `advance(ms)`. `FakeBus` is `createBus` over a loopback transport with handlers registrable for any owner.
 
 **Tests.** `tests/shell/bus.test.ts`: the BUS and SHELL-16 to SHELL-19 rows of `shell.md`.

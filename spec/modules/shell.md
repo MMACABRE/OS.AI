@@ -101,6 +101,7 @@ Nothing else is exposed (SEC-3).
 | SHELL-12 | integration | a request pending to a fake service | the service dies | the request resolves with `SERVICE_DOWN` |
 | SHELL-13 | integration | a fake service that exits at once | the supervisor runs with a fake clock | after the sixth death no further start happens; `restartService` starts it |
 | SHELL-14 | fault | the app is running | the renderer is killed | the window reloads and reaches `uiReady` |
+| BUS-7 | unit | a handler recording `meta` | it is called in-process, then through a loopback transport marked `ui` | `meta.from` is the process name, then `ui` |
 | SHELL-16, BUS-1 | unit | a handler for a channel | a request with a wrong payload arrives | the handler is not called and the caller gets `BAD_REQUEST` |
 | SHELL-16, BUS-2 | unit | a handler that throws | it is called | the caller gets `INTERNAL` |
 | SHELL-16, BUS-3 | unit | a handler that never answers, fake clock | the channel's timeout passes | the caller gets `TIMEOUT` |

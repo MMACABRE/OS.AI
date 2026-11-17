@@ -56,6 +56,14 @@ export type Envelope =
 
 export type Unsubscribe = () => void;
 
+/**
+ * Facts about a request that the receiving side sets from the port it arrived on,
+ * never from the payload (BUS-7). Handlers use it to refuse callers (SHELL-26, FILE-27).
+ */
+export type CallMeta = {
+  readonly from: ServiceId | 'ui';
+};
+
 /** The bus as seen by any module, in any process. */
 export type Bus = {
   /** Sends a request. Never rejects: failures arrive as `{ ok: false }` (BUS-2, BUS-3, BUS-4). */
@@ -64,7 +72,7 @@ export type Bus = {
   /** Registers the handler for a request channel. Only the owner process may call this. */
   handle<Req, Res>(
     channel: RequestChannel<Req, Res>,
-    handler: (payload: Req) => Promise<Result<Res>> | Result<Res>,
+    handler: (payload: Req, meta: CallMeta) => Promise<Result<Res>> | Result<Res>,
   ): void;
 
   /** Publishes an event to every subscriber. Only the owner process may call this. */
