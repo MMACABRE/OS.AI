@@ -148,3 +148,26 @@ The reference app could not be viewed: no browser was running on the owner's com
 ### Step 18. Reference tool reviewed from a transcript
 
 The owner pasted the transcript of a video about another person's "agentic OS" and asked for the parts about the tool. Fourteen features are listed and compared with HSOS in `docs/drafts/reference-agentic-os.md`. The app itself has not been seen, so its look is still unknown. Which of its features join HSOS is a question for the owner.
+
+### Step 19. Owner delegated every decision
+
+The owner said to decide everything and ask no questions until the spec is complete. From here each decision is made by the spec author and logged.
+
+Decisions made at once:
+
+- **Reference tool features.** Added to the first build: cache state in the HUD, skills deck with background runs, artifacts inbox, activity timeline, element capture. Later: home dashboard with micro apps, usage by skill, 3D graph. Left out: calendar, email, routines view, notes backlog, recommendations app, cache keep-warm pings.
+- **Module map.** Seventeen modules, the draft's sixteen plus `activity`. Four service process kinds plus the UI. Seven build stages.
+- **Visual direction.** "Graphite": dark-first, warm near-black surfaces, hairline borders, one amber signal colour, compact density, Geist type. Decided without a prototype because the owner asked for no questions.
+
+All map tickets are closed. The remaining work is writing the spec itself.
+
+### Step 20. Spec foundation written
+
+New files under `spec/`: `README.md`, `00-principles.md`, `01-capability-map.md`, `02-architecture.md`, `03-stack.md`, `04-implementer-protocol.md`, `05-testing.md`. Also `GLOSSARY.md` at the root.
+
+Choices recorded in them:
+
+- Package versions were read from the npm registry today and pinned exactly.
+- Six risky third-party APIs get spike tasks in stage 0 before anything depends on them.
+- The implementer writes test code from test tables in each module spec, tests first. The spec author does not ship test code for every module, only reference code for the hardest parts. This changes the earlier research recommendation, which had the spec author writing all tests.
+- Twelve fault tests define the reliability bar.
