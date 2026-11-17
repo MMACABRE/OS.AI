@@ -64,6 +64,8 @@ The frame everything else runs in: starts and supervises processes, owns the win
 
 - **SHELL-26.** At launch `main` creates a token of 32 random bytes, hex encoded. `getLaunchToken` returns it only to a caller in `link-service`. A call arriving from the renderer returns `BAD_REQUEST`. The token is never logged (P-8).
 
+- **SHELL-27.** `openPath` opens a file in its default program only when its extension is in the list in the contract. Any other extension returns `BAD_REQUEST`, so HSOS can never be made to launch a program or script.
+
 ## Preload API
 
 ```ts

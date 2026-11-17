@@ -266,3 +266,22 @@ Decisions:
 - Automatic commit and push stays off unless a repo is listed for it, and waits while a Claude session in the project is working.
 - Background skill runs default to Haiku, one at a time, and start only from a dialog that names the model.
 - Skills sync only pushes local skills to the repo. It never copies from the repo to this computer and never deletes a skill folder.
+
+### Step 28. HUD, activity and review specified
+
+- `spec/modules/hud.md` (rules HUD-1 to HUD-41) and `spec/contracts/channels/hud.ts` (settings only).
+- `spec/modules/activity.md` (rules ACT-1 to ACT-34) and `spec/contracts/channels/activity.ts`.
+- `spec/modules/review.md` (rules REV-1 to REV-37) and `spec/contracts/channels/review.ts`.
+- `shell` gained `openPath`, limited to a list of document and media extensions so HSOS can never launch a program.
+
+Decisions:
+
+- The attention board orders sessions by who needs the owner first. Selecting a session focuses its terminal and marks it seen.
+- Cache state is shown as minutes of warmth left, computed in the UI from the time of Claude's last reply. Nothing is spent to keep a cache warm.
+- Windows notifications fire only when HSOS is not focused, at most one per session per 10 seconds.
+- Who changed a file is decided by matching each snapshot with Claude's edit events within a few seconds. Unmatched changes are "Outside".
+- Artifacts are files of chosen types that Claude created, or that appeared while a Claude session was working. They are listed, never moved or deleted.
+- Feedback is pasted into the terminal without pressing Enter, so the owner reads it before it is sent. Comments are never cleared automatically.
+- The Changes view has no "discard changes" action, because that would need a git command HSOS does not run.
+
+Model note: from this step on the spec is written by Claude Opus 5.5. The owner switched models in the CLI.

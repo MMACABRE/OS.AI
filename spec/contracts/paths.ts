@@ -26,4 +26,8 @@ export type DataPaths = {
   noteIndexFile(project: ProjectId): AbsPath;
   terminalRestoreFile(project: ProjectId, terminal: TerminalId): AbsPath;
   hotExitDir(project: ProjectId): AbsPath;
+  /** %LOCALAPPDATA%\HSOS\activity\<projectId>-artifacts.json */
+  artifactsFile(project: ProjectId): AbsPath;
+  /** %LOCALAPPDATA%\HSOS\review\<projectId>-comments.json */
+  reviewCommentsFile(project: ProjectId): AbsPath;
 };

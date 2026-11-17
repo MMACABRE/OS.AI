@@ -45,6 +45,12 @@ export const shellChannels = {
   /** Opens an https URL in the owner's default browser. Other schemes are refused (SHELL-21). */
   openExternal: request('shell.openExternal', 'main', z.object({ url: z.string().url() }), zEmpty),
 
+  /**
+   * Opens a file in the system's default program. Allowed only for the extensions
+   * pdf, mp4, webm, png, jpg, jpeg, gif, webp, svg, html, htm, txt, md (SHELL-27).
+   */
+  openPath: request('shell.openPath', 'main', z.object({ path: zAbsPath }), zEmpty),
+
   /** Reveals a path in Windows Explorer. */
   revealInExplorer: request('shell.revealInExplorer', 'main', z.object({ path: zAbsPath }), zEmpty),
 
