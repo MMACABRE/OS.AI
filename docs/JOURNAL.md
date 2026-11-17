@@ -171,3 +171,18 @@ Choices recorded in them:
 - Six risky third-party APIs get spike tasks in stage 0 before anything depends on them.
 - The implementer writes test code from test tables in each module spec, tests first. The spec author does not ship test code for every module, only reference code for the hardest parts. This changes the earlier research recommendation, which had the spec author writing all tests.
 - Twelve fault tests define the reliability bar.
+
+### Step 21. Recent agentic coding tools researched
+
+At the owner's request, the spec author looked at what changed agentic coding in recent months. The main source was Claude Code's official weekly digest. Findings and choices are in `docs/drafts/recent-tools.md`.
+
+Six additions to HSOS, each built on parts already planned:
+
+1. Attention board in the HUD: sessions grouped as needs you, working, done.
+2. Windows notifications when a session needs the owner or finishes.
+3. Session recap for a terminal that was out of view.
+4. Worktree sessions: start Claude in a new git worktree; terminals grouped by worktree.
+5. Changes panel: a live diff that refreshes as Claude edits.
+6. Feedback tray: pinned comments on diffs, files, artifacts and page elements, sent to a terminal as one prompt.
+
+Items 5 and 6 form a new module, `review`. The capability map now has eighteen modules. Left out, with reasons: session kanban, cross-session messaging, voice dictation, auto-continue after a limit, usage by skill, rewind.

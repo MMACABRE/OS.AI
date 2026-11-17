@@ -38,6 +38,18 @@
 
 **Background run**: A skill started by HSOS outside any terminal, with a chosen model and effort, ending in a report.
 
+**Attention board**: The part of the HUD that groups Claude sessions by whether they need the owner, are working, or are done.
+
+**Session recap**: A short summary of what a Claude session did while its terminal was out of view.
+
+**Worktree session**: A Claude session started in its own git worktree.
+
+**Changes panel**: The panel showing a live diff of the project against the last commit or a session's start.
+
+**Pinned comment**: A note the owner attaches to a diff line, file line, artifact or captured element.
+
+**Feedback tray**: The list of pinned comments waiting to be sent to a terminal as one prompt.
+
 **Snapshot**: A stored copy of one file's content at one moment.
 
 **Local history**: All snapshots, kept outside the project.
