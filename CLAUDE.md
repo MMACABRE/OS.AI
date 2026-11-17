@@ -6,6 +6,10 @@ Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code
 
 **Next:** spec author writes that draft into `spec/` and `tasks/` (new module `sessions`, cards after 055, renumber). Implementation not started; after that comes task card 001 in `tasks/stage-0.md`.
 
+## Before any work
+
+The owner edits this repo from more than one device. At the start of every session, run `git fetch --prune` and `git status -sb`, then `git pull --ff-only` if behind and the tree is clean. If it has diverged or has local changes, report that instead of merging. Push finished work.
+
 ## If you are the implementer
 
 You build HSOS from the spec. You do not design it.
