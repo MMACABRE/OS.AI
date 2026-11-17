@@ -40,6 +40,13 @@ export type SettingsSection<T> = {
   readonly defaults: T;
 };
 
+/**
+ * A named slot, declared in one module's contract, that other modules in the same
+ * process fill. It lets a later module add behaviour to an earlier one without the
+ * earlier one importing it. `T` exists only at compile time.
+ */
+export type ExtensionPoint<T> = { readonly id: string; readonly __type?: T };
+
 /** Context for code running in main or a utility process. */
 export type ServiceContext = {
   readonly moduleId: ModuleId;
@@ -48,6 +55,10 @@ export type ServiceContext = {
   readonly clock: Clock;
   readonly paths: DataPaths;
   registerSettings<T>(section: SettingsSection<T>): SettingsReader<T>;
+  /** Adds a contribution to an extension point. */
+  contribute<T>(point: ExtensionPoint<T>, contribution: T): void;
+  /** Everything contributed to a point so far, in registration order. Read it at use time, not at register time. */
+  contributions<T>(point: ExtensionPoint<T>): readonly T[];
   /** Runs once when the process is asked to stop. Must finish within 3 000 ms. */
   onStop(handler: () => Promise<void>): void;
 };

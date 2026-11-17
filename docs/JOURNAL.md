@@ -215,3 +215,18 @@ Decisions:
 - After a reattach the terminal is resized by one row and back, so a full-screen program redraws.
 - Scrollback is serialised by the view and stored by the PTY host, so history returns after a restart.
 - The working folder restored for a terminal is the folder it was started in. Tracking folder changes inside the shell is left out.
+
+### Step 25. Stage 2 module specs written
+
+- `spec/modules/files.md` (rules FILE-1 to FILE-79): reading, saving, watching, search, the file tree and the viewer.
+- `spec/modules/history.md` (rules HIST-1 to HIST-43): snapshots, restore, retention, the per-file timeline.
+- `spec/contracts/channels/files.ts` and `history.ts`.
+
+A design flaw was found and fixed while writing. The first draft had `files` calling `history` directly, which reversed the dependency direction in the capability map. The fix is a general mechanism added to `contracts/module.ts`: an extension point. `files` declares a slot for write observers, and `history` fills it. `files` never imports `history`.
+
+Decisions:
+
+- A file keeps its original encoding and line endings when saved.
+- A changed-on-disk file is never overwritten without the owner choosing "Overwrite" in a bar that also offers "Compare" and "Reload".
+- Just before Claude edits a file, HSOS snapshots it. This uses Claude Code's pre-tool hook, so the version before Claude's change is always kept, even for a file HSOS had never seen. `claude-link` therefore depends on `history`.
+- History stores each distinct content once, by hash, outside the project.
