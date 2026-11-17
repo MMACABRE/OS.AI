@@ -65,3 +65,9 @@ The owner added one standing instruction: aim one step above every comparable to
 ### Step 8. Research agents launched
 
 Six background agents are running, one per approved research ticket. Each writes to `docs/research/<name>.md` on its own `research/<name>` branch, pushes the branch, and comments on its ticket. The other three research tickets (markdown link graph, GitHub login and sync, file protection) wait for the owner's approval to spawn.
+
+## 2026-11-17
+
+### Step 9. Research agents resumed
+
+All six research agents stopped on 2026-11-16 when the account hit its 5-hour usage limit. None had finished. After the limit reset, each agent was resumed from its saved state with the same brief. No findings are recorded yet.
