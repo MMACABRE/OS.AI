@@ -96,3 +96,28 @@ Findings are on the branch `research/round-1` under `docs/research/`. Each file 
 The six tickets are closed and indexed on the map. Four grilling tickets are now unblocked: Choose the stack, What puts HSOS a step above, Agent HUD scope, Spec format and implementer protocol.
 
 Still open research: Markdown link graph at scale, GitHub login and sync mechanics, Protecting files and surviving crashes.
+
+### Step 13. Last three research tickets resolved
+
+| Ticket | Answer in one line | File on `research/round-1` |
+|---|---|---|
+| Markdown link graph at scale | Obsidian's link grammar, a SQLite index outside the vault, sigma.js on graphology. | `markdown-graph.md` |
+| GitHub login and sync mechanics | Reuse the GitHub CLI login, device flow as fallback, run real `git.exe`. | `github-sync.md` |
+| Protecting files and surviving crashes | Atomic writes, change detection before save, Recycle Bin, local history, supervised processes. | `file-safety.md` |
+
+All nine research tickets are closed.
+
+### Step 14. Stack chosen
+
+The owner restated that this effort produces only the spec, and that the spec author carries the quality. On that basis the spec author chose the stack: Electron, TypeScript in every process, React, xterm.js with node-pty, and Electron's Chromium view for the browser pane. The decision is recorded in `docs/adr/0001-electron-and-typescript.md`. The owner can switch to Tauri 2 until the module specs are written.
+
+Open decision tickets, all now unblocked except where noted:
+
+- What puts HSOS a step above
+- Agent HUD scope
+- File safety rules
+- GitHub sync behaviour
+- Customisation model
+- Spec format and implementer protocol
+- Visual direction (waits on "What puts HSOS a step above")
+- Module map and build order (waits on "What puts HSOS a step above" and "Spec format and implementer protocol")
