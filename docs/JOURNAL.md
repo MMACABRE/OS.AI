@@ -186,3 +186,12 @@ Six additions to HSOS, each built on parts already planned:
 6. Feedback tray: pinned comments on diffs, files, artifacts and page elements, sent to a terminal as one prompt.
 
 Items 5 and 6 form a new module, `review`. The capability map now has eighteen modules. Left out, with reasons: session kanban, cross-session messaging, voice dictation, auto-continue after a limit, usage by skill, rewind.
+
+### Step 22. Design and base contracts written
+
+- `spec/design/visual-direction.md`: the Graphite direction, the list of forbidden looks, type, colour roles, spacing, motion, focus, and the four panel states.
+- `spec/design/layout.md`: window anatomy, panel kinds, dock behaviour, command palette, default key bindings.
+- `spec/design/themes/`: three theme files, Graphite (dark, default), Paper (light), Ink (high contrast).
+- `spec/contracts/`: `result.ts`, `ids.ts`, `bus.ts`, `module.ts`, `paths.ts`, `theme.ts`. These are real TypeScript files the app imports.
+
+Next: one spec and one channel contract per module, stage by stage.
