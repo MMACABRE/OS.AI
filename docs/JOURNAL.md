@@ -285,3 +285,19 @@ Decisions:
 - The Changes view has no "discard changes" action, because that would need a git command HSOS does not run.
 
 Model note: from this step on the spec is written by Claude Opus 5.5. The owner switched models in the CLI.
+
+### Step 29. Browser, graph and MCP specified
+
+- `spec/modules/browser.md` (rules BROW-1 to BROW-52), `spec/contracts/channels/browser.ts`.
+- `spec/modules/graph.md` (rules GRAPH-1 to GRAPH-32), `spec/contracts/channels/graph.ts`.
+- `spec/reference/markdown-links.ts`: finished parser for Obsidian links, tags, headings and frontmatter. Its self-check passed.
+- `spec/modules/mcp.md` (rules MCP-1 to MCP-13), `spec/contracts/channels/mcp.ts`: twenty tools in four groups.
+
+Decisions:
+
+- The browser runs in the main process because Electron's page views and DevTools access live there. It uses its own profile, denies page permission requests and downloads, and refuses typing into password and card fields.
+- Because page views are drawn above the window, HSOS hides them while a menu or dialog is open and shows a still image of the page meanwhile.
+- Claude may open localhost without asking. Other sites ask the owner once per host. A visible frame and a "Stop" button show whenever Claude controls a tab.
+- Bare note names resolve to the closest file by folder, then the shortest path. A project note can link to a skill by name.
+- MCP tools only show things, read HSOS state or drive the browser. None writes files, runs commands or touches git; that stays with Claude Code and its own permissions. Tool groups can be turned off to save Claude's context.
+- No automated test runs the real Claude Code with a prompt, because that spends usage. Those checks are marked manual.

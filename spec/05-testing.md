@@ -66,6 +66,10 @@ HSOS is trusted as a daily working environment only when all of these pass.
 | REL-11 | 2-hour soak: 4 terminals with periodic heavy output, file churn of 10 writes per second, HUD events | Memory growth under 10 percent after the first 10 minutes; no handle growth; no process restarts |
 | REL-12 | Property test: random sequences of edit, external change, save, restore, kill | The last content the owner was told is saved is always recoverable from disk or history |
 
+## Tests that spend usage
+
+No automated test starts the real Claude Code with a prompt. Tests use `FakeClaude` and a stub `claude` executable. Checks that need real Claude Code are listed as "manual" in module test tables and are run by the owner.
+
 ## What is not tested
 
 - Third-party libraries' own behaviour.

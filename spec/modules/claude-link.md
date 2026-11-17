@@ -33,6 +33,7 @@ Written under `linkDir` at every launch, atomically. They are HSOS's own data.
 | `plugin\hooks\hooks.json` | One HTTP hook per event in the table below |
 | `session-settings.json` | `{ "statusLine": { "type": "command", "command": "<statusline command>" } }` |
 | `shell-init.ps1` | Defines the `claude` wrapper function (LINK-4) |
+| `mcp.json` | The HSOS MCP server entry (MCP-2). Written only when `mcp` is enabled. |
 
 `session-settings.json` and `hooks.json` contain the port. `session-settings.json` also contains the launch token, because a statusline command cannot read HSOS's environment portably. This is the one exception to P-8: the file is rewritten at every launch, lives under the owner's profile, and the token is useless after HSOS exits.
 
@@ -96,7 +97,7 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | `HSOS_SHELL_INIT` | `linkDir\shell-init.ps1` |
 
 - **LINK-3.** When `HSOS_SHELL_INIT` is set and the shell is `pwsh.exe` or `powershell.exe`, `terminal` starts it with the extra arguments `-NoExit -Command ". $env:HSOS_SHELL_INIT"`. This rule is implemented in `terminal`'s spawn step and listed here because `claude-link` supplies the variable.
-- **LINK-4.** `shell-init.ps1` defines a function `claude` that finds the real `claude` executable with `Get-Command claude -CommandType Application`, and runs it with `--plugin-dir $env:HSOS_PLUGIN_DIR --settings $env:HSOS_SESSION_SETTINGS` followed by the owner's own arguments. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
+- **LINK-4.** `shell-init.ps1` defines a function `claude` that finds the real `claude` executable with `Get-Command claude -CommandType Application`, and runs it with `--plugin-dir $env:HSOS_PLUGIN_DIR --settings $env:HSOS_SESSION_SETTINGS`, then `--mcp-config $env:HSOS_MCP_CONFIG` when that variable is set and the file exists, then the owner's own arguments. `HSOS_MCP_CONFIG` is set by LINK-2 to `linkDir\mcp.json` when `mcp` is enabled. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
 - **LINK-5.** With `enabled` false, no server listens, no variables are set, and shells start without the wrapper.
 - **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file.
 - **LINK-7.** `getStatus` reports whether `claude` is on `PATH` and its version, found by running `claude --version` once at start with a 5 000 ms timeout.
