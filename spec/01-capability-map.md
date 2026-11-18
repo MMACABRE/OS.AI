@@ -24,6 +24,7 @@ Module ids are fixed. They name folders, test files, rule prefixes and task card
 | `browser` | `BROW` | Browser panels, tabs, isolated profile, DevTools Protocol control, element capture | `workspace`, `review` |
 | `graph` | `GRAPH` | Markdown index, link resolution, graph view, backlinks | `files`, `ui-kit` |
 | `mcp` | `MCP` | MCP server for Claude: browser, file, graph and layout tools | `browser`, `files`, `graph`, `workspace`, `claude-link` |
+| `sessions` | `SESS` | Claude session records, transcript backup, auto-resume after a crash or restart, session picker, transcript reader | `claude-link`, `terminal`, `workspace` |
 
 Rules:
 
@@ -37,7 +38,7 @@ Rules:
 | `main` | main process | `shell`, `settings`, `diagnostics` | none; it is the supervisor |
 | `pty-host` | utility process | `terminal` | restart at once; shells are lost and reported |
 | `workspace-service` | utility process | `files`, `history`, `git`, `review`, `graph` index, `activity`, `skills` index | restart at once |
-| `link-service` | utility process | `claude-link`, `mcp` | restart at once |
+| `link-service` | utility process | `claude-link`, `sessions`, `mcp` | restart at once |
 | `ui` | renderer | the panel side of every module | reload on crash |
 | browser views | `WebContentsView`, one per browser tab | page content | reload that tab |
 
@@ -52,7 +53,7 @@ Each stage ends with an app that starts, passes all tests and packages to an `.e
 | 0. Skeleton | `contracts`, `diagnostics`, `shell`, `settings`, `ui-kit` | Open a themed empty window with a command palette and settings screen. Survive a renderer crash. |
 | 1. Terminal | `workspace`, `terminal` | Open a project, run PowerShell and Claude Code in tabs and splits. Shells survive a UI reload. Layout restores. |
 | 2. Files | `files`, `history` | Browse, view, edit, save safely. Restore any earlier version. |
-| 3. Claude awareness | `claude-link`, `git`, `skills`, `hud`, `activity`, `review` | Show limits, sessions that need the owner, subagents, skills, what Claude changed and produced. Review changes and send feedback. Sync with GitHub. Start sessions in worktrees. |
+| 3. Claude awareness | `claude-link`, `sessions`, `git`, `skills`, `hud`, `activity`, `review` | Never lose a Claude session: resume it after a crash or restart, find and read any past one. Show limits, sessions that need the owner, subagents, skills, what Claude changed and produced. Review changes and send feedback. Sync with GitHub. Start sessions in worktrees. |
 | 4. Browser | `browser`, `mcp` | Show a browser panel that Claude drives through MCP. |
 | 5. Graph | `graph`, graph tools in `mcp` | Show the link graph of notes, skills and memory files. |
 | 6. Finish | theme editor, fault tests, soak tests, installer | Meet the reliability bar in `05-testing.md`. |

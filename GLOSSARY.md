@@ -98,6 +98,12 @@
 
 **Implementer**: The model that writes HSOS from this spec.
 
+**Session record**: HSOS's file about one Claude session: its id, folder, terminal, title, state and backup progress. Written before Claude starts, so a crash cannot lose it.
+
+**Interrupted session**: A Claude session that stopped without the owner ending it: a crash, a power cut, a killed terminal or quitting HSOS. HSOS resumes it on its own.
+
+**Transcript backup**: HSOS's own copy of a Claude transcript, kept after Claude Code deletes old ones.
+
 **Agent view**: The graph mode that marks the files Claude Code loads at every session start and shows how many link hops each other note is from them.
 
 **Loaded at start**: A file Claude Code puts into every session's context before the first prompt: `CLAUDE.md` files, their `@path` imports, rules without `paths`, and the first 200 lines of the memory index. Everything else is read only when needed.

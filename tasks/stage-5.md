@@ -4,7 +4,7 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 ---
 
-## 080 Note index
+## 084 Note index
 
 **Goal.** An index of every note, kept current.
 
@@ -24,7 +24,7 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 ---
 
-## 081 Link resolution
+## 085 Link resolution
 
 **Goal.** Links resolve the way Obsidian users expect.
 
@@ -44,7 +44,7 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 ---
 
-## 082 Graph view
+## 086 Graph view
 
 **Goal.** The graph, drawn with care.
 
@@ -64,7 +64,7 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 ---
 
-## 083 Local graph, backlinks and Claude tools
+## 087 Local graph, backlinks and Claude tools
 
 **Goal.** The graph follows the open note, links in previews work, and Claude can search notes.
 
@@ -84,7 +84,7 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 ---
 
-## 084 Stage 5 checks
+## 088 Stage 5 checks
 
 **Goal.** The graph stays smooth with thousands of notes.
 

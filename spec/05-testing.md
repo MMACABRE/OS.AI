@@ -65,6 +65,7 @@ HSOS is trusted as a daily working environment only when all of these pass.
 | REL-10 | Fill the disk during a save (simulated write error) | The original file is intact; the owner sees the error |
 | REL-11 | 2-hour soak: 4 terminals with periodic heavy output, file churn of 10 writes per second, HUD events | Memory growth under 10 percent after the first 10 minutes; no handle growth; no process restarts |
 | REL-12 | Property test: random sequences of edit, external change, save, restore, kill | The last content the owner was told is saved is always recoverable from disk or history |
+| REL-13 | Simulated power cut: kill every HSOS process and every shell at once while a Claude session runs (stub `claude`) | After relaunch the terminal types `claude --resume` with the same session id |
 
 ## Tests that spend usage
 

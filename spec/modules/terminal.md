@@ -56,9 +56,13 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
 - **TERM-23.** After writing a replay, the panel resizes the terminal to one row fewer and then back to the true size, 50 ms apart. A full-screen program such as Claude Code redraws itself in response.
 - **TERM-24.** A panel that mounts with a saved `terminalId`:
   1. calls `attach`. On success it follows TERM-21 and TERM-23.
-  2. on `NOT_FOUND`, calls `takeScrollback`. If text comes back it writes that text, then the divider line `── restored from last session ──` in `color.text.muted`, then creates a new shell in the saved `cwd` and stores the new id in its state.
-  3. with no scrollback, it creates a new shell in the saved `cwd`.
-- **TERM-25.** When `pty-host` itself restarts, every panel shows a one-line banner inside the terminal area: "This shell ended because the terminal service restarted." with a "Start new shell" button. The earlier output stays visible above it.
+  2. on `NOT_FOUND`, calls `takeScrollback`. If text comes back it writes that text, then the divider line `── restored from last session ──` in `color.text.muted`.
+  3. asks every `terminalRecovery` contribution, in order, for an offer for the saved `terminalId`; the first non-null one is used.
+  4. creates a new shell in the saved `cwd` with no `launch` and stores the new id in its state.
+  5. with an offer whose `auto` is true: writes the offer's `notice` in `color.text.muted`, awaits `accepted(newId)`, then writes the offer's `launch` and `\r` to the shell after its first output, or after 2 000 ms with none (as TERM-5). With an offer whose `auto` is false: shows a one-line banner at the top of the terminal area with the offer's `label` as a button and "Not now". Pressing the button does the same as the auto case; either choice removes the banner.
+
+  A failure of `accepted` writes `HSOS: could not resume: <reason>` in `color.state.warn` and leaves the plain shell.
+- **TERM-25.** When `pty-host` itself restarts, every panel shows a one-line banner inside the terminal area: "This shell ended because the terminal service restarted." with a "Start new shell" button. The earlier output stays visible above it. When a `terminalRecovery` contribution has an offer for the panel's old terminal id, the banner also has the offer's `label` as a button, which starts the new shell and uses the offer as in TERM-24 step 5.
 
 ### Flow control
 
@@ -112,7 +116,7 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
 - **TERM-54.** A hidden terminal (a background tab) keeps receiving and buffering output. It is fitted when it becomes visible.
 - **TERM-55.** URLs in output are links. Ctrl+click opens `https:` and `http://localhost` URLs in a browser panel when the `browser` module is present, otherwise through `shell.openExternal`. File paths with a line number, such as `src\a.ts:12`, open in the file viewer at that line.
 - **TERM-56.** The tab title is the program title reported by the shell, else the shell's file name. A worktree terminal shows the worktree name as a badge before the title.
-- **TERM-57.** An exited terminal shows `[process exited with code N]` and a "Restart" button that starts a new shell in the panel's `cwd` (TERM-73).
+- **TERM-57.** An exited terminal shows `[process exited with code N]` and a "Restart" button that starts a new shell in the panel's `cwd` (TERM-73). When a `terminalRecovery` contribution has an offer for that terminal, a second button with the offer's `label` restarts the shell and uses the offer as in TERM-24 step 5.
 
 ### Projects
 
@@ -197,6 +201,10 @@ There is no empty state: a terminal panel always has or is starting a shell.
 | TERM-21 | component | a panel attached with `lastSeq` 5 | data events with seq 4, 5, 6 arrive | only seq 6 is written to the view |
 | TERM-22 | unit | covered by the reference self-check | | |
 | TERM-24 | component | saved `terminalId` unknown to the service; stored scrollback "old" | the panel mounts | the view shows "old", then the divider, and a new terminal id is saved |
+| TERM-24 | component | saved `terminalId` unknown; a recovery contribution returns an offer with `auto: true` and launch `claude --resume x` | the panel mounts and the new shell prints a prompt | the notice is shown; `accepted` was called with the new id before `claude --resume x\r` was written |
+| TERM-24 | component | the same offer with `auto: false` | the panel mounts | the banner shows the label; nothing is written until the button is pressed |
+| TERM-25 | component | a recovery offer for the old id | `pty-host` restarts | the banner has "Start new shell" and the offer's label |
+| TERM-57 | component | an exited terminal and a recovery offer | it renders | "Restart" and the offer's label both show |
 | TERM-31 | integration | an attached terminal | 1 000 001 bytes are emitted with no ack | the fake is paused; after acks bring the gap to 250 000 it is resumed |
 | TERM-32 | integration | a terminal with no attach | 5 MB are emitted | the fake is never paused |
 | TERM-33 | integration | two attached terminals, the first paused | the second emits output | its `data` events arrive |

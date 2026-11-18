@@ -4,7 +4,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 085 Theme editor
+## 089 Theme editor
 
 **Goal.** The owner edits a theme and sees every change at once.
 
@@ -29,7 +29,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 086 Fault tests
+## 090 Fault tests
 
 **Goal.** Every fault in the reliability bar is tested against the packaged app.
 
@@ -49,7 +49,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 087 Property and soak tests
+## 091 Property and soak tests
 
 **Goal.** The data-loss invariant holds under random sequences, and the app holds steady for two hours.
 
@@ -71,7 +71,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 088 Performance budgets
+## 092 Performance budgets
 
 **Goal.** Every budget in the architecture is measured and recorded.
 
@@ -91,7 +91,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 089 Installer and first run
+## 093 Installer and first run
 
 **Goal.** An installer the owner can run, and a first launch that explains itself.
 
@@ -114,7 +114,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 090 Final review
+## 094 Final review
 
 **Goal.** Confirm HSOS matches its spec before the owner relies on it.
 

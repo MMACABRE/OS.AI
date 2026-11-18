@@ -1,7 +1,8 @@
 /** Channels owned by the `terminal` module. Spec: spec/modules/terminal.md */
 import { z } from 'zod';
 import { event, request } from '../bus';
-import type { SettingsSection } from '../module';
+import type { TerminalId } from '../ids';
+import type { ExtensionPoint, SettingsSection } from '../module';
 import { zAbsPath, zEmpty, zEpochMs, zProjectId, zTerminalId } from '../schemas';
 
 export const TerminalInfo = z.object({
@@ -126,6 +127,30 @@ export const terminalChannels = {
   exited: event('terminal.exited', 'pty-host', z.object({ id: zTerminalId, exitCode: z.number().int() })),
   created: event('terminal.created', 'pty-host', TerminalInfo),
 } as const;
+
+/** Something a terminal panel can start in a new shell instead of a plain prompt (TERM-24, TERM-25, TERM-57). */
+export type RecoveryOffer = {
+  /** Button text, for example `Resume Claude session "fix login"`. */
+  readonly label: string;
+  /** One muted line written into the view before the new shell starts. */
+  readonly notice: string;
+  /** Text typed into the new shell, as `launch` (TERM-5). */
+  readonly launch: string;
+  /** True: TERM-24 uses the offer without asking. False: it shows the offer as a button. */
+  readonly auto: boolean;
+  /** Called with the new terminal's id as soon as `create` returns, before `launch` is typed. */
+  accepted(newTerminalId: TerminalId): Promise<void>;
+};
+
+/**
+ * Modules in the ui process that can bring something back into a terminal whose shell is gone
+ * contribute one of these. `sessions` uses it. The first non-null offer wins.
+ */
+export type TerminalRecovery = {
+  offerFor(savedTerminalId: TerminalId): Promise<RecoveryOffer | null>;
+};
+
+export const terminalRecovery: ExtensionPoint<TerminalRecovery> = { id: 'terminal.recovery' };
 
 /** The seam between pty-host and the real ConPTY. tests/fakes/fake-pty.ts implements it too. */
 export type PtyProcess = {

@@ -12,17 +12,17 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Stage.** 3
 
-**Read first.** `spec/modules/claude-link.md` "How Claude Code reports to HSOS", "Files HSOS generates", "Hook entry", "Events registered", "Statusline command", LINK-1 to LINK-7, LINK-10, LINK-13, `spec/modules/terminal.md` TERM-7.
+**Read first.** `spec/modules/claude-link.md` "How Claude Code reports to HSOS", "Files HSOS generates", "Hook entry", "Events registered", "Statusline command", LINK-1 to LINK-7, LINK-10, LINK-13, `spec/modules/terminal.md` TERM-7, `spec/reference/shell-init.ps1`.
 
-**Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init-template.ts`, `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fakes/fake-claude.ts`.
+**Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init.ps1` (copy of the reference), `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fakes/fake-claude.ts`.
 
 **Steps.**
-1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/mcp` used in card 076.
-2. `generated-files.ts`: writes the four files atomically from the tables. `shell-init-template.ts` returns the PowerShell text of LINK-4.
+1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/mcp` used in card 080.
+2. `generated-files.ts`: writes the four files atomically from the tables. Copy `spec/reference/shell-init.ps1` unchanged, import it as text with Vite's `?raw` suffix, and write it as `shell-init.ps1` (LINK-4).
 3. Pass the variables to `terminal.setExtraEnv`. The terminal registry already loads `HSOS_SHELL_INIT` (TERM-7, card 030).
 4. `FakeClaude`: posts fixture JSON from `tests/fixtures/claude/` to the server with the right headers. Create the fixtures from the examples in the Claude Code hooks and statusline documentation: one file per event in the "Events registered" table, plus `statusline.json`.
 
-**Tests.** `tests/claude-link/link-server.test.ts`: LINK-1, LINK-2, LINK-6, LINK-10, LINK-13. `tests/claude-link/shell-init.test.ts`: LINK-4 row.
+**Tests.** `tests/claude-link/link-server.test.ts`: LINK-1, LINK-2, LINK-6, LINK-10, LINK-13. `tests/claude-link/shell-init.test.ts`: LINK-4 rows.
 
 **Done when.** Tests pass.
 
@@ -110,7 +110,102 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 056 Git runner and status
+## 056 Session records and launches
+
+**Goal.** Every Claude session started in an HSOS terminal has a record on disk before Claude starts, so no crash can lose it.
+
+**Stage.** 3
+
+**Read first.** `spec/modules/sessions.md` "What Claude Code does", "Files", SESS-1 to SESS-6, `spec/contracts/channels/sessions.ts`, `spec/reference/shell-init.ps1`, `spec/modules/claude-link.md` LINK-2, LINK-4.
+
+**Files.** `src/modules/sessions/service/record-store.ts`, `src/modules/sessions/service/launch-ingest.ts`, `src/modules/sessions/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fixtures/claude/stub-claude.cmd`.
+
+**Steps.**
+1. `record-store.ts`: SESS-5 and SESS-6. Load at start, write with `write-file-atomic`, coalesce the timed writes.
+2. `launch-ingest.ts`: SESS-2 and SESS-3.
+3. Register `sessionsSection` and add `sessions` after `claude-link` in the link-service module list.
+4. `stub-claude.cmd`: a batch file named `claude` that prints `ARGS: ` and its arguments and exits. The wrapper itself is already in place from card 051.
+
+**Tests.** `tests/sessions/wrapper.test.ts`: the three SESS-1 rows, running `powershell.exe` with the stub first on `PATH`; the test fails at once if `Get-Command claude -CommandType Application` does not resolve to the stub, so the real `claude` can never run. `tests/sessions/records.test.ts`: SESS-2, SESS-3, SESS-5, SESS-6 rows.
+
+**Done when.** Tests pass.
+
+**Commit.** `feat(sessions): record every Claude launch before it starts`
+
+---
+
+## 057 Session states and transcript backup
+
+**Goal.** Records follow each session through its hooks, and HSOS keeps its own copy of every transcript.
+
+**Stage.** 3
+
+**Read first.** `spec/modules/sessions.md` SESS-10 to SESS-15, SESS-20 to SESS-23, `spec/modules/claude-link.md` LINK-15, `spec/contracts/channels/claude-link.ts` (`hookObservers`).
+
+**Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/sessions/service/hook-handler.ts`, `src/modules/sessions/service/transcript-backup.ts`, `src/modules/sessions/service/restore-transcript.ts`, `src/modules/sessions/register.service.ts`.
+
+**Steps.**
+1. LINK-15 in `link-server.ts`: after answering a hook, call each `hookObservers` contribution.
+2. `hook-handler.ts`: SESS-10 to SESS-15, validating each payload with its own zod schema.
+3. `transcript-backup.ts`: SESS-20, SESS-21. `restore-transcript.ts`: SESS-22 and the `restoreTranscript` handler.
+4. `bind` handler (SESS-11).
+
+**Tests.** `tests/sessions/hooks.test.ts`: SESS-10 to SESS-15 rows with `FakeClaude`. `tests/sessions/backup.test.ts`: SESS-20 to SESS-23 rows. `tests/claude-link/link-server.test.ts`: LINK-15 row.
+
+**Done when.** Tests pass.
+
+**Commit.** `feat(sessions): track session states and back up transcripts`
+
+---
+
+## 058 Resume after restore
+
+**Goal.** A terminal that comes back without its shell resumes the Claude session it was running.
+
+**Stage.** 3
+
+**Read first.** `spec/modules/sessions.md` SESS-40 to SESS-43, `spec/modules/terminal.md` TERM-24, TERM-25, TERM-57, `spec/contracts/channels/terminal.ts` (`terminalRecovery`).
+
+**Files.** `src/modules/sessions/service/resume-offer.ts`, `src/modules/sessions/panel/recovery.ts`, `src/modules/sessions/register.ui.ts`, `src/ui/module-list.ts`, `src/modules/terminal/panel/attach-or-restore.ts`, `src/modules/terminal/panel/TerminalPanel.tsx`, `tests/e2e/session-recovery-fault.e2e.ts`.
+
+**Steps.**
+1. `resume-offer.ts`: SESS-40 and SESS-43, and the `getResumeOffer` handler.
+2. `recovery.ts`: SESS-41 and SESS-42, contributed to `terminalRecovery` from `register.ui.ts`.
+3. TERM-24 steps 3 to 5, and the offer buttons of TERM-25 and TERM-57, in the terminal panel. These edits to the terminal module are part of this card.
+4. The fault test: a second stub, `tests/fixtures/claude/stub-claude-wait.cmd`, prints its arguments and then waits (`ping -n 600 127.0.0.1 >nul`). The test puts it first on `PATH` as `claude`, starts a session through the wrapper, posts its `SessionStart` with `FakeClaude`, kills the whole app tree with `taskkill /F /T /PID <main pid>`, starts the app again, and reads the restored terminal.
+
+**Tests.** `tests/sessions/resume-offer.test.ts`: SESS-13 (`lost-terminal`) and SESS-40 rows. `tests/sessions/recovery.ui.test.tsx`: SESS-41, SESS-42 rows. `tests/terminal/attach.ui.test.tsx`: the new TERM-24, TERM-25 and TERM-57 rows. `tests/e2e/session-recovery-fault.e2e.ts`: the SESS-40, REL-13 row. Leave the manual rows for the owner.
+
+**Done when.** Tests pass. Feature `F-060` passes.
+
+**Commit.** `feat(sessions): resume interrupted Claude sessions on restore`
+
+---
+
+## 059 Session picker and transcript reader
+
+**Goal.** Every session of a project can be found, read and resumed.
+
+**Stage.** 3
+
+**Read first.** `spec/modules/sessions.md` SESS-30 to SESS-32, SESS-50, SESS-51, "Commands", "States".
+
+**Files.** `src/modules/sessions/service/list-sessions.ts`, `src/modules/sessions/service/read-transcript.ts`, `src/modules/sessions/panel/SessionPicker.tsx`, `src/modules/sessions/panel/SessionPicker.module.css`, `src/modules/sessions/panel/TranscriptPanel.tsx`, `src/modules/sessions/panel/TranscriptPanel.module.css`, `src/modules/sessions/register.ui.ts`.
+
+**Steps.**
+1. `list-sessions.ts`: SESS-30 with the in-memory cache, and the `list` handler.
+2. `read-transcript.ts`: SESS-50's items, and the `readTranscript` handler.
+3. `SessionPicker.tsx`: the `sessions.find` dialog, SESS-31 and SESS-32. `TranscriptPanel.tsx`: dock panel `sessions.transcript`, SESS-50 and SESS-51.
+
+**Tests.** `tests/sessions/list.test.ts`: SESS-30 rows. `tests/sessions/transcript.test.ts`: SESS-50 row. `tests/sessions/picker.ui.test.tsx`: SESS-31, SESS-32 rows. `tests/sessions/reader.ui.test.tsx`: SESS-51 row.
+
+**Done when.** Tests pass. Feature `F-061` passes.
+
+**Commit.** `feat(sessions): find, read and resume any Claude session`
+
+---
+
+## 060 Git runner and status
 
 **Goal.** Safe git commands and an accurate status.
 
@@ -130,7 +225,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 057 Sync with GitHub
+## 061 Sync with GitHub
 
 **Goal.** Fetch, pull, push and sync, automatic where safe.
 
@@ -150,7 +245,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 058 Commits, worktrees and sign-in
+## 062 Commits, worktrees and sign-in
 
 **Goal.** Commit with a suggested message, create worktree sessions, and sign in to GitHub.
 
@@ -170,7 +265,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 059 Git in the window
+## 063 Git in the window
 
 **Goal.** The branch button, the changes count and the worktree command.
 
@@ -190,7 +285,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 060 Skills index
+## 064 Skills index
 
 **Goal.** Every skill on the machine, with favourites.
 
@@ -210,7 +305,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 061 Background skill runs
+## 065 Background skill runs
 
 **Goal.** Run a skill on a chosen model and read its report.
 
@@ -230,7 +325,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 062 Skills repo sync
+## 066 Skills repo sync
 
 **Goal.** The skills folder stays in step with the owner's skills repo, pushing only.
 
@@ -250,7 +345,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 063 HUD sessions
+## 067 HUD sessions
 
 **Goal.** The attention board, notifications and the status items.
 
@@ -270,7 +365,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 064 HUD usage, skills deck and repo row
+## 068 HUD usage, skills deck and repo row
 
 **Goal.** Usage bars, the skills deck and the skills repo row.
 
@@ -290,7 +385,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 065 Session recap
+## 069 Session recap
 
 **Goal.** Coming back to a terminal shows what happened while away.
 
@@ -310,7 +405,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 066 Activity timeline
+## 070 Activity timeline
 
 **Goal.** One list of every change and who made it.
 
@@ -330,7 +425,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 067 Artifacts inbox
+## 071 Artifacts inbox
 
 **Goal.** Everything Claude made, in one searchable place.
 
@@ -350,7 +445,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 068 Changes and diffs
+## 072 Changes and diffs
 
 **Goal.** See what changed since the last commit or since a session began, live.
 
@@ -360,7 +455,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Files.** `src/modules/review/service/change-lists.ts`, `src/modules/review/panel/ChangesView.tsx`, `src/modules/review/panel/ChangesView.module.css`, `src/modules/review/panel/DiffPanel.tsx`, `src/modules/review/register.service.ts`, `src/modules/review/register.ui.ts`.
 
-**Steps.** Implement the rules except comments (card 069).
+**Steps.** Implement the rules except comments (card 073).
 
 **Tests.** `tests/review/change-lists.test.ts`: REV-1 to REV-5 rows. `tests/review/changes-view.ui.test.tsx`: REV-12, REV-14. `tests/review/diff-panel.ui.test.tsx`: REV-20.
 
@@ -370,7 +465,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 069 Feedback tray
+## 073 Feedback tray
 
 **Goal.** Pin comments and send them to Claude in one go.
 
@@ -390,7 +485,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 070 Stage 3 checks
+## 074 Stage 3 checks
 
 **Goal.** Stage 3 works end to end with `FakeClaude`, and survives a `link-service` crash.
 
@@ -398,11 +493,11 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Read first.** `spec/05-testing.md` REL-5, "Tests that spend usage".
 
-**Files.** `tests/e2e/stage-3.e2e.ts`, `tests/e2e/stage-3-fault.e2e.ts`, `tests/fixtures/claude/stub-claude.cmd`.
+**Files.** `tests/e2e/stage-3.e2e.ts`, `tests/e2e/stage-3-fault.e2e.ts`.
 
 **Steps.**
-1. `stub-claude.cmd`: a batch file named `claude` that prints its arguments and exits, put first on `PATH` for the test app.
-2. E2E: open a project; `terminal.newClaude`; the stub prints `--plugin-dir`, `--settings` and `--mcp-config` arguments; `FakeClaude` posts a session that needs the owner; the HUD shows it first; the status item reads `1 need you`; a `file-edit` event and an outside write to that file appear in Activity as Claude's change; the Changes view lists the file; a pinned comment is pasted into the terminal.
+1. Put `tests/fixtures/claude/stub-claude.cmd` (card 056) first on `PATH` for the test app.
+2. E2E: open a project; `terminal.newClaude`; the stub prints `--plugin-dir`, `--settings`, `--mcp-config` and `--session-id` arguments; `sessions.find` lists the session; `FakeClaude` posts a session that needs the owner; the HUD shows it first; the status item reads `1 need you`; a `file-edit` event and an outside write to that file appear in Activity as Claude's change; the Changes view lists the file; a pinned comment is pasted into the terminal.
 3. Fault: REL-5.
 
 **Tests.** Those files.

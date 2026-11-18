@@ -1,6 +1,6 @@
 # Draft: Claude session recovery (module `sessions`, prefix `SESS`)
 
-Status: design agreed with the owner, not yet written into `spec/`. Paused 2026-11-17 at the owner's request.
+Status: written into `spec/modules/sessions.md` on 2026-11-18 (JOURNAL step 35). Kept for history; the spec wins where they differ.
 
 ## The owner's problem
 

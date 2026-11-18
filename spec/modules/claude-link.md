@@ -32,7 +32,7 @@ Written under `linkDir` at every launch, atomically. They are HSOS's own data.
 | `plugin\.claude-plugin\plugin.json` | `{ "name": "hsos-link", "version": "<app version>", "description": "Reports session activity to HSOS" }` |
 | `plugin\hooks\hooks.json` | One HTTP hook per event in the table below |
 | `session-settings.json` | `{ "statusLine": { "type": "command", "command": "<statusline command>" } }` |
-| `shell-init.ps1` | Defines the `claude` wrapper function (LINK-4) |
+| `shell-init.ps1` | The `claude` wrapper function: a byte-for-byte copy of `spec/reference/shell-init.ps1` (LINK-4) |
 | `mcp.json` | The HSOS MCP server entry (MCP-2). Written only when `mcp` is enabled. |
 
 `session-settings.json` and `hooks.json` contain the port. `session-settings.json` also contains the launch token, because a statusline command cannot read HSOS's environment portably. This is the one exception to P-8: the file is rewritten at every launch, lives under the owner's profile, and the token is useless after HSOS exits.
@@ -95,11 +95,12 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | `HSOS_PLUGIN_DIR` | `linkDir\plugin` |
 | `HSOS_SESSION_SETTINGS` | `linkDir\session-settings.json` |
 | `HSOS_SHELL_INIT` | `linkDir\shell-init.ps1` |
+| `HSOS_SESSIONS_LAUNCH_DIR` | `sessionsDir\launches` (SESS-1) |
 
 - **LINK-3.** When `HSOS_SHELL_INIT` is set and the shell is `pwsh.exe` or `powershell.exe`, `terminal` loads the file through the loader of TERM-7, which reads it as text and runs it as a script block, so it works under the `Restricted` execution policy. This rule is implemented in `terminal`'s spawn step and listed here because `claude-link` supplies the variable.
-- **LINK-4.** `shell-init.ps1` defines a function `claude` that finds the real `claude` executable with `Get-Command claude -CommandType Application`, and runs it with `--plugin-dir $env:HSOS_PLUGIN_DIR --settings $env:HSOS_SESSION_SETTINGS`, then `--mcp-config $env:HSOS_MCP_CONFIG` when that variable is set and the file exists, then the owner's own arguments. `HSOS_MCP_CONFIG` is set by LINK-2 to `linkDir\mcp.json` when `mcp` is enabled. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
+- **LINK-4.** `shell-init.ps1` is `spec/reference/shell-init.ps1`, copied unchanged. It defines a function `claude` that finds the real executable with `Get-Command claude -CommandType Application` and runs it with, in this order: `--mcp-config $env:HSOS_MCP_CONFIG` when that variable is set and the file exists, `--plugin-dir $env:HSOS_PLUGIN_DIR`, `--settings $env:HSOS_SESSION_SETTINGS`, `--session-id <guid>` for a fresh session (SESS-1), then the owner's own arguments. `--mcp-config` comes first because it takes several values and would swallow an owner's prompt placed after it. A first argument that is a Claude Code subcommand, such as `doctor`, runs with the owner's arguments only. `HSOS_MCP_CONFIG` is set by LINK-2 to `linkDir\mcp.json` when `mcp` is enabled. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
 - **LINK-5.** With `enabled` false, no server listens, no variables are set, and shells start without the wrapper.
-- **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file.
+- **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file. The one exception is SESS-22: on the owner's request, `sessions` puts a transcript backup back where Claude Code expects it, and only when no file is there.
 - **LINK-7.** `getStatus` reports whether `claude` is on `PATH` and its version, found by running `claude --version` once at start with a 5 000 ms timeout.
 
 ### Receiving
@@ -109,6 +110,7 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 - **LINK-12.** Every hook request is answered with status 200 and an empty body within 50 ms, except the pre-edit snapshot (LINK-30). HSOS never returns a decision, so it never blocks, allows or alters anything Claude does.
 - **LINK-13.** Bodies above 5 MB are refused with status 413.
 - **LINK-14.** Text from hook payloads is data (P-6). It is cut to the lengths in the contract, has control characters other than line breaks removed, and is only ever displayed.
+- **LINK-15.** After a hook passes LINK-10, LINK-11 and LINK-13 and has been answered, each contribution to `hookObservers` receives the event name, the `X-HSOS-Terminal` id (null when absent or not a terminal id) and the parsed body. An observer that throws is logged and the others still run.
 
 ### Sessions
 
@@ -208,6 +210,8 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | LINK-1 | integration | the first port is taken | the service starts | it listens on the next port and `getStatus` reports it |
 | LINK-2 | integration | a fake terminal channel | the service starts | `setExtraEnv` was called once with the five variables |
 | LINK-4 | integration | the generated `shell-init.ps1` and a stub `claude.cmd` on PATH that prints its arguments | `powershell.exe -NoProfile -Command "<TERM-7 loader>; claude -p hi"` with `HSOS_SHELL_INIT` set to the file | output contains `--plugin-dir`, `--settings` and `-p hi` |
+| LINK-4 | integration | `generated-files` has written its files | the written `shell-init.ps1` is compared | it equals `spec/reference/shell-init.ps1` byte for byte |
+| LINK-15 | integration | two observers, the first throws | `FakeClaude` posts `SessionStart` with header `X-HSOS-Terminal: t1` | the second observer got `SessionStart`, `t1` and the body; the hook was answered 200 |
 | LINK-6 | integration | a temp home folder with a `.claude\settings.json` | the service starts and stops | that file's bytes are unchanged |
 | LINK-10 | integration | a request without the token | it is posted | status 401; no session exists |
 | LINK-11 | integration | a `Stop` body that is not JSON | it is posted | status 200; no crash; one warning logged |

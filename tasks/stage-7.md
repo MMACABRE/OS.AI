@@ -4,7 +4,7 @@ At the end of this stage HSOS says aloud when a Claude session finishes or needs
 
 ---
 
-## 091 Spoken alerts
+## 095 Spoken alerts
 
 **Goal.** The owner hears when a session finishes or needs them, unless they are already looking at it.
 
@@ -29,7 +29,7 @@ At the end of this stage HSOS says aloud when a Claude session finishes or needs
 
 ---
 
-## 092 Claude setup view
+## 096 Claude setup view
 
 **Goal.** One view lists the owner's MCP servers, plugins, skills, subagents, hooks and permission rules, with when each was last used.
 
@@ -53,7 +53,7 @@ At the end of this stage HSOS says aloud when a Claude session finishes or needs
 
 ---
 
-## 093 Agent view in the graph
+## 097 Agent view in the graph
 
 **Goal.** The graph shows what Claude loads at every start, how far each note is from it by links, and which notes no link reaches.
 
@@ -78,7 +78,7 @@ At the end of this stage HSOS says aloud when a Claude session finishes or needs
 
 ---
 
-## 094 Stage 7 checks
+## 098 Stage 7 checks
 
 **Goal.** Stage 7 meets its bar.
 

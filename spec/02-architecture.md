@@ -6,7 +6,7 @@
 main  (supervisor, window, bus broker, settings, diagnostics)
  ├─ pty-host            utility process   shells
  ├─ workspace-service   utility process   files, history, git, graph index, activity, skills index
- ├─ link-service        utility process   Claude hook receiver, MCP server
+ ├─ link-service        utility process   Claude hook receiver, session recovery, MCP server
  ├─ ui                  renderer          every panel
  └─ browser views       WebContentsView   one per browser tab
 ```
@@ -98,6 +98,7 @@ Contract: `contracts/paths.ts`. All paths come from `DataPaths`, never from stri
 | Browser profile | `%LOCALAPPDATA%\HSOS\browser\` | Chromium partition |
 | Claude link | `%LOCALAPPDATA%\HSOS\link\` | forwarder script, port file |
 | Terminal init script | `%LOCALAPPDATA%\HSOS\terminal\terminal-init.ps1` | PowerShell, rewritten at every start (TERM-8) |
+| Claude sessions | `%LOCALAPPDATA%\HSOS\sessions\` | `records\<sessionId>.json`, `launches\*.json`, `transcripts\<sessionId>.jsonl` (SESS-1, SESS-5, SESS-20) |
 
 - `projectId` is the first 16 hex characters of the SHA-256 of the project's absolute path, lower-cased, with forward slashes.
 - Every JSON file HSOS writes has a top-level `"version"` number. A loader that meets a higher version than it knows refuses to load and keeps defaults.

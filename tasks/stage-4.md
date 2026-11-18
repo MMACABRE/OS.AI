@@ -4,7 +4,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 071 Browser tabs
+## 075 Browser tabs
 
 **Goal.** Page views in an isolated profile, placed over their panels.
 
@@ -24,7 +24,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 072 Browser panel
+## 076 Browser panel
 
 **Goal.** The toolbar, address field and overlay handling.
 
@@ -44,7 +44,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 073 Agent page reading and input
+## 077 Agent page reading and input
 
 **Goal.** Claude can read the page and click and type in it.
 
@@ -64,7 +64,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 074 Agent navigation and owner control
+## 078 Agent navigation and owner control
 
 **Goal.** Claude navigates under the host rules, and the owner always sees and can stop it.
 
@@ -84,7 +84,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 075 Element capture
+## 079 Element capture
 
 **Goal.** Pick an element on a page and send its code to Claude or the feedback tray.
 
@@ -104,7 +104,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 076 MCP server
+## 080 MCP server
 
 **Goal.** Claude Code connects to HSOS's own MCP server.
 
@@ -112,11 +112,11 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 **Read first.** `spec/modules/mcp.md` "Connection", MCP-1 to MCP-5, MCP-12, MCP-13, `spec/contracts/channels/mcp.ts`, `spec/modules/claude-link.md` LINK-4.
 
-**Files.** `src/modules/mcp/service/mcp-server.ts`, `src/modules/mcp/service/tool-registry.ts`, `src/modules/mcp/register.service.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init-template.ts`, `src/services/link-service/module-list.ts`.
+**Files.** `src/modules/mcp/service/mcp-server.ts`, `src/modules/mcp/service/tool-registry.ts`, `src/modules/mcp/register.service.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/services/link-service/module-list.ts`.
 
 **Steps.**
 1. First prove the SDK: a test creates the server with the SDK's Streamable HTTP server transport mounted on the link server, and the SDK's client lists one test tool. If the transport class names differ in the installed SDK, use the installed ones and record it.
-2. Implement MCP-1 to MCP-5, MCP-12, MCP-13. Write `mcp.json` and add `--mcp-config` to the wrapper.
+2. Implement MCP-1 to MCP-5, MCP-12, MCP-13. Write `mcp.json` and set `HSOS_MCP_CONFIG`. The wrapper already passes `--mcp-config` when that variable is set (LINK-4).
 
 **Tests.** `tests/mcp/mcp-server.test.ts`: MCP-1, MCP-2, MCP-3, MCP-12.
 
@@ -126,7 +126,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 077 MCP browser tools
+## 081 MCP browser tools
 
 **Goal.** Claude drives the browser panel through MCP.
 
@@ -146,7 +146,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 078 MCP workspace and review tools
+## 082 MCP workspace and review tools
 
 **Goal.** Claude can show files and diffs to the owner and read pinned feedback.
 
@@ -169,7 +169,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 079 Stage 4 checks
+## 083 Stage 4 checks
 
 **Goal.** Stage 4 works end to end.
 

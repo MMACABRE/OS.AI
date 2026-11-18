@@ -1,7 +1,8 @@
 /** Channels owned by the `claude-link` module. Spec: spec/modules/claude-link.md */
 import { z } from 'zod';
 import { event, request } from '../bus';
-import type { SettingsSection } from '../module';
+import type { TerminalId } from '../ids';
+import type { ExtensionPoint, SettingsSection } from '../module';
 import { zAbsPath, zAgentId, zClaudeSessionId, zEmpty, zEpochMs, zTerminalId } from '../schemas';
 
 /** What a session is doing, as the attention board shows it (LINK-20). */
@@ -162,6 +163,16 @@ export const ClaudeSetup = z.object({
   readAt: zEpochMs,
 });
 export type ClaudeSetup = z.infer<typeof ClaudeSetup>;
+
+/**
+ * Other modules in link-service see every accepted hook by contributing one of these (LINK-15).
+ * `payload` is the parsed JSON body, untrusted: observers validate what they read.
+ */
+export type HookObserver = {
+  onHook(event: string, terminalId: TerminalId | null, payload: unknown): void;
+};
+
+export const hookObservers: ExtensionPoint<HookObserver> = { id: 'claude-link.hookObservers' };
 
 export const ClaudeLinkSettings = z.object({
   enabled: z.boolean().default(true),

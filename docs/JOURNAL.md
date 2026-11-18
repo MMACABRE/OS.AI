@@ -379,3 +379,21 @@ Decisions:
 - Not taken: reading graphify's output into the graph. Graphify maps code, HSOS maps notes.
 
 Spec changes: `spec/modules/shell.md`, `hud.md`, `claude-link.md`, `graph.md`, `spec/01-capability-map.md`, contracts `shell.ts`, `hud.ts`, `claude-link.ts`, `graph.ts`, `paths.ts`, `tasks/stage-7.md`, features F-057 to F-059, glossary. 504 rules, 59 features, 94 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.
+
+### Step 35. Claude session recovery written into the spec
+
+The owner asked for the session recovery design of step 32 to go into the spec. It is now module `sessions` (prefix `SESS`, 24 rules), service in `link-service`, panels in `ui`, built in stage 3 as cards 056 to 059. Cards 056 to 094 became 060 to 098; feature card numbers and every "card NNN" reference moved with them. Facts were re-checked with Claude Code 2.1.327: `--session-id <uuid>`, `-r/--resume`, `-c`, `--fork-session`, the subcommand list, the `SessionStart` sources, the `SessionEnd` reasons and the transcript line types.
+
+Changes from the draft, and why:
+
+- **One record file per session instead of one append-only ledger.** The `claude` wrapper and the service would both have appended to the same file from different processes. Windows does not promise that two appends from two processes land whole. Now the wrapper writes its own small launch file (flushed, then renamed), and only the service writes records, each with `write-file-atomic`. No torn lines, no compaction.
+- **Ended or interrupted by the `SessionEnd` reason.** `clear`, `resume`, `logout` and `prompt_input_exit` are the owner's choice, so they end a session. Anything else, including `other` and no `SessionEnd` at all, is interrupted and gets resumed. This covers a killed Claude at app stop without having to order the stop sequence across processes.
+- **The terminal does not import `sessions`.** It gained an extension point, `terminalRecovery`, that `sessions` fills from the ui process. So `terminal` stays in stage 1 and needs no knowledge of Claude. The restored shell starts without a launch, the offer binds the new terminal id to disk, then the resume command is typed. A second crash resumes the same session again.
+- **`claude-link` passes every accepted hook to observers** (LINK-15) instead of `sessions` parsing hooks itself.
+- **`transcript_path` is trusted only under `%USERPROFILE%\.claude\projects\`**, so a hook payload cannot make HSOS copy an arbitrary file.
+- **The wrapper is now reference code**, `spec/reference/shell-init.ps1`, tested with a stub `claude` under Windows PowerShell 5.1 and the Restricted policy. Writing it found two bugs in LINK-4: `--mcp-config` takes several values, so an owner's prompt typed after it was read as a config file, and HSOS's flags in front of a subcommand such as `claude doctor` would be refused. `--mcp-config` now comes first and subcommands run as typed.
+- **No project id in backup paths.** Session ids are unique, so backups are `transcripts\<sessionId>.jsonl`.
+
+One test run during the research started the real `claude` instead of the stub, because Git Bash rewrote `PATH`. It stopped at once on a missing settings file and sent nothing. The wrapper test in card 056 now refuses to run unless the stub is the `claude` that `Get-Command` finds.
+
+Spec changes: new `spec/modules/sessions.md`, `spec/contracts/channels/sessions.ts`, `spec/reference/shell-init.ps1`; `ids.ts` (`sessions`), `paths.ts` (`sessionsDir`), `terminal.ts` (`terminalRecovery`), `claude-link.ts` (`hookObservers`); `terminal.md` TERM-24, TERM-25, TERM-57; `claude-link.md` LINK-2, LINK-4, LINK-6, LINK-15; `01-capability-map.md`, `02-architecture.md`, `05-testing.md` REL-13; cards 051, 056 to 059, 074, 080; features F-060 and F-061; glossary. 19 modules, 530 rules, 61 features, 98 cards.

@@ -2,9 +2,9 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete except one open change: Claude session recovery (no session lost after a crash or power cut, auto-resume). Design is in `docs/drafts/session-recovery.md`, not yet in `spec/`. Added on 2026-11-18: terminal input (JOURNAL step 33), and stage 7 with spoken alerts, a Claude setup view and the graph's agent view (step 34).
+**Status (2026-11-18):** spec complete. Latest additions: terminal input (JOURNAL step 33), stage 7 extras (step 34), Claude session recovery as module `sessions` with cards 056 to 059 (step 35).
 
-**Next:** spec author writes that draft into `spec/` and `tasks/` (new module `sessions`, cards after 055, renumber; stage 7 cards 091 to 094 move with it). Implementation not started; after that comes task card 001 in `tasks/stage-0.md`.
+**Next:** implementation. Start with task card 001 in `tasks/stage-0.md`.
 
 ## Before any work
 
