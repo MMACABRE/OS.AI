@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strawberry Sprite Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=VT323&display=block" rel="stylesheet">
+<style>
+/* The HSOS mascot, an original strawberry, as a sprite sheet of 16 by 16 cells (HUD-90, HUD-91).
+   Every frame is drawn here from one base sprite, so the sheet, the previews and the export agree.
+   Throwaway design page; the export is what goes to spec/reference/art/. */
+:root { color-scheme: dark; --bg:#0B0A09; --panel:#121010; --frame:#B4512A; --terra:#FF7A3D; --yellow:#F5FF3B; --red:#FF003C; --cyan:#00F0FF; --lav:#C77DFF;
+  --text:#F2E8DE; --text-2:#CDBFB3; --muted:#A08F84; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font: 19px/1.3 'VT323', monospace; }
+main { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; display: grid; gap: 28px; }
+h1 { font: 400 56px/1 'Jersey 10', sans-serif; color: var(--red); text-shadow: 3px 0 0 #7A001D, -2px 0 0 rgba(0,240,255,.5), 0 0 12px rgba(255,0,60,.6); }
+h2 { font-weight: 400; font-size: 20px; color: var(--terra); letter-spacing: .05em; text-transform: uppercase; text-shadow: 0 0 6px rgba(255,122,61,.55); margin-bottom: 10px; }
+p { color: var(--text-2); max-width: 80ch; }
+.box { position: relative; background: var(--panel); border: 2px solid var(--frame); border-radius: 10px; padding: 16px 18px; }
+.sheets { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; }
+.sheet { display: grid; grid-template-columns: auto auto; gap: 0 12px; align-items: center; }
+.sheet .lab { color: var(--text-2); font-size: 17px; text-align: right; }
+.sheet canvas { image-rendering: pixelated; display: block; background:
+  repeating-conic-gradient(#171412 0 25%, #1E1A17 0 50%) 0 0 / 16px 16px; }
+.cols { display: flex; gap: 0; color: var(--muted); font-size: 15px; }
+.previews { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.pv { display: grid; justify-items: center; gap: 4px; padding: 12px 8px 10px; background: #0E0C0B; border: 2px solid #3A2A22; border-radius: 8px; }
+.pv canvas { image-rendering: pixelated; width: 128px; height: 128px; }
+.pv .n { color: var(--yellow); font-size: 22px; } .pv .w { color: var(--muted); font-size: 16px; text-align: center; }
+.pv.mini canvas { width: 48px; height: 48px; }
+table { border-collapse: collapse; font-size: 17px; width: 100%; }
+td, th { border: 2px solid #3A2A22; padding: 2px 10px; text-align: left; font-weight: 400; }
+th { color: var(--terra); }
+code { color: var(--cyan); font-family: inherit; }
+#exportPng, #exportJson { display: none; }
+@media (max-width: 900px) { .sheets { grid-template-columns: 1fr; } .previews { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Strawberry sprite sheet</h1>
+  <p>The HSOS mascot: an original strawberry with cyan leaves, yellow seeds and big black eyes. One row per state, 16 by 16 pixel cells, drawn at whole-number scale with <code>image-rendering: pixelated</code> (HUD-90). The export below is <code>mascot.png</code> (96 by 128) with its frame map <code>mascot.json</code> (HUD-91).</p>
+
+  <section class="box">
+    <h2>Every state, live, at 8x</h2>
+    <div class="previews" id="previews"></div>
+  </section>
+
+  <section class="box">
+    <h2>The sheet at 4x and 2x</h2>
+    <div class="sheets">
+      <div class="sheet" id="sheet4"></div>
+      <div class="sheet" id="sheet2"></div>
+    </div>
+  </section>
+
+  <section class="box">
+    <h2>Frame map</h2>
+    <table id="map"><tr><th>Row</th><th>State</th><th>Session activity</th><th>Frames</th><th>Rate</th><th>Loop</th></tr></table>
+  </section>
+  <pre id="exportPng"></pre><pre id="exportJson"></pre>
+</main>
+<script>
+const PAL = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', c:'#00F0FF', y:'#F5FF3B', e:'#140406', o:'#FF7A3D', P:'#F2E8DE', L:'#A08F84', g:'#2A2420', b:'#6E5A50', s:'#F5FF3B', z:'#C77DFF', d:'#7A001D' };
+const BASE = [
+  "................",
+  ".......c........",
+  "....cc.c.cc.....",
+  "...kccccccck....",
+  "..krrcccccrrk...",
+  ".krrrrrrrrrrrk..",
+  ".krhrrrrrrrrrk..",
+  ".krreerrrreerk..",
+  ".krreerrrreerk..",
+  ".krrrrrrrrrrrk..",
+  "..krryrkkrrryk..",
+  "...krrrrrrrrk...",
+  "....krryrrrk....",
+  ".....krrrrk.....",
+  "......kkkk......",
+  "................"];
+
+/* a frame is the base, changed by a few small operations */
+const grid = () => BASE.map(r => [...r]);
+const set = (g, x, y, ch) => { if (y >= 0 && y < 16 && x >= 0 && x < 16) g[y][x] = ch; };
+const EYES = [[4, 7], [10, 7]];
+function eyes(g, kind, dx = 0, dy = 0) {
+  EYES.forEach(([x, y]) => { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) set(g, x + i, y + j, 'r'); });
+  EYES.forEach(([x, y]) => {
+    const X = x + dx, Y = y + dy;
+    if (kind === 'open') { set(g, X, Y, 'e'); set(g, X + 1, Y, 'e'); set(g, X, Y + 1, 'e'); set(g, X + 1, Y + 1, 'e'); }
+    if (kind === 'half') { set(g, X, Y + 1, 'e'); set(g, X + 1, Y + 1, 'e'); }
+    if (kind === 'shut') { set(g, X, Y + 1, 'k'); set(g, X + 1, Y + 1, 'k'); }
+    if (kind === 'happy') { set(g, X, Y + 1, 'e'); set(g, X + 1, Y, 'e'); }
+  });
+}
+function mouth(g, kind) {
+  set(g, 7, 10, 'r'); set(g, 8, 10, 'r');
+  if (kind === 'flat') { set(g, 7, 10, 'k'); set(g, 8, 10, 'k'); }
+  if (kind === 'open') { set(g, 7, 10, 'k'); set(g, 8, 10, 'k'); set(g, 7, 11, 'e'); set(g, 8, 11, 'e'); }
+  if (kind === 'small') { set(g, 7, 10, 'k'); }
+}
+// arms: two pixels each side; 'up' raises one beside the leaves
+function arm(g, side, pos, ch = 'r') {
+  const x = side === 'l' ? 0 : 14;
+  if (pos === 'down') { set(g, x, 9, ch); set(g, x, 10, ch); }
+  if (pos === 'mid')  { set(g, x, 7, ch); set(g, x + (side === 'l' ? 0 : 1), 6, ch); }
+  if (pos === 'up')   { set(g, x, 5, ch); set(g, x + (side === 'l' ? 0 : 1), 4, ch); set(g, x + (side === 'l' ? 0 : 1), 3, ch); }
+}
+function leaves(g, dx) { if (!dx) return; for (let y = 1; y <= 3; y++) { const row = g[y].slice(); for (let x = 0; x < 16; x++) if (BASE[y][x] === 'c') g[y][x] = BASE[y][x] === 'c' && row[x] === 'c' ? 'r' : row[x];
+  for (let x = 0; x < 16; x++) if (BASE[y][x] === 'c' && x + dx >= 0 && x + dx < 16) g[y][x + dx] = 'c'; } for (let y = 1; y <= 2; y++) for (let x = 0; x < 16; x++) if (g[y][x] === 'r') g[y][x] = '.'; }
+function sprite(g, rows, x0, y0, pal) { rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== '.') set(g, x0 + x, y0 + y, ch); })); }
+const BOOK = ["oPPooPPo", "oPLooPLo", "oooooooo"], BOOK2 = ["oPPoPPPo", "oPLoPLLo", "oooooooo"];
+const LAP = ["cccccccc", "gggggggg", "bbbbbbbb"], LAP2 = ["cbcccbcc", "gggggggg", "bbbbbbbb"];
+const Z = [["zzzz", "..z.", ".z..", "zzzz"]];
+
+/* each state: a list of frames, each { g, dx, dy } */
+const F = (fn, dx = 0, dy = 0) => { const g = grid(); fn(g); return { g, dx, dy }; };
+const STATES = [
+  { id: 'dancing', act: 'working, background', fps: 8, loop: 'loop', frames: [
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'up'); leaves(g, 0); }, 0, 0),
+    F(g => { arm(g, 'l', 'mid'); arm(g, 'r', 'mid'); leaves(g, -1); }, -1, -1),
+    F(g => { arm(g, 'l', 'up'); arm(g, 'r', 'down'); eyes(g, 'happy'); mouth(g, 'open'); }, 0, 0),
+    F(g => { arm(g, 'l', 'up'); arm(g, 'r', 'down'); leaves(g, 1); }, 0, 0),
+    F(g => { arm(g, 'l', 'mid'); arm(g, 'r', 'mid'); leaves(g, 1); }, 1, -1),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'up'); eyes(g, 'happy'); mouth(g, 'open'); }, 0, 0) ] },
+  { id: 'waving', act: 'needs-you', fps: 6, loop: 'loop', frames: [
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'up', 's'); mouth(g, 'open'); }, 0, 0),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'mid', 's'); mouth(g, 'open'); }, 0, -1),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'up', 's'); mouth(g, 'open'); }, 0, 0),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'mid', 's'); }, 0, 0) ] },
+  { id: 'cheering', act: 'done', fps: 6, loop: 'from 4', frames: [
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'shut'); }, 0, 1),
+    F(g => { arm(g, 'l', 'up'); arm(g, 'r', 'up'); eyes(g, 'happy'); mouth(g, 'open'); }, 0, -1),
+    F(g => { arm(g, 'l', 'up'); arm(g, 'r', 'up'); eyes(g, 'happy'); mouth(g, 'open'); set(g, 15, 0, 's'); set(g, 0, 1, 's'); }, 0, -1),
+    F(g => { arm(g, 'l', 'mid'); arm(g, 'r', 'mid'); eyes(g, 'happy'); }, 0, 0),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'happy'); mouth(g, 'small'); }, 0, 0),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'happy'); mouth(g, 'small'); }, 0, 1) ] },
+  { id: 'resting', act: 'idle', fps: 4, loop: 'loop, hold frame 0', frames: [
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); }),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'half'); }),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'shut'); }),
+    F(g => { arm(g, 'l', 'down'); arm(g, 'r', 'down'); eyes(g, 'half'); }) ] },
+  { id: 'sleeping', act: 'ended, no session', fps: 3, loop: 'loop', frames: [0, 1, 2, 3].map(i => F(g => { eyes(g, 'shut'); mouth(g, 'small'); arm(g, 'l', 'down'); arm(g, 'r', 'down');
+    if (i > 0) sprite(g, Z[0], 12, 2 - i, PAL); }, 0, i % 2)) },
+  { id: 'turn', act: 'any state change, 3 frames', fps: 12, loop: 'once', frames: [
+    F(g => { eyes(g, 'open', -1, 0); arm(g, 'r', 'down'); }, 0, 0),
+    F(g => { eyes(g, 'shut'); leaves(g, -1); }, 0, -1),
+    F(g => { eyes(g, 'open', 1, 0); arm(g, 'l', 'down'); }, 0, 0) ] },
+  { id: 'reading', act: 'Notes page, reading', fps: 3, loop: 'loop', frames: [
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, BOOK, 4, 11, PAL); }),
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, BOOK, 4, 11, PAL); }),
+    F(g => { eyes(g, 'half', 0, 1); sprite(g, BOOK2, 4, 11, PAL); }),
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, BOOK2, 4, 11, PAL); }) ] },
+  { id: 'working', act: 'Code page, editing', fps: 8, loop: 'loop', frames: [
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, LAP, 4, 11, PAL); }),
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, LAP2, 4, 11, PAL); }, 0, 0),
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, LAP, 4, 11, PAL); }, 0, 1),
+    F(g => { eyes(g, 'open', 0, 1); sprite(g, LAP2, 4, 11, PAL); }) ] },
+];
+
+/* draw one frame into a context at scale s; the cell clips it */
+function drawFrame(ctx, fr, ox, oy, s) {
+  ctx.save(); ctx.beginPath(); ctx.rect(ox, oy, 16 * s, 16 * s); ctx.clip();
+  fr.g.forEach((row, y) => row.forEach((ch, x) => { if (ch === '.') return; ctx.fillStyle = PAL[ch]; ctx.fillRect(ox + (x + fr.dx) * s, oy + (y + fr.dy) * s, s, s); }));
+  ctx.restore();
+}
+const COLS = Math.max(...STATES.map(st => st.frames.length));
+function buildSheet(s) {
+  const cv = document.createElement('canvas'); cv.width = COLS * 16 * s; cv.height = STATES.length * 16 * s;
+  const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  STATES.forEach((st, r) => st.frames.forEach((fr, c) => drawFrame(ctx, fr, c * 16 * s, r * 16 * s, s)));
+  return cv;
+}
+[[4, 'sheet4'], [2, 'sheet2']].forEach(([s, id]) => {
+  const host = document.getElementById(id), cv = buildSheet(s);
+  const labels = document.createElement('div'); labels.style.display = 'grid'; labels.style.gridTemplateRows = `repeat(${STATES.length}, ${16 * s}px)`;
+  STATES.forEach(st => { const d = document.createElement('div'); d.className = 'lab'; d.style.alignSelf = 'center'; d.textContent = st.id; labels.append(d); });
+  host.append(labels, cv);
+});
+// live previews at 8x
+const pvHost = document.getElementById('previews');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, still = new URLSearchParams(location.search).get('still') === '1';
+const live = STATES.map(st => {
+  const d = document.createElement('div'); d.className = 'pv';
+  const cv = document.createElement('canvas'); cv.width = cv.height = 16; d.append(cv);
+  d.insertAdjacentHTML('beforeend', `<div class="n">${st.id}</div><div class="w">${st.act} · ${st.frames.length} frames · ${st.fps} fps</div>`);
+  pvHost.append(d); return { st, ctx: cv.getContext('2d'), cv };
+});
+function tick(t) {
+  live.forEach(({ st, ctx, cv }) => {
+    let i = 0;
+    if (!reduce && !still) {
+      const n = Math.floor(t / (1000 / st.fps));
+      if (st.loop === 'once') i = n % (st.frames.length + 8) < st.frames.length ? n % (st.frames.length + 8) : st.frames.length - 1;
+      else if (st.loop.startsWith('from')) { const from = +st.loop.split(' ')[1]; i = n < st.frames.length ? n : from + (n - from) % (st.frames.length - from); if (n > 60) i = n % st.frames.length; }
+      else if (st.id === 'resting') { const k = n % 16; i = k < 12 ? 0 : k - 12; }
+      else i = n % st.frames.length;
+    }
+    ctx.clearRect(0, 0, 16, 16); drawFrame(ctx, st.frames[i], 0, 0, 1);
+  });
+  if (!reduce && !still) requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+// frame map and the export
+const map = document.getElementById('map');
+STATES.forEach((st, r) => map.insertAdjacentHTML('beforeend', `<tr><td>${r}</td><td>${st.id}</td><td>${st.act}</td><td>${st.frames.length}</td><td>${st.fps} fps</td><td>${st.loop}</td></tr>`));
+document.getElementById('exportPng').textContent = buildSheet(1).toDataURL('image/png');
+document.getElementById('exportJson').textContent = JSON.stringify({
+  image: 'mascot.png', cell: 16, columns: COLS,
+  states: Object.fromEntries(STATES.map((st, r) => [st.id, { row: r, frames: st.frames.length, fps: st.fps, loop: st.loop, activity: st.act }])),
+}, null, 2);
+document.fonts.ready.then(() => { document.title = 'ready'; });
+</script>
+</body>
+</html>
