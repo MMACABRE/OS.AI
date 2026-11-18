@@ -177,7 +177,27 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 [data-still="1"] .clock .colon { animation: none; }
 @media (prefers-reduced-motion: reduce) { .clock .colon { animation: none; } .brand.shimmer::after { animation: none; } }
 
-/* CRT */.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+/* boxes: pixel components that set them apart from the dust field */
+.w { box-shadow: inset 0 0 0 1px #000, inset 0 0 0 4px rgba(255,122,61,.10); background-size: 8px 8px; }
+.w .cn { position: absolute; width: 10px; height: 10px; pointer-events: none; border: 0 solid var(--terra); filter: drop-shadow(0 0 3px rgba(255,122,61,.6)); }
+.cn.a { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; }
+.cn.b { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
+.cn.c { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; }
+.cn.d { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
+.w h2 { justify-content: flex-start; gap: 8px; }
+.w h2 .aside { margin-left: auto; }
+.ico { width: 16px; height: 16px; flex: none; align-self: center; }
+.led { width: 7px; height: 7px; flex: none; align-self: center; border-radius: 1px; }
+.led.cyan { background: var(--cyan); box-shadow: var(--g-cyan); animation: led 1.8s steps(1) infinite; }
+.led.red { background: var(--red); box-shadow: var(--g-red); animation: led .9s steps(1) infinite; }
+.led.yel { background: var(--yellow); box-shadow: var(--g-yel); }
+@keyframes led { 60% { opacity: .25; } }
+.strip { height: 6px; flex: none; margin-top: -3px; background-repeat: no-repeat; background-size: 100% 6px; image-rendering: pixelated; }
+[data-still="1"] .led { animation: none; }
+@media (prefers-reduced-motion: reduce) { .led { animation: none; } }
+
+/* CRT */
+.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 .crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
 .crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,.55) 100%); }
 .crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,240,230,.06); }
@@ -212,7 +232,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       <div class="grid">
         <div class="edit-bar"><button>Add widget</button><button>Screens</button><button class="done">Done</button></div>
 
-        <section class="w" style="grid-area: 1 / 1 / span 3 / span 2">
+        <section class="w" data-icon="term" data-led="cyan" style="grid-area: 1 / 1 / span 3 / span 2">
           <h2>Session <span class="aside">opus 5.5</span></h2>
           <div class="ribbon-top">
             <canvas class="sprite" data-px="3" width="51" height="51"></canvas>
@@ -232,8 +252,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
           </div>
         </section>
 
-        <section class="w" style="grid-area: 4 / 1 / span 3 / span 2">
-          <h2>Sessions <span class="aside">1 needs you · 2 running</span></h2>
+        <section class="w" data-icon="stack" data-led="red" style="grid-area: 4 / 1 / span 3 / span 2">
+          <h2>Sessions <span class="aside">1 needs you</span></h2>
           <div class="rows">
             <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash</div><div class="sub">pnpm build · 3 min</div></div><span class="when">Open</span></div>
             <div class="row"><span class="state" data-s="run"></span><div><div class="title">hsos · PTY resize</div><div class="sub">Editing pty.ts</div></div><span class="when">12:41</span></div>
@@ -268,7 +288,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
           <div class="doing">reading pty.ts</div>
         </section>
 
-        <section class="w" style="grid-area: 4 / 7 / span 2 / span 2">
+        <section class="w" data-icon="battery" data-led="yel" style="grid-area: 4 / 7 / span 2 / span 2">
           <h2>Usage <span class="aside">plan</span></h2>
           <div class="usage">
             <div><div class="lab"><span class="num">42%</span><span class="muted">5 h · resets 2:14</span></div><div class="cells" data-v="42"></div></div>
@@ -276,8 +296,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
           </div>
         </section>
 
-        <section class="w" style="grid-area: 6 / 7 / span 1 / span 2; justify-content: center">
-          <div class="lab" style="margin:0"><span><span class="w-t">CONTEXT</span></span><span class="muted">122k / 200k</span></div>
+        <section class="w" data-icon="chip" data-led="yel" style="grid-area: 6 / 7 / span 1 / span 2; justify-content: center">
+          <h2>Context <span class="aside">122k / 200k</span></h2>
           <div style="display:flex;gap:12px;align-items:center"><span class="num" style="font-size:28px">61%</span><div class="cells" data-v="61" style="flex:1"></div></div>
         </section>
       </div>
@@ -320,6 +340,30 @@ document.querySelectorAll('.state[data-s]').forEach(el => {
 document.querySelectorAll('.grid > section').forEach(w => w.insertAdjacentHTML('beforeend',
   '<span class="rm" aria-label="Remove">×</span>' + ['tl','tr','bl','br','r','b'].map(k => `<span class="h ${k}"></span>`).join('')));
 
+/* pixel components for every box: corner brackets, an icon, a status light, a dithered strip, a fine texture */
+(() => {
+  const ICONS = {
+    term:    ["########", "#......#", "#.#....#", "#..#...#", "#.#.##.#", "#......#", "########", "........"],
+    stack:   ["#####...", "#...#...", "#####...", "..#####.", "..#...#.", "..#####.", "....###.", "........"],
+    battery: ["........", "#######.", "#.#.#.##", "#.#.#.##", "#.#.#.##", "#######.", "........", "........"],
+    chip:    [".#.#.#..", "#######.", "#.....#.", "#.###.##", "#.....#.", "#######.", ".#.#.#..", "........"],
+  };
+  const svg = (rows, c) => `<svg class="ico" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rows.map((r, y) => [...r].map((ch, x) => ch === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>` : '').join('')).join('')}</svg>`;
+  // texture: one faint pixel in four; strip: dithered, fading left to right
+  const tex = document.createElement('canvas'); tex.width = tex.height = 4; const tg = tex.getContext('2d'); tg.fillStyle = 'rgba(255,122,61,.07)'; tg.fillRect(0, 0, 1, 1); tg.fillRect(2, 2, 1, 1);
+  const st = document.createElement('canvas'); st.width = 160; st.height = 3; const sg = st.getContext('2d'); sg.fillStyle = 'rgba(255,122,61,.55)';
+  const B4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  for (let y = 0; y < 3; y++) for (let x = 0; x < 160; x++) if (1 - x / 160 > (B4[(y % 4) * 4 + (x % 4)] + .5) / 16) sg.fillRect(x, y, 1, 1);
+  const texURL = tex.toDataURL(), stURL = st.toDataURL();
+  document.querySelectorAll('.w[data-icon]').forEach(w => {
+    w.style.backgroundImage = `url(${texURL})`;
+    w.insertAdjacentHTML('afterbegin', '<i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>');
+    const h2 = w.querySelector('h2');
+    h2.insertAdjacentHTML('afterbegin', svg(ICONS[w.dataset.icon], tok('--terra')));
+    h2.insertAdjacentHTML('beforeend', `<i class="led ${w.dataset.led}"></i>`);
+    if (w.dataset.icon !== 'chip') { h2.insertAdjacentHTML('afterend', '<div class="strip"></div>'); w.querySelector('.strip').style.backgroundImage = `url(${stURL})`; }
+  });
+})();
 /* mascot: an original strawberry */
 const SPR = [
   "................",
@@ -524,7 +568,7 @@ gc.addEventListener('wheel', e => {
 }, { passive: false });
 gc.addEventListener('pointerdown', e => { if (hover) return; drag.on = true; [drag.x, drag.y] = canvasPoint(e); drag.sx = drag.x; drag.sy = drag.y; gc.setPointerCapture(e.pointerId); });
 gc.addEventListener('pointermove', e => { if (!drag.on) return; const [px, py] = canvasPoint(e); cam.x -= (px - drag.x) / gs / cam.z; cam.y -= (py - drag.y) / gs / cam.z; drag.x = px; drag.y = py; });
-gc.addEventListener('pointerup', e => { if (drag.on && animate && Math.hypot(drag.x - drag.sx, drag.y - drag.sy) < 4) BG.splash(e.clientX / BG.CELL, e.clientY / BG.CELL, 14, 3); drag.on = false; });
+gc.addEventListener('pointerup', e => { if (drag.on && animate && Math.hypot(drag.x - drag.sx, drag.y - drag.sy) < 4) BG.puff(e.clientX / BG.CELL, e.clientY / BG.CELL); drag.on = false; });
 gc.addEventListener('dblclick', () => { cam.x = 160; cam.y = 125; cam.z = 1; });
 function stepGraph(t) {
   const r = gc.getBoundingClientRect(), k = gc.width / r.width;
@@ -556,7 +600,7 @@ function drawGraph() {
     const rad = (n.k === 'a' ? 13 : n.k === 'o' ? 8 : n.r > 3 ? 4.5 : 2.6) * sz, amt = n.k === 'a' ? .05 : n.k === 'o' ? .07 : n.r > 3 ? .06 : .045;
     BG.ink(cx, cy, HALO_RGB[n.k], rad, amt);
     const sp = Math.hypot(n.vx, n.vy);
-    if (animate && sp > .6) { BG.splash(cx, cy, Math.min(1.5, sp * .5), 1.5); BG.push(cx, cy, n.vx * .15, n.vy * .15, 2); }
+    if (animate && sp > .6) BG.push(cx, cy, n.vx * .15, n.vy * .15, 2);
   });
   gx.lineWidth = Math.max(1, gs * .7);
   E.forEach(([a, b]) => {
@@ -580,93 +624,139 @@ function drawGraph() {
     }
   });
 }
-/* living background: a dot field with ripples, a flow that carries colour, and the graph's halos poured into it */
+/* living background: dust and steam, no water. A slow turbulent flow drifts upward; graph halos are steam
+   sources; dust motes float through it; the pointer stirs both; a click blows a puff. Every cell draws a glyph. */
 const BG = (() => {
-  const W = 120, H = 75, SUB = 4, S = W * H, CELL = 1440 / W;
+  const W = 120, H = 75, SUB = 6, S = W * H, CELL = 1440 / W, RW = W * SUB;
   const cv = document.getElementById('bg'); cv.width = W * SUB; cv.height = H * SUB;
   const g = cv.getContext('2d'), img = g.createImageData(W * SUB, H * SUB), px = new Uint32Array(img.data.buffer);
-  let h0 = new Float32Array(S), h1 = new Float32Array(S);
   const vx = new Float32Array(S), vy = new Float32Array(S);
   let ir = new Float32Array(S), ig = new Float32Array(S), ib = new Float32Array(S);
   let tr = new Float32Array(S), tg = new Float32Array(S), tb = new Float32Array(S);
-  const baseA = new Float32Array(S), rr = new Uint8Array(S), rgc = new Uint8Array(S), rb = new Uint8Array(S), thr = new Float32Array(S);
+  const glyph = rows => { const o = []; rows.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') o.push(y * RW + x); })); return o; };
+  const GL = {
+    dot:   glyph([".....", ".....", "..#..", ".....", "....."]),
+    colon: glyph([".....", "..#..", ".....", "..#..", "....."]),
+    tick:  glyph(["..#..", "..#..", ".....", ".....", "....."]),
+    plus:  glyph(["..#..", "..#..", "#####", "..#..", "..#.."]),
+    x:     glyph(["#...#", ".#.#.", "..#..", ".#.#.", "#...#"]),
+    slash: glyph(["....#", "...#.", "..#..", ".#...", "#...."]),
+    back:  glyph(["#....", ".#...", "..#..", "...#.", "....#"]),
+    pipe:  glyph(["..#..", "..#..", "..#..", "..#..", "..#.."]),
+    dash:  glyph([".....", ".....", "#####", ".....", "....."]),
+    eq:    glyph([".....", "#####", ".....", "#####", "....."]),
+    rbr:   glyph([".##..", "..#..", "..#..", "..#..", ".##.."]),
+    lbr:   glyph(["..##.", "..#..", "..#..", "..#..", "..##."]),
+    hash:  glyph([".#.#.", "#####", ".#.#.", "#####", ".#.#."]),
+    star:  glyph(["..#..", "#.#.#", ".###.", "#.#.#", "..#.."]),
+  };
+  const BASE_SET = ['dot','dot','dot','dot','colon','tick','plus','x','eq','rbr','lbr','slash','back','pipe','dash'];
+  const baseG = new Array(S), baseA = new Float32Array(S), rr = new Uint8Array(S), rgc = new Uint8Array(S), rb = new Uint8Array(S), thr = new Float32Array(S);
   const ramp = [[255,122,61],[255,0,60],[255,0,255],[199,125,255],[0,240,255]];
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const i = y * W + x, u = x / W, v = y / H;
-    let n = .5 + .22 * Math.sin(u * 9 + Math.sin(v * 5) * 2) + .18 * Math.sin(v * 13 - u * 4) + .12 * Math.sin((u + v) * 23);
-    n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
-    thr[i] = (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16;
-    baseA[i] = n > thr[i] ? .2 : .035;
-    const t = Math.min(.999, u * .6 + v * .4) * (ramp.length - 1), k = Math.floor(t);
-    [rr[i], rgc[i], rb[i]] = ramp[k];
-  }
+  const pick = () => BASE_SET[(Math.random() * BASE_SET.length) | 0];
+  for (let i = 0; i < S; i++) { const x = i % W, y = (i / W) | 0; thr[i] = (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16; baseG[i] = pick(); }
+  // the pattern slides and the colour bands cycle through the palette, blended, so the field never sits still
+  const RING = [...ramp, ramp[0]];
+  const computeBase = T => {
+    const ou = T * .0009, ov = -T * .0006, oc = T * .0015;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, u = x / W, v = y / H, su = u + ou, sv = v + ov;
+      let n = .5 + .22 * Math.sin(su * 9 + Math.sin(sv * 5) * 2) + .18 * Math.sin(sv * 13 - su * 4 + T * .004) + .12 * Math.sin((su + sv) * 23);
+      n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
+      baseA[i] = n > thr[i] ? .32 : 0;
+      const t = (((u * .6 + v * .4 + oc) % 1) + 1) % 1 * (RING.length - 1), k = t | 0, f = t - k, A = RING[k], Bc = RING[k + 1];
+      rr[i] = A[0] + (Bc[0] - A[0]) * f; rgc[i] = A[1] + (Bc[1] - A[1]) * f; rb[i] = A[2] + (Bc[2] - A[2]) * f;
+    }
+  };
+  computeBase(0);
+  // dust motes
+  const DUST = Array.from({ length: 420 }, () => {
+    const r = Math.random();
+    return { x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, a: .25 + Math.random() * .4,
+      g: r < .55 ? 'dot' : r < .8 ? 'tick' : r < .95 ? 'plus' : 'star',
+      c: Math.random() < .7 ? [205,191,179] : [[255,122,61],[0,240,255],[199,125,255]][(Math.random() * 3) | 0] };
+  });
   const near = (cx, cy, rad, fn) => {
     const x0 = Math.max(1, Math.floor(cx - rad)), x1 = Math.min(W - 2, Math.ceil(cx + rad)), y0 = Math.max(1, Math.floor(cy - rad)), y1 = Math.min(H - 2, Math.ceil(cy + rad));
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x - cx, y - cy) / rad; if (d < 1) fn(y * W + x, 1 - d); }
   };
-  const api = {
+  const put = (p0, offs, r, gg, b, a) => {
+    const R = (11 + (r - 11) * a) | 0, G2 = (10 + (gg - 10) * a) | 0, B2 = (9 + (b - 9) * a) | 0, c = 0xFF000000 | (B2 << 16) | (G2 << 8) | R;
+    for (let k = 0; k < offs.length; k++) px[p0 + offs[k]] = c;
+  };
+  let T = 0;
+  return {
     CELL,
-    splash(cx, cy, amt, rad = 2) { near(cx, cy, rad, (i, f) => { h1[i] += amt * f; }); },
-    push(cx, cy, dx, dy, rad = 4) { near(cx, cy, rad, (i, f) => { vx[i] += dx * f; vy[i] += dy * f; }); },
+    push(cx, cy, dx, dy, rad = 5) {
+      near(cx, cy, rad, (i, f) => { vx[i] += dx * f; vy[i] += dy * f; });
+      for (const p of DUST) { const d = Math.hypot(p.x - cx, p.y - cy); if (d < rad) { const f = 1 - d / rad; p.vx += dx * .12 * f; p.vy += dy * .12 * f; } }
+    },
+    puff(cx, cy) {
+      for (const p of DUST) { const dx = p.x - cx, dy = p.y - cy, d = Math.hypot(dx, dy) || 1; if (d < 9) { const f = (1 - d / 9) * .9; p.vx += dx / d * f; p.vy += dy / d * f - .1; } }
+      near(cx, cy, 6, (i, f) => { ir[i] += 225 * f; ig[i] += 215 * f; ib[i] += 255 * f; vx[i] += (Math.random() - .5) * .6; vy[i] -= .3 * f; });
+    },
     ink(cx, cy, col, rad, amt) { near(cx, cy, rad, (i, f) => { const a = amt * f; ir[i] += col[0] * a; ig[i] += col[1] * a; ib[i] += col[2] * a; }); },
     step() {
+      T++;
+      if (T % 2 === 0) computeBase(T);
       for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
         const i = y * W + x;
-        h0[i] = ((h1[i - 1] + h1[i + 1] + h1[i - W] + h1[i + W]) * .5 - h0[i]) * .968;
-      }
-      [h0, h1] = [h1, h0];
-      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
-        const i = y * W + x;
-        vx[i] *= .9; vy[i] *= .9;
-        // the colour rides the flow and the ripple slope
-        let sx = x - vx[i] - (h1[i + 1] - h1[i - 1]) * .6, sy = y - vy[i] - (h1[i + W] - h1[i - W]) * .6;
+        // turbulence plus a slow rise
+        const tx = Math.sin(y * .21 + T * .011) * .5 + Math.sin((x * .9 + y) * .05 - T * .007) * .5;
+        const ty = Math.cos(x * .17 - T * .009) * .5 + Math.cos((x - y * .8) * .06 + T * .006) * .5;
+        vx[i] = vx[i] * .92 + tx * .01; vy[i] = vy[i] * .92 + ty * .01 - .004;
+        let sx = x - vx[i] * 1.2, sy = y - vy[i] * 1.2 + .18;
         sx = Math.max(0, Math.min(W - 1.001, sx)); sy = Math.max(0, Math.min(H - 1.001, sy));
         const x0 = sx | 0, y0 = sy | 0, fx = sx - x0, fy = sy - y0, j = y0 * W + x0;
         const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
-        tr[i] = (ir[j] * w00 + ir[j + 1] * w10 + ir[j + W] * w01 + ir[j + W + 1] * w11) * .92;
-        tg[i] = (ig[j] * w00 + ig[j + 1] * w10 + ig[j + W] * w01 + ig[j + W + 1] * w11) * .92;
-        tb[i] = (ib[j] * w00 + ib[j + 1] * w10 + ib[j + W] * w01 + ib[j + W + 1] * w11) * .92;
+        tr[i] = (ir[j] * w00 + ir[j + 1] * w10 + ir[j + W] * w01 + ir[j + W + 1] * w11) * .935;
+        tg[i] = (ig[j] * w00 + ig[j + 1] * w10 + ig[j + W] * w01 + ig[j + W + 1] * w11) * .935;
+        tb[i] = (ib[j] * w00 + ib[j + 1] * w10 + ib[j + W] * w01 + ib[j + W + 1] * w11) * .935;
       }
       [ir, tr] = [tr, ir]; [ig, tg] = [tg, ig]; [ib, tb] = [tb, ib];
+      for (let k = 0; k < 40; k++) baseG[(Math.random() * S) | 0] = pick(); // the dust field twinkles
+      for (const p of DUST) {
+        const i = Math.min(S - 1, Math.max(0, (p.y | 0) * W + (p.x | 0)));
+        p.vx = p.vx * .94 + vx[i] * .06 + (Math.random() - .5) * .006;
+        p.vy = p.vy * .94 + vy[i] * .06 + (Math.random() - .5) * .006 - .0012;
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x += W; if (p.x >= W) p.x -= W; if (p.y < 0) p.y += H; if (p.y >= H) p.y -= H;
+      }
     },
     draw() {
       px.fill(0xFF090A0B);
-      const RW = W * SUB;
       for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
-        const i = y * W + x, h = h1[i];
-        let r, gg, b;
+        const i = y * W + x, p0 = y * SUB * RW + x * SUB;
         const m = Math.max(ir[i], ig[i], ib[i]), lum = m / 255;
-        if (lum > thr[i] * .7) {
-          // the halo colour, dithered, brightened by the wave
-          const k = Math.min(1, .35 + lum * 1.2 + Math.abs(h) * .25) * 255 / (m || 1);
-          r = ir[i] * k; gg = ig[i] * k; b = ib[i] * k;
-        } else {
-          const a = Math.min(.75, baseA[i] * (1 + h * .8) + Math.abs(h) * .14);
-          if (a < .03) continue;
-          r = rr[i] * a; gg = rgc[i] * a; b = rb[i] * a;
-        }
-        r = Math.min(255, r + 11) | 0; gg = Math.min(255, gg + 10) | 0; b = Math.min(255, b + 9) | 0;
-        const c = 0xFF000000 | (b << 16) | (gg << 8) | r;
-        const ox = Math.max(-1, Math.min(1, Math.round((h1[i + 1] - h1[i - 1]) * 2))), oy = Math.max(-1, Math.min(1, Math.round((h1[i + W] - h1[i - W]) * 2)));
-        const p = (y * SUB + 1 + oy) * RW + x * SUB + 1 + ox;
-        px[p] = c; px[p + 1] = c; px[p + RW] = c; px[p + RW + 1] = c;
+        if (lum > thr[i] * .6) {
+          // steam: the glyph follows density, or the flow when it is stirred
+          const sp = Math.hypot(vx[i], vy[i]);
+          let gname;
+          if (sp > .22) { const an = Math.atan2(vy[i], vx[i]), q = ((Math.round(an / (Math.PI / 4)) % 4) + 4) % 4; gname = ['dash', 'back', 'pipe', 'slash'][q]; }
+          else gname = lum < .3 ? 'dot' : lum < .5 ? (x + y) % 2 ? 'plus' : 'colon' : lum < .8 ? (x + y) % 2 ? 'x' : 'eq' : 'hash';
+          const k = Math.min(1, .4 + lum) / (m || 1);
+          put(p0, GL[gname], ir[i] * k * 255, ig[i] * k * 255, ib[i] * k * 255, 1);
+        } else if (baseA[i] > 0) put(p0, GL[baseG[i]], rr[i], rgc[i], rb[i], baseA[i]);
+      }
+      for (const p of DUST) {
+        const p0 = ((p.y * SUB) | 0) * RW + ((p.x * SUB) | 0);
+        if (p0 >= 0 && p0 < px.length - RW * 5 - 5) put(p0, GL[p.g], p.c[0], p.c[1], p.c[2], p.a);
       }
       g.putImageData(img, 0, 0);
     }
   };
-  return api;
 })();
-// the mouse stirs the field; a click on empty space drops a big ripple
+// the pointer stirs the dust and steam; a click on empty space blows a puff
 let lastPX = -1, lastPY = -1;
 addEventListener('pointermove', e => {
   if (!animate) return;
   const cx = e.clientX / BG.CELL, cy = e.clientY / BG.CELL;
-  if (lastPX >= 0) { const dx = cx - lastPX, dy = cy - lastPY; BG.push(cx, cy, dx * .5, dy * .5, 4); BG.splash(cx, cy, Math.min(1, Math.hypot(dx, dy) * .3), 2); }
+  if (lastPX >= 0) BG.push(cx, cy, (cx - lastPX) * .35, (cy - lastPY) * .35, 5);
   lastPX = cx; lastPY = cy;
 });
 addEventListener('pointerdown', e => {
   if (!animate || e.target.closest('.w, button, #berry, .hint, .titlebar, #graph')) return;
-  BG.splash(e.clientX / BG.CELL, e.clientY / BG.CELL, 14, 3);
+  BG.puff(e.clientX / BG.CELL, e.clientY / BG.CELL);
 });
 /* one loop, at most 30 frames a second, paused while the window is hidden */
 let last = 0;

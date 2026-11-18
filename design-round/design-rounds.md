@@ -66,3 +66,10 @@ Owner: the white eyes looked scary; the strawberry should turn its whole face to
 - Graph: halos are no longer drawn on the graph; only a fast pointer sweep pushes nodes, a slow or resting pointer can reach and pick one, and a hovered node holds still.
 - Note: headless Edge runs only one animation frame under virtual time, so stills come from `?still=1`, which simulates 60 steps.
 - Graph layer: the graph draws on a full-window canvas between the background and the widgets, so panning and zooming are no longer clipped by the centre cell. The centre area only sets the graph's home position. `.app` passes pointer events through empty space; frames, buttons, the mascot and the bars take them. A click without a drag on empty space drops a ripple; a drag pans.
+
+## Round 6 (2026-11-18): dust and steam, richer boxes
+
+Owner: boxes and background looked alike; add more pixel-art components; the background should feel like dust and steam, not water; use more symbols; colours and patterns should shift.
+
+- Background: no ripples. A slow turbulent flow drifts upward; graph halos are steam that rises from the nodes; 420 dust motes float through it; the pointer stirs flow and dust; a click blows a puff. Every cell draws a 5 by 5 glyph from `. : ' + x / \ | - = [ ] # *`: steam picks by density (dots and pluses thin, x and = mid, # thick) and turns to `/ | \ -` streaks along the flow where it is stirred. The base pattern slides, its colour bands cycle through the palette with blends, and its glyphs twinkle.
+- Boxes: corner brackets, an 8 by 8 pixel icon per box (terminal, stack, battery, chip), a status light (cyan blinking for live, red blinking for needs you, yellow for values), a dithered strip under the title, a double inner frame and a faint pixel texture.
