@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Phosphor Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=VT323&display=block" rel="stylesheet">
+<style>
+/* Design round 2, Phosphor. Throwaway mockup, not app code. ?edit=1 for edit mode. */
+:root {
+  color-scheme: dark;
+  --bg-app:#0B0A09; --bg-panel:#121010; --bg-raised:#1C1816; --bg-overlay:#221D1A; --bg-sel:#2C2420;
+  --line:#3A2C26; --line-strong:#6E4A3E;
+  --text:#F2E8DE; --text-2:#CDBFB3; --muted:#A08F84;
+  --accent:#F5FF3B; --accent-text:#0B0A09;
+  --terra:#E07A5F; --terra-deep:#7A3424; --terra-ink:#1F0D08; --red:#FF003C; --cyan:#00F0FF; --lav:#C77DFF; --mag:#FF00FF;
+  --ok:var(--cyan); --warn:var(--terra); --danger:var(--red); --info:var(--lav);
+  --g-red:0 0 6px rgba(255,0,60,.85), 0 0 16px rgba(255,0,60,.45); --g-cyan:0 0 6px rgba(0,240,255,.8), 0 0 16px rgba(0,240,255,.4);
+  --g-lav:0 0 6px rgba(199,125,255,.85), 0 0 16px rgba(199,125,255,.45); --g-mag:0 0 6px rgba(255,0,255,.8), 0 0 16px rgba(255,0,255,.4); --g-yel:0 0 8px rgba(245,255,59,.5);
+  --font-ui:'VT323',monospace; --font-display:'Jersey 10',sans-serif;
+  --ui:19px; --small:16px; --num:34px; --radius:10px; --radius-c:6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1440px; height: 900px; overflow: hidden; background: #000; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+.screen { position: relative; width: 1440px; height: 900px; background: var(--bg-app); color: var(--text);
+  font-family: var(--font-ui); font-size: var(--ui); line-height: 1.3; overflow: hidden; }
+#bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.app { position: absolute; inset: 0; display: grid; grid-template-rows: 38px 1fr 26px; filter: url(#barrel); }
+
+/* title bar */
+.titlebar { display: flex; align-items: center; gap: 18px; padding-left: 24px; background: var(--bg-app); border-bottom: 2px solid var(--line); position: relative; z-index: 2; }
+.proj { font-size: 22px; color: var(--terra); }
+.proj span { color: var(--muted); }
+.pages { display: flex; }
+.pages button { padding: 0 12px; font-size: 21px; color: var(--text-2); border-radius: var(--radius-c); }
+.pages button[aria-current] { background: var(--accent); color: var(--accent-text); box-shadow: 3px 3px 0 var(--terra-deep); }
+.grow { flex: 1; }
+.hint { color: var(--muted); font-size: var(--small); padding: 0 10px; border: 2px solid var(--line); border-radius: var(--radius-c); }
+.winctl { display: flex; height: 100%; }
+.winctl span { width: 46px; display: grid; place-items: center; color: var(--text-2); }
+
+/* status bar */
+.statusbar { display: flex; align-items: center; gap: 16px; padding: 0 24px; font-size: 17px; color: var(--text-2); background: var(--bg-app); border-top: 2px solid var(--line); position: relative; z-index: 2; }
+.statusbar .need { color: var(--terra); }
+.statusbar .live { color: var(--cyan); }
+
+/* page: band | grid | rail, equal side widths so the grid centre is the page centre */
+.dash { position: relative; display: grid; grid-template-columns: 112px 1fr 112px; column-gap: 16px; padding: 22px 0 18px; min-height: 0; }
+.band, .rail { display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 0; }
+.band .word { font-family: var(--font-display); font-size: 132px; line-height: .8; color: var(--terra); writing-mode: vertical-rl; transform: rotate(180deg);
+  text-shadow: 3px 0 0 var(--terra-deep), 6px 0 0 #3E170E, -2px 0 0 rgba(0,240,255,.55); }
+.band .mark { width: 72px; height: 150px; }
+.vert { writing-mode: vertical-rl; transform: rotate(180deg); color: var(--muted); font-size: var(--small); letter-spacing: .04em; }
+.rail .dots { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.rail .dots i { width: 10px; height: 10px; border: 2px solid var(--text-2); border-radius: 2px; }
+.rail .dots i.on { background: var(--terra); border-color: var(--terra); box-shadow: 2px 2px 0 var(--terra-deep); }
+.rail .clock { font-family: var(--font-display); font-size: 64px; line-height: .8; color: var(--cyan); writing-mode: vertical-rl; text-shadow: var(--g-cyan), 3px 3px 0 #00434A; }
+
+.grid { position: relative; display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); grid-template-rows: repeat(6, minmax(0,1fr)); gap: 14px; min-height: 0; }
+
+/* widget */
+.w { position: relative; min-width: 0; min-height: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  background: rgba(18,16,16,.9); border: 2px solid var(--line-strong); border-radius: var(--radius);
+  box-shadow: 4px 4px 0 #2A1A14; }
+.w h2 { font-size: 18px; font-weight: 400; color: var(--terra); letter-spacing: .05em; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; white-space: nowrap; }
+.w h2 .aside { color: var(--muted); letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; }
+.num { font-size: var(--num); line-height: 1; font-variant-numeric: tabular-nums; color: var(--accent); text-shadow: 0 0 8px rgba(245,255,59,.45), 2px 2px 0 #4E5212; }
+.muted { color: var(--muted); } .t2 { color: var(--text-2); }
+.cyan { color: var(--cyan); } .lav { color: var(--lav); }
+
+.cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; height: 12px; }
+.cells i { background: var(--bg-raised); border-radius: 1px; }
+.cells i.f { background: var(--ok); box-shadow: 0 2px 0 #00737A, 0 0 6px rgba(0,240,255,.7); }
+.cells.warn i.f { background: var(--warn); box-shadow: 0 2px 0 var(--terra-deep); }
+.cells.danger i.f { background: var(--danger); box-shadow: 0 2px 0 #7A001D, 0 0 6px rgba(255,0,60,.7); }
+
+/* ribbon */
+.w.ribbon { border-color: var(--cyan); box-shadow: 4px 4px 0 #00434A, var(--g-cyan); }
+.ribbon-top { display: flex; gap: 10px; align-items: center; }
+.ribbon-title { font-size: 25px; line-height: 1; }
+.state { display: inline-flex; align-items: center; }
+.plan { list-style: none; display: grid; gap: 4px; font-size: var(--small); color: var(--text-2); }
+.plan li { display: flex; gap: 8px; }
+.plan li::before { content: ""; flex: none; width: 9px; height: 9px; margin-top: .4em; border: 2px solid var(--muted); border-radius: 1px; }
+.plan li.done { color: var(--muted); text-decoration: line-through; }
+.plan li.done::before { background: var(--muted); }
+.plan li.now { color: var(--text); }
+.plan li.now::before { background: var(--accent); border-color: var(--accent); }
+.steps { margin-top: auto; display: grid; gap: 2px; font-size: var(--small); color: var(--text-2); }
+.steps div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.steps .now { color: var(--cyan); }
+
+/* sessions */
+.rows { display: grid; gap: 4px; }
+.row { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: start; padding: 5px 8px; border-radius: var(--radius-c); }
+.row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.row .sub { color: var(--muted); font-size: var(--small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .when { color: var(--muted); font-size: var(--small); }
+.row svg { margin-top: 3px; }
+.row.need { background: var(--terra); color: var(--terra-ink); box-shadow: 3px 3px 0 var(--terra-deep); }
+.row.need .sub, .row.need .when { color: var(--terra-ink); }
+
+/* usage, context, git */
+.usage { display: grid; gap: 14px; }
+.lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.ctx-blocks { width: 100%; height: 30px; }
+.git { flex-direction: row !important; align-items: center; gap: 18px; }
+.git .branch { font-size: 24px; }
+.git .msg { flex: 1; min-width: 0; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn { padding: 0 12px; border-radius: var(--radius-c); border: 2px solid var(--line-strong); color: var(--text); }
+
+/* mascot */
+.w.mascot { align-items: center; justify-content: flex-end; background: transparent; border-style: dashed; border-color: var(--mag); box-shadow: var(--g-mag); overflow: visible; }
+.mascot canvas { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); z-index: 3; }
+.mascot .word { font-family: var(--font-display); font-size: 34px; line-height: .9; color: #FF2A55; text-shadow: 0 0 5px rgba(255,0,60,.55), 3px 3px 0 #5A0016; }
+.mascot .doing { color: var(--muted); font-size: var(--small); }
+
+/* graph, the centre */
+.w.graph { border-color: var(--terra); box-shadow: 5px 5px 0 var(--terra-deep), 10px 10px 0 #3E170E; padding: 14px 16px; }
+.w.graph::after { content: ""; position: absolute; inset: -9px; border: 1.5px solid var(--lav); border-radius: 15px; opacity: .9; box-shadow: var(--g-lav); transform: translate(-3px, 2px); pointer-events: none; }
+.graph svg { flex: 1; min-height: 0; width: 100%; }
+.legend { display: flex; gap: 16px; font-size: var(--small); color: var(--text-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 1px; }
+
+/* quick bar */
+.quick { flex-direction: row !important; align-items: center; gap: 8px; }
+.quick button { padding: 2px 12px; border: 2px solid var(--line-strong); border-radius: var(--radius-c); font-size: 20px; white-space: nowrap; }
+.quick button kbd { font-family: inherit; color: var(--muted); font-size: var(--small); margin-left: 6px; }
+.quick button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); box-shadow: 3px 3px 0 var(--terra-deep); }
+.quick button.primary kbd { color: #4E5212; }
+.quick .more { margin-left: auto; }
+
+/* edit mode */
+.edit-bar { display: none; }
+[data-edit="1"] .grid { transform: scale(.94); }
+[data-edit="1"] .grid::before { content: ""; position: absolute; inset: -7px; pointer-events: none;
+  background-image: radial-gradient(circle, var(--line-strong) 1.6px, transparent 1.8px);
+  background-size: calc((100% + 14px) / 8) calc((100% + 14px) / 6); }
+[data-edit="1"] .w { outline: 2px dashed var(--terra); outline-offset: -2px; }
+[data-edit="1"] .w:nth-child(odd) { transform: rotate(-.4deg); }
+[data-edit="1"] .w:nth-child(even) { transform: rotate(.35deg); }
+.w .h, .w .rm { display: none; }
+[data-edit="1"] .w .h { display: block; position: absolute; width: 9px; height: 9px; background: var(--cyan); border: 2px solid var(--bg-app); border-radius: 2px; z-index: 4; }
+.h.tl { left: -7px; top: -7px; } .h.tr { right: -7px; top: -7px; } .h.bl { left: -7px; bottom: -7px; } .h.br { right: -7px; bottom: -7px; }
+.h.r { right: -7px; top: calc(50% - 4px); } .h.b { bottom: -7px; left: calc(50% - 4px); }
+[data-edit="1"] .w .rm { display: grid; place-items: center; position: absolute; left: -11px; top: -11px; width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: var(--bg-app); z-index: 5; font-size: 18px; }
+[data-edit="1"] .w.graph::after { display: none; }
+[data-edit="1"] .edit-bar { display: flex; gap: 8px; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 6; }
+[data-edit="1"] .edit-bar button { padding: 0 14px; border-radius: var(--radius-c); background: var(--bg-overlay); border: 2px solid var(--line-strong); }
+[data-edit="1"] .edit-bar .done { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+
+/* round 2b: colour share (about 50 terracotta+yellow, 20 neon red, 30 cyan/lavender/magenta) and glow */
+.w.sessions { border-color: var(--red); box-shadow: 4px 4px 0 #7A001D, var(--g-red); }
+.w.sessions h2 { color: #FF3D66; text-shadow: 0 0 5px rgba(255,0,60,.55); }
+.row.need { background: var(--red); color: #12030A; box-shadow: 3px 3px 0 #7A001D, var(--g-red); }
+.row.need .sub, .row.need .when { color: #12030A; }
+.w.usage { border-color: var(--lav); box-shadow: 4px 4px 0 #4A2A66, var(--g-lav); }
+.w.usage h2 { color: var(--lav); text-shadow: var(--g-lav); }
+.w.git, .w.context { border-color: var(--terra); box-shadow: 4px 4px 0 var(--terra-deep); }
+.w.quick { border-color: #8E9420; box-shadow: 4px 4px 0 #3E4210; }
+.w.ribbon h2 { color: var(--cyan); text-shadow: var(--g-cyan); }
+.ribbon-title { color: var(--accent); text-shadow: var(--g-yel); }
+.band .mark { filter: drop-shadow(0 0 4px rgba(199,125,255,.9)); }
+.pages button[aria-current] { box-shadow: 3px 3px 0 var(--terra-deep), var(--g-yel); }
+.statusbar .need { color: #FF3D66; text-shadow: 0 0 4px rgba(255,0,60,.6); }
+.statusbar .live { text-shadow: var(--g-cyan); }
+.plan li.done::before { background: var(--lav); border-color: var(--lav); box-shadow: var(--g-lav); }
+[data-edit="1"] .w .rm { box-shadow: var(--g-red); }
+[data-edit="1"] .w .h { box-shadow: var(--g-cyan); }
+.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
+.crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,.55) 100%); }
+.crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,240,230,.06); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="barrel" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="barrelMap" result="map" preserveAspectRatio="none" x="0" y="0" width="1440" height="900"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="screen" id="screen">
+  <canvas id="bg" width="1440" height="900" aria-hidden="true"></canvas>
+  <div class="app">
+    <header class="titlebar">
+      <div class="proj">hsos <span>▾</span></div>
+      <nav class="pages" aria-label="Pages"><button aria-current="page">Dashboard</button><button>Code</button><button>Notes</button></nav>
+      <div class="grow"></div>
+      <div class="hint">Ctrl+Shift+P</div>
+      <div class="winctl" aria-hidden="true"><span>&#x2500;</span><span>&#x25A1;</span><span>&#x2715;</span></div>
+    </header>
+
+    <main class="dash">
+      <aside class="band" aria-hidden="true">
+        <svg class="mark" viewBox="0 0 72 150" fill="none" stroke="#C77DFF" stroke-width="2">
+          <circle cx="36" cy="40" r="34"/><rect x="26" y="4" width="20" height="142" rx="4"/>
+        </svg>
+        <div class="word">HSOS</div>
+        <div class="vert">0.1 · stage U</div>
+      </aside>
+
+      <div class="grid" id="grid">
+        <div class="edit-bar"><button>Add widget</button><button>Screens</button><button class="done">Done</button></div>
+
+        <section class="w ribbon" style="grid-area: 1 / 1 / span 3 / span 2">
+          <h2>Session <span class="aside">opus 5.5</span></h2>
+          <div class="ribbon-top">
+            <canvas class="sprite" data-px="3" width="51" height="51"></canvas>
+            <div><div class="ribbon-title">Fix PTY resize race</div><div class="t2" style="font-size:var(--small)"><span class="state" data-s="run"></span> editing · 12:41</div></div>
+          </div>
+          <ol class="plan">
+            <li class="done">Reproduce the race in a test</li>
+            <li class="done">Find where cols reach the PTY</li>
+            <li class="now">Debounce resize to one frame</li>
+            <li>Run the term suite</li>
+            <li>Write the change note</li>
+            <li>Open a draft PR</li>
+          </ol>
+          <div class="steps">
+            <div><span class="muted">12:38</span> Read src/term/pty.ts</div>
+            <div><span class="muted">12:40</span> Bash pnpm vitest term</div>
+            <div class="now">12:41 Edit pty.ts:88</div>
+          </div>
+        </section>
+
+        <section class="w sessions" style="grid-area: 4 / 1 / span 3 / span 2">
+          <h2>Sessions <span class="aside">1 needs you</span></h2>
+          <div class="rows">
+            <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash</div><div class="sub">pnpm build · 3 min</div></div><span class="when">Open</span></div>
+            <div class="row"><span class="state" data-s="run"></span><div><div class="title">hsos · PTY resize</div><div class="sub">Editing pty.ts</div></div><span class="when">12:41</span></div>
+            <div class="row"><span class="state" data-s="run"></span><div><div class="title">notes-sync · Backlinks</div><div class="sub">Running tests</div></div><span class="when">06:02</span></div>
+            <div class="row"><span class="state" data-s="done"></span><div><div class="title">hsos · Card 014 tests</div><div class="sub">Finished, 3 files</div></div><span class="when">11:20</span></div>
+            <div class="row"><span class="state" data-s="done"></span><div><div class="title">site · Hero copy</div><div class="sub">Finished, 1 file</div></div><span class="when">09:55</span></div>
+            <div class="row"><span class="state" data-s="idle"></span><div><div class="title">dotfiles · Profile</div><div class="sub">Idle since Tue</div></div><span class="when">Tue</span></div>
+          </div>
+        </section>
+
+        <section class="w git" style="grid-area: 1 / 3 / span 1 / span 4">
+          <span class="state" data-s="branch"></span>
+          <div class="branch">main <span class="cyan">↑1</span> <span class="muted">↓0</span></div>
+          <div class="msg"><span class="lav">3 changes</span> · last: fix(term): clamp cols on resize</div>
+          <span class="btn">Sync</span>
+        </section>
+
+        <section class="w graph" style="grid-area: 2 / 3 / span 4 / span 4">
+          <h2>Graph <span class="aside">around dashboard.md · 17 notes</span></h2>
+          <svg id="graph" viewBox="0 0 320 236" aria-label="Local graph around dashboard.md"></svg>
+          <div class="legend">
+            <span><i style="background:var(--accent)"></i>open note</span>
+            <span><i style="background:var(--text-2)"></i>note</span>
+            <span><i style="background:var(--terra)"></i>CLAUDE.md</span>
+            <span><i style="background:var(--lav)"></i>skill</span>
+            <span><i style="background:var(--cyan)"></i>memory</span>
+          </div>
+        </section>
+
+        <section class="w quick" style="grid-area: 6 / 3 / span 1 / span 4">
+          <button class="primary">New session <kbd>Ctrl+Shift+T</kbd></button>
+          <button>Resume</button>
+          <button>Compact</button>
+          <button>Plan mode</button>
+          <button class="more">More</button>
+        </section>
+
+        <section class="w mascot" style="grid-area: 1 / 7 / span 2 / span 2">
+          <canvas class="sprite" data-px="8" width="136" height="136"></canvas>
+          <div class="word">Thinking</div>
+          <div class="doing">reading pty.ts</div>
+        </section>
+
+        <section class="w usage" style="grid-area: 3 / 7 / span 2 / span 2">
+          <h2>Usage <span class="aside">plan</span></h2>
+          <div class="usage">
+            <div><div class="lab"><span class="num">42%</span><span class="muted">5 h · 2:14</span></div><div class="cells" data-v="42"></div></div>
+            <div><div class="lab"><span class="num">18%</span><span class="muted">7 d · Fri</span></div><div class="cells" data-v="18"></div></div>
+          </div>
+        </section>
+
+        <section class="w context" style="grid-area: 5 / 7 / span 2 / span 2">
+          <h2>Context <span class="aside">PTY resize</span></h2>
+          <div class="lab"><span class="num">61%</span><span class="muted">122k / 200k</span></div>
+          <svg class="ctx-blocks" aria-hidden="true"></svg>
+          <div class="muted" style="font-size:var(--small)"><span class="lav">system</span> · tools · <span style="color:var(--terra)">messages</span> · free</div>
+          <div class="t2" style="margin-top:auto;font-size:var(--small)"><span class="cyan">■</span> cache warm · 38k reused · compacts at 85%</div>
+        </section>
+      </div>
+
+      <aside class="rail" aria-hidden="true">
+        <div class="dots"><i class="on"></i><i></i><i></i></div>
+        <div class="clock">16:42</div>
+        <div class="vert">screen 1 of 3</div>
+      </aside>
+    </main>
+
+    <footer class="statusbar">
+      <span>main <span class="cyan">↑1</span> ↓0</span><span class="lav">3 changes</span><span class="grow"></span>
+      <span>5h 42%</span><span>7d 18%</span><span class="live">■ 2 running</span><span class="need">▲ 1 needs you</span>
+    </footer>
+  </div>
+  <div class="crt" aria-hidden="true"><div class="scan"></div><div class="vig"></div><div class="glass"></div></div>
+</div>
+
+<script>
+const screen = document.getElementById('screen');
+screen.dataset.edit = new URLSearchParams(location.search).get('edit') === '1' ? '1' : '0';
+const tok = n => getComputedStyle(screen).getPropertyValue(n).trim();
+
+/* pixel bars: ok below 60, warn from 60, danger from 85 */
+document.querySelectorAll('.cells').forEach(el => {
+  const v = +el.dataset.v, f = Math.round(v / 5);
+  if (v >= 85) el.classList.add('danger'); else if (v >= 60) el.classList.add('warn');
+  el.innerHTML = Array.from({length: 20}, (_, i) => `<i class="${i < f ? 'f' : ''}"></i>`).join('');
+});
+
+/* state glyphs: a shape and a word, never colour alone */
+const G = {
+  need:   c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 13 13H1Z" fill="${c}"/></svg>`,
+  run:    c => `<svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="2" fill="none" stroke="${c}" stroke-width="2"/><rect x="5" y="5" width="4" height="4" fill="${c}"/></svg>`,
+  idle:   c => `<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${c}" stroke-width="2"/></svg>`,
+  done:   c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7 6 11 12 3" fill="none" stroke="${c}" stroke-width="2.2"/></svg>`,
+  branch: c => `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="${c}" stroke-width="2"><circle cx="5" cy="4" r="2.4"/><circle cx="5" cy="16" r="2.4"/><circle cx="15" cy="6" r="2.4"/><path d="M5 6.5v7M15 8.5c0 4-10 2-10 5"/></svg>`,
+};
+document.querySelectorAll('.state[data-s]').forEach(el => {
+  const s = el.dataset.s, c = el.closest('.need') ? tok('--terra-ink') : s === 'run' ? tok('--cyan') : s === 'branch' ? tok('--terra') : tok('--text-2');
+  el.innerHTML = G[s](c);
+});
+
+/* edit handles */
+document.querySelectorAll('.w').forEach(w => w.insertAdjacentHTML('beforeend',
+  '<span class="rm" aria-label="Remove">×</span>' + ['tl','tr','bl','br','r','b'].map(k => `<span class="h ${k}"></span>`).join('')));
+
+/* mascot: an original strawberry, 16 by 16 */
+const SPR = [
+  "................",
+  ".......c........",
+  "....cc.c.cc.....",
+  "...kccccccck....",
+  "..krrcccccrrk...",
+  ".krrrrrrrrrrrk..",
+  ".krhrrrrrrrrrk..",
+  ".krreerrrreerk..",
+  ".krreerrrreerk..",
+  ".krlrrrrrrrlrk..",
+  "..krryrrmmrryk..",
+  "...krrrrrrrrk...",
+  "....krryrrrk....",
+  ".....krrrrk.....",
+  "......kkkk......",
+  "................"];
+const PAL = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', e:'#140406', l:'#C77DFF', y:'#F5FF3B', m:'#3A0A12', c:'#00F0FF' };
+document.querySelectorAll('canvas.sprite').forEach(cv => {
+  const px = +cv.dataset.px, g = cv.getContext('2d'), depth = Math.max(1, Math.round(px / 3));
+  const paint = (dx, dy, fill) => SPR.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (ch === '.') return; g.fillStyle = fill || PAL[ch]; g.fillRect(x * px + dx, y * px + dy, px, px); }));
+  for (let z = depth; z >= 1; z--) paint(z, z, z === depth ? 'rgba(0,0,0,.6)' : '#7A001D'); // voxel extrusion
+  paint(0, 0);
+  // right-side shade, one pixel column inside the outline, gives the fruit volume
+  g.fillStyle = 'rgba(122,0,29,.55)';
+  SPR.forEach((row, y) => { const k = row.lastIndexOf('k'); if (k > 0 && row[k - 1] === 'r') g.fillRect((k - 1) * px, y * px, px, px); });
+});
+
+/* context composition */
+(() => {
+  const el = document.querySelector('.ctx-blocks'), parts = [[14,'--lav'],[20,'--text-2'],[56,'--terra'],[30,'--bg-raised']];
+  let x = 0, s = ''; const c = 5, rows = 6;
+  parts.forEach(([n, v]) => { for (let i = 0; i < n; i++) { s += `<rect x="${Math.floor(x / rows) * c}" y="${(x % rows) * c}" width="${c - 1}" height="${c - 1}" fill="${tok(v)}"/>`; x++; } });
+  el.setAttribute('viewBox', `0 0 ${Math.ceil(x / rows) * c} ${rows * c}`); el.setAttribute('preserveAspectRatio', 'none'); el.innerHTML = s;
+})();
+
+/* graph */
+(() => {
+  const N = [
+    [160,118,9,'o','dashboard.md'],
+    [78,58,5,'n','layout.md'],[244,52,5,'n','motion.md'],[66,176,4,'n',''],[252,184,5,'n','HUD-90'],
+    [160,32,4,'n','visual-direction'],[160,206,4,'n',''],[204,146,3,'n',''],
+    [106,112,4,'s','hsuiux'],[214,98,4,'s','impeccable'],
+    [40,118,4,'m','palette'],[284,120,4,'m',''],
+    [112,198,5,'a','CLAUDE.md'],
+    [22,36,3,'u',''],[298,30,3,'u',''],[300,212,3,'u',''],[22,214,3,'u','']];
+  const E = [[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,12],[1,10],[1,13],[2,14],[4,15],[3,16],[2,9],[4,11],[1,8],[6,12],[7,4]];
+  const col = { o:tok('--accent'), n:tok('--text-2'), a:tok('--terra'), s:tok('--lav'), m:tok('--cyan'), u:tok('--mag') };
+  let s = '';
+  // dithered halo round the open note
+  const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5], cx = N[0][0], cy = N[0][1];
+  for (let y = 0; y < 236; y += 4) for (let x = 0; x < 320; x += 4) {
+    const d = Math.hypot(x - cx, y - cy) / 76; if (d > 1) continue;
+    if (1 - d > (bayer[((y / 4) % 4) * 4 + ((x / 4) % 4)] + .5) / 16) s += `<rect x="${x}" y="${y}" width="3" height="3" fill="${tok('--terra')}" opacity=".22"/>`;
+  }
+  s += E.map(([a, b]) => `<line x1="${N[a][0]}" y1="${N[a][1]}" x2="${N[b][0]}" y2="${N[b][1]}" stroke="${N[a][3]==='u'||N[b][3]==='u' ? '#3A2C26' : '#6E4A3E'}" stroke-width="1.2"/>`).join('');
+  N.forEach(([x, y, r, k, label]) => {
+    s += `<rect x="${x - r + 2}" y="${y - r + 2}" width="${r * 2}" height="${r * 2}" rx="1" fill="#000" opacity=".6"/>`;
+    s += `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="1" fill="${col[k]}"/>`;
+    if (label) s += `<text x="${x + r + 4}" y="${y + 3}" fill="${k === 'o' ? tok('--text') : tok('--text-2')}" font-size="${k === 'o' ? 12 : 9}" font-family="VT323">${label}</text>`;
+  });
+  document.getElementById('graph').innerHTML = s;
+})();
+
+/* background: dithered dot field, terracotta with sparse cyan and lavender, one in a few hundred magenta */
+(() => {
+  const b = document.getElementById('bg').getContext('2d'), c = 6, W = 240, H = 150;
+  const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = x / W, v = y / H, r = rnd();
+    let n = .5 + .22 * Math.sin(u * 9 + Math.sin(v * 5) * 2) + .18 * Math.sin(v * 13 - u * 4) + .12 * Math.sin((u + v) * 23);
+    n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
+    if (n <= (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16) continue;
+    b.fillStyle = r < .06 ? 'rgba(255,0,255,.3)' : r < .18 ? 'rgba(0,240,255,.3)' : r < .30 ? 'rgba(199,125,255,.32)' : r < .50 ? 'rgba(255,0,60,.26)' : r < .65 ? 'rgba(245,255,59,.18)' : 'rgba(224,122,95,.2)';
+    b.fillRect(x * c, y * c, c - 2, c - 2);
+  }
+})();
+
+/* barrel map: R and G hold the x and y pull toward the centre */
+(() => {
+  const mw = 288, mh = 180, m = document.createElement('canvas'); m.width = mw; m.height = mh;
+  const g = m.getContext('2d'), img = g.createImageData(mw, mh);
+  for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
+    const nx = x / mw * 2 - 1, ny = y / mh * 2 - 1, r2 = nx * nx + ny * ny, i = (y * mw + x) * 4;
+    img.data[i] = 128 + 127 * nx * r2 * .5; img.data[i + 1] = 128 + 127 * ny * r2 * .5; img.data[i + 2] = 128; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); document.getElementById('barrelMap').setAttribute('href', m.toDataURL());
+})();
+document.fonts.ready.then(() => { document.title = 'ready'; });
+</script>
+</body>
+</html>

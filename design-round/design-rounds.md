@@ -20,3 +20,16 @@ Builder's notes, not a judge score.
 - Eight widgets: the default layout of DASH-22, with `hud.context` 2x3 split into `hud.context` 2x2 and `git.status` 2x1.
 - Open points for the spec author if Phosphor wins: the wordmark band takes 112 px from the grid (DASH-2 says the grid fills the page); a full-window SVG displacement filter is likely too costly for UI-32 and would move to the background layer or a WebGL pass.
 - Judge: not run yet; waiting for the owner's go-ahead to spawn the reviewer.
+
+## Round 2 (2026-11-18)
+
+Owner chose Phosphor and asked for: a strawberry mascot; less neon yellow and more of the main palette; a few more touches of cyan and lavender; rounded boxes instead of the notched corners; the graph exactly in the middle with the other widgets toward the corners.
+
+- File: `design-round/dashboard/phosphor.html` (round 1 kept in `index.html`).
+- Layout on the 8x6 grid: graph 4x4 at 2,1; git 4x1 above it and quick bar 4x1 below; session ribbon 2x3 and sessions 2x3 on the left; mascot, usage and context 2x2 each on the right. A 112 px rail on the right matches the left band, so the grid centre is the page centre.
+- Colour roles: yellow is `accent` only (current page, primary action, open note, current plan step). Terracotta for titles, attention and the wordmark; neon red for danger and the strawberry; cyan for ok, running and the live session; lavender for info, skills and the second outline of the graph. Background dots are mostly terracotta with sparse cyan, lavender and red, and about one in 250 magenta.
+- Radius 10 px on widgets, 6 px on controls. The hard 4 px offset under each widget stays as the pixel extrusion.
+- Open point for the spec: `ok` becomes cyan, so usage bars below 60 percent are cyan.
+- Judge: not run yet.
+
+- Round 2b, owner's colour share: about 50 percent terracotta and phosphor yellow, 20 percent neon red, 30 percent cyan, lavender and magenta; red, cyan, lavender and magenta glow. Big numbers and the session title are phosphor yellow; sessions widget and needs-you row are neon red; usage, clock, band mark and graph outline carry the cool colours; unresolved graph nodes and the mascot frame are magenta. Glow on small text is softened so it stays legible.
