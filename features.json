@@ -2,7 +2,7 @@
   "version": 1,
   "note": "The implementer may change only a feature's \"passes\" value, from false to true, in the card named by \"card\". scripts/guard.mjs enforces this.",
   "features": [
-    { "id": "F-001", "stage": 0, "card": "001", "passes": false, "feature": "The project installs, type checks, tests and opens a window", "steps": ["Run pwsh scripts/init.ps1", "Run npm run dev", "A window shows HSOS"] },
+    { "id": "F-001", "stage": 0, "card": "001", "passes": true, "feature": "The project installs, type checks, tests and opens a window", "steps": ["Run pwsh scripts/init.ps1", "Run npm run dev", "A window shows HSOS"] },
     { "id": "F-002", "stage": 0, "card": "009", "passes": false, "feature": "The typed bus validates, times out and never throws", "steps": ["Run npm test -- tests/shell/bus.test.ts", "All BUS and SHELL-16 to SHELL-19 tests pass"] },
     { "id": "F-003", "stage": 0, "card": "010", "passes": false, "feature": "The renderer reaches all three services", "steps": ["Run the bus end-to-end test", "Three pong answers arrive"] },
     { "id": "F-004", "stage": 0, "card": "011", "passes": false, "feature": "A dead service restarts on its own", "steps": ["Kill workspace-service", "A crash file appears", "The service is ready again within 5 seconds"] },

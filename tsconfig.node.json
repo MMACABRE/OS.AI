@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023", "dom"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@hsos/contracts/*": ["./spec/contracts/*"],
+      "@hsos/ui-kit": ["./src/modules/ui-kit/index.ts"]
+    }
+  },
+  "include": [
+    "spec/contracts/**/*.ts",
+    "src/main/**/*.ts",
+    "src/preload/**/*.ts",
+    "src/services/**/*.ts",
+    "src/modules/*/service/**/*.ts",
+    "src/modules/*/register.service.ts",
+    "tests/**/*.test.ts",
+    "tests/fakes/**/*.ts",
+    "electron.vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
+}
