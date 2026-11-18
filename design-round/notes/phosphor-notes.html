@@ -69,7 +69,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 [data-layout="c"] .work { grid-template-columns: 1fr 500px; grid-template-areas: "graph note"; gap: 14px 30px; --sheet-alpha:.78; }
 [data-layout="c"] .gwrap { grid-column: 1 / -1; grid-row: 1; }
 [data-layout="c"] .sheet { grid-column: 2; grid-row: 1; z-index: 1; }
-[data-layout="c"] .side, [data-layout="c"] .rightcol { display: none; }
+[data-layout="c"] .rightcol { display: none; }
+[data-layout="c"] .side { position: absolute; left: var(--edge); top: 86px; width: 196px; z-index: 2; padding: 4px 0; gap: 6px;
+  background: none; border: 0; box-shadow: none; }
+[data-layout="c"] .side .cn, [data-layout="c"] .side .recent { display: none; }
+[data-layout="c"] .side li { text-shadow: 0 0 4px #000, 0 0 8px #000; font-size: 17px; }
+[data-layout="c"] .side li.open { text-shadow: none; }
+[data-layout="c"] .side .search { background: rgba(11,10,9,.9); height: 30px; }
+[data-layout="c"] .side .h2 { text-shadow: var(--g-orange), 0 0 6px #000; }
+[data-layout="c"] .card { left: 0; bottom: 34px; }
 
 /* pixel components */
 .cn { position: absolute; width: 10px; height: 10px; pointer-events: none; border: 0 solid var(--terra); filter: drop-shadow(0 0 3px rgba(255,122,61,.6)); z-index: 2; }
@@ -243,8 +251,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
           <li class="dir" style="color:var(--lav)">▸ skills</li>
           <li class="dir" style="color:var(--mag)">▸ memory</li>
         </ul>
-        <div class="h2" style="margin-top:6px">Recent</div>
-        <ul>
+        <div class="h2 recent" style="margin-top:6px">Recent</div>
+        <ul class="recent">
           <li>motion.md</li><li>layout.md</li><li>design-rounds.md</li>
         </ul>
       </section>
@@ -420,7 +428,7 @@ function sizeGraph() {
   const sr = screen.getBoundingClientRect(), k = 1440 / sr.width, ar = document.querySelector('.graph-area').getBoundingClientRect();
   gc.width = 1440; gc.height = 900;
   let rx = (ar.left - sr.left) * k, ry = (ar.top - sr.top) * k, rw = ar.width * k, rh = ar.height * k;
-  if (LAYOUT === 'c') rw -= 260; // the graph's centre sits in the part the note does not cover
+  if (LAYOUT === 'c') { rx += 210; rw -= 210 + 520; } // the graph's centre sits in the part the note does not cover
   gs = Math.min(rw / 320, rh / 250); gox = rx + (rw - 320 * gs) / 2; goy = ry + (rh - 250 * gs) / 2;
 }
 const toWorld = (px, py) => [cam.x + ((px - gox) / gs - 160) / cam.z, cam.y + ((py - goy) / gs - 125) / cam.z];

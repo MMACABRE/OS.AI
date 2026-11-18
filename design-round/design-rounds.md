@@ -108,3 +108,11 @@ Every option shows the same moment: `hud.md` open in the notes dock (WS-43) as a
 - B, reader: notes list on the left, the note as a wide centre column, the local graph (GRAPH-30, depth 2, not expanded through CLAUDE.md) and backlinks on the right.
 - C, open air: matches Code page C. The graph fills the page and runs on behind the see-through note (0.78 opacity, corner brackets).
 - Open points for the spec: in C, graph labels under the note show through its text; the graph should fade labels behind the sheet or the sheet needs a higher opacity. The notes list in B is not a spec'd panel (Files covers it on the Code page). The selection bracket colour (yellow, the focus colour) is new to GRAPH-24.
+
+## Notes page, round 2 (2026-11-18): layout C with a notes list
+
+Owner chose layout C and asked for a small notes list in it.
+
+- A notes list floats on the left without a box, like Files on Code page C: a search field, the note tree (spec, modules with link counts, docs, tasks, CLAUDE.md, skills, memory) with the open note in yellow. Recent is left out to keep it small.
+- The graph is centred in the space between the list and the note, so it no longer runs behind the note. This also settles the round 1 open point about graph labels showing through the note's text.
+- Open point for the spec: the notes list is a new side view for the Notes page (a filtered Files view: markdown notes only, with link counts from the graph index).
