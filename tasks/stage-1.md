@@ -26,7 +26,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ## 039 App frame
 
-**Goal.** The title bar, activity rail, side and right areas, and status bar.
+**Goal.** The title bar, side view tabs, side and right areas, and status bar.
 
 **Stage.** 1
 

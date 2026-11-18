@@ -2,66 +2,84 @@
 
 ## Anatomy
 
+The Code page, as approved in the design round (`design-round/code/phosphor-code.html?layout=c`). Parts in parentheses float over the background without a box (`visual-direction.md`, Open air).
+
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ title bar  [project ▾] [branch ⇅]            [palette hint]      [─ □ ✕] │ 36
-├────┬──────────────┬──────────────────────────────────┬───────────────────┤
-│ r  │ side panel   │ dock                             │ right panel       │
-│ a  │              │  ┌ tabs ───────────────────────┐ │                   │
-│ i  │ (one of:     │  │ terminal │ file │ browser   │ │ (HUD by default)  │
-│ l  │  Files       │  ├─────────────────────────────┤ │                   │
-│    │  Changes     │  │                             │ │                   │
-│ 44 │  Graph       │  │   panels: split and tabbed  │ │                   │
-│    │  Activity    │  │   freely by drag and drop   │ │                   │
-│    │  Artifacts)  │  │                             │ │                   │
-│    │              │  └─────────────────────────────┘ │                   │
-├────┴──────────────┴──────────────────────────────────┴───────────────────┤
-│ status bar  [branch ↑1 ↓0] [3 changes]      [5h 42%] [7d 18%] [2 need you]│ 24
-└──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ HSOS 14:07 ( Dashboard | Code | Notes ) [project ▾] [owner/repo main ↑1] [palette] [─ □ ✕] │ 56
+├───────────────┬──────────────────────────────────────────┬───────────────────┤
+│ [tabs ... ⚙]  │ ┌ ribbon: mascot · chat · model · repo ┐ │ (mascot  word)    │
+│ (Files tree)  │ │ terminal 1 (focused, yellow brackets) │ │ (quick bar)       │
+│               │ └────────────────────────────────────────┘ │ (usage)           │
+│               │ ┌ ribbon ────────────────────────────────┐ │ (sessions)        │
+│               │ │ terminal 2 (needs you, red brackets)   │ │ ┌ skills deck ──┐ │
+│               │ └────────────────────────────────────────┘ │ └───────────────┘ │
+│               │                                            │ (skills repo)     │
+├───────────────┴──────────────────────────────────────────┴───────────────────┤
+│ status bar  [branch ↑1 ↓0] [3 changes]          [5h 42%] [7d 18%] [2 need you] │ 26
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
+
+## Title bar
+
+Left to right, 56 px high (`size.titlebar`):
+
+| Part | Content | Pressing it |
+|---|---|---|
+| Wordmark | `HSOS` in `font.display`, `color.brand`. It breathes (scale 1 to 1.035 and a glow toward `color.memory`, a 7 s loop), and a light band sweeps across it (`clip-path`) on hover, on press and every 6 to 15 s | nothing; it is part of the drag region |
+| Clock | local time `HH:MM` in `color.live` with a blinking colon; seconds and a brighter glow on hover | nothing |
+| Page switcher | Dashboard, Code, Notes (WS-40) | switches page |
+| Project switcher | the project name | the project menu |
+| Repo | `owner/repo` from `webUrl` (GIT-14), the branch and ahead/behind; hidden when the project has no remote | opens `webUrl` with `shell.openExternal` |
+| Palette hint | `Ctrl+Shift+P` | opens the command palette |
+| Window controls | minimise, maximise, close | |
+
+The repo button replaces the earlier branch and sync button; sync stays in the status bar and the Changes view. Under reduced motion the wordmark and the clock do not move or blink (MOT-12).
 
 ## Pages
 
-The title bar holds a page switcher: Dashboard, Code, Notes (WS-40). The drawing above is the Code page. The Dashboard fills the space between the title bar and the status bar with widget screens (DASH-1); the Notes page fills it with its own dock. The background runs behind all three and is seen through glass surfaces (UI-30, UI-31). Page changes move as `motion.md` says.
+The page switcher in the title bar shows one of three pages (WS-40). The drawing above is the Code page. The Dashboard fills the space between the title bar and the status bar with widget screens (DASH-1). The background runs behind all three and is seen through glass surfaces (UI-30, UI-31). Page changes move as `motion.md` says.
+
+The Notes page, as approved (`design-round/notes/phosphor-notes.html?layout=c`):
 
 ```
-┌ [project ▾]  ( Dashboard | Code | Notes )                 [─ □ ✕] ┐
-│                                                                   │
-│   ┌──────────┐ ┌─────────────────────┐ ┌──────────┐               │
-│   │ session  │ │ usage        context│ │  mascot  │   widgets on  │
-│   │ ribbon   │ │ ███████░░░   41%    │ │   ▟▙     │   a grid,     │
-│   └──────────┘ └─────────────────────┘ └──────────┘   resizable   │
-│   ┌─────────────────────┐ ┌──────────┐                            │
-│   │ sessions board      │ │ notes    │                 • ○ ○      │
-│   └─────────────────────┘ └──────────┘           screen dots      │
-├ status bar ───────────────────────────────────────────────────────┤
+┌ HSOS 14:07 ( Dashboard | Code | Notes ) [project ▾] [owner/repo]     [─ □ ✕] ┐
+│ (search)       │                                │ ┌ hud.md ───────────────┐ │
+│ (notes list)   │      (graph, CLAUDE.md pinned   │ │ the note in the notes │ │
+│ spec           │       in the centre, nodes      │ │ dock: see-through,    │ │
+│ modules   12   │       breathe steam)            │ │ corner brackets,      │ │
+│ CLAUDE.md  9   │                                │ │ backlinks at the foot │ │
+│                │      [graph toolbar]            │ └───────────────────────┘ │
+├ status bar ──────────────────────────────────────────────────────────────────┤
 ```
+
+The notes list is the side view `graph.notes` (GRAPH-55), floating on the left. The graph view fills the space between the list and the notes dock, so it never runs behind the note. The notes dock (WS-43) is on the right.
 
 ## Areas
 
 | Area | Holds | Size | Rules |
 |---|---|---|---|
-| Title bar | Project switcher, branch and sync button, window controls | 36 high | The window is frameless. The bar is a drag region except over its controls. |
-| Activity rail | One icon per side view, settings at the bottom | 44 wide | Selecting the active icon collapses the side panel. A dot on an icon signals new content. |
-| Side panel | One side view at a time | 280 wide by default, 200 to 480, resizable | Collapsible to 0. Width is saved per project. |
+| Title bar | The parts above | 56 high | The window is frameless. The bar is a drag region except over its controls. |
+| Side view tabs | One button per side view, settings last | 30 by 30 buttons in a row at the top of the side area | They replace the activity rail. Pressing the active view's button collapses the side area to its tab row. A dot on a button signals new content. |
+| Side area | One side view at a time | 214 wide by default, 200 to 480, resizable | Collapsible to its tab row. Width is saved per project. Lists in it float without a box. |
 | Dock | Dock panels | Fills the rest | Panels split, tab, move and float by drag and drop. |
-| Right panel | The HUD, or any side view the owner moves there | 300 wide by default, 240 to 480 | Collapsible. |
-| Status bar | Status items registered by modules | 24 high | Left group is about the project, right group about Claude. Each item is a button. |
+| Right area | The HUD, or any side view the owner moves there | 318 wide by default, 240 to 480 | Collapsible. HUD parts float without a box, except the Skills deck, which holds an input. |
+| Status bar | Status items registered by modules | 26 high | Left group is about the project, right group about Claude. Each item is a button. |
 
 ## Panel kinds
 
 | Kind | Lives in | Examples | How many |
 |---|---|---|---|
-| Side view | Side panel or right panel | Files, Changes, Graph, Activity, Artifacts, HUD | One instance each |
+| Side view | Side area or right area | Files, Changes, Graph, Activity, Artifacts, HUD | One instance each |
 | Dock panel | Dock | Terminal, File viewer, Browser, Diff, Graph (full), Settings | Any number |
 
 A module registers each of its panels with a kind, a title, an icon and a factory (`contracts/module.ts`).
 
 ## Default layout for a new project
 
-- Side panel: Files.
-- Dock: one terminal, started in the project folder.
-- Right panel: HUD.
+- Side area: Files.
+- Dock: one terminal, started in the project folder. A second terminal goes below it (layout C stacks terminals full width).
+- Right area: HUD.
 
 ## Dock behaviour
 
@@ -82,8 +100,8 @@ A module registers each of its panels with a kind, a title, an icon and a factor
 
 ## Narrow windows
 
-- Below 1100 wide the right panel collapses to its icon in the rail.
-- Below 800 wide the side panel also collapses.
+- Below 1100 wide the right area collapses to a button at the end of the side view tabs.
+- Below 800 wide the side area also collapses to its tab row.
 - The dock never shrinks below 480 wide. The minimum window size is 640 by 400.
 
 ## Key bindings, defaults
@@ -96,8 +114,8 @@ All are settings in `keybindings.json`.
 | `Ctrl+P` | Go to file |
 | `` Ctrl+` `` | Focus or create a terminal |
 | `Ctrl+Shift+T` | New terminal |
-| `Ctrl+B` | Toggle side panel |
-| `Ctrl+Alt+B` | Toggle right panel |
+| `Ctrl+B` | Toggle side area |
+| `Ctrl+Alt+B` | Toggle right area |
 | `Ctrl+Shift+E` | Files |
 | `Ctrl+Shift+G` | Changes |
 | `Ctrl+Shift+H` | HUD |

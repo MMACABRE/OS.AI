@@ -37,6 +37,8 @@ export type WidgetType<C = unknown> = {
   readonly minSize: WidgetSize;
   readonly maxSize: WidgetSize;
   readonly defaultSize: WidgetSize;
+  /** `box` draws a widget surface and frame; `free` draws none and floats over the background (DASH-4). */
+  readonly frame: 'box' | 'free';
   readonly configSchema: z.ZodType<C>;
   readonly defaultConfig: C;
   /** Renders the widget for its size. `cells` is the size in cells, `pixels` its box. */

@@ -461,3 +461,27 @@ Design choices and why:
 Not taken: per-stage UI review, because the owner asked to see all of the app before any backend. Hard-coding a cyberpunk theme now, because the owner wants to choose.
 
 Spec changes: new `spec/design/direction-brief.md`, `spec/design/motion.md`, `spec/modules/dashboard.md`, `spec/contracts/channels/dashboard.ts`, `tasks/stage-u.md`, `tasks/stage-9.md`; P-42, P-45; `visual-direction.md`, `layout.md`, `themes/graphite.json`; `ui-kit.md` UI-6, UI-30 to UI-33; `settings.md` SET-15; `workspace.md` WS-40 to WS-45; `terminal.md` TERM-75, TERM-76; `hud.md` HUD-6, HUD-80 to HUD-83, HUD-90 to HUD-93; `git.md` GIT-4, GIT-14; contracts `theme.ts`, `workspace.ts`, `terminal.ts`, `git.ts`, `ids.ts`, `schemas.ts`, `paths.ts`; `02-architecture.md` budgets and data; `03-stack.md`; `04-implementer-protocol.md` "Look first"; `05-testing.md`; capability map; every card renumbered; features F-065 to F-072; glossary. 20 modules, 615 rules, 72 features, 118 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.
+
+### Step 38. Phosphor written into the spec
+
+The design round ended with the owner choosing Phosphor and approving three mockups: the Dashboard, the Code page (layout C) and the Notes page (layout C with a notes list). Every round and decision is in `design-round/design-rounds.md`. This step records the choice, as `direction-brief.md` ("How the choice is recorded") asks, and settles the open points the round left.
+
+The owner's decisions in this step:
+- **Phosphor is the only built-in theme.** Graphite, Paper and Ink are removed. Missing tokens in an owner's theme now come from Phosphor (SET-11, SET-12).
+- **The barrel bend applies to the background only.** The mockups bent the whole window. In the app that would put click targets near the edges up to 22 px away from where they are drawn, and would cost a second full-window pass. Scanlines and vignette stay as one still overlay that takes no input (UI-34).
+- **The mascot's reading and working states depend on the page.** While its session works, the mascot reads on the Notes page, types on the Code page and dances elsewhere (HUD-90).
+
+Spec author decisions and why:
+- **The reading-text floor is 0.78, not the mockups' 0.74.** Against the brightest background pixel, muted text at 0.74 reaches only 3.0:1, below P-45. Two changes make P-45 hold. The scene's brightness is capped at 0.6 of `color.accent` per channel (UI-34). The floor rises to 0.78, the terminal's own opacity. At these values muted text reaches 4.7:1. `ansi.brightBlack` (2.3:1) and `ansi.red` (4.3:1) were raised to `#A08C80` and `#FF5080`.
+- **The key-binding clash was a mockup error.** `hud.searchSkills` was already `Ctrl+Shift+K`; the mockup's `Ctrl+K` is dropped.
+- **Ribbon 32 px, mascot 32 px, mini mascot 16 px.** HUD-90 needs whole-number scales of the 16 by 16 cell. The old 20 px and 12 px sizes were not.
+- **Side view tabs replace the activity rail** (WS-30, layout.md), as on the approved Code page. The `size.rail` token is removed.
+- **The title bar is 56 px.** It holds the wordmark, the clock and the repo button (layout.md, Title bar). The repo button replaces the branch button.
+- **Free widgets** (DASH-4, `frame` in the widget contract) and grid spacing tokens (DASH-2), for the floating graph, mascot and quick bar.
+- **The background takes pointer positions and steam sources from the frame, not input events** (UI-33, UI-35). The canvas stays `pointer-events: none` and silent to screen readers.
+- **Graph camera, drift and steam** (GRAPH-50 to GRAPH-53). Also the notes list side view (GRAPH-55), which reads only the index (P-4). "New note" in the empty state runs `files.newFile`, so the graph still never writes.
+- **Fonts: VT323 and Jersey 10** under the SIL Open Font License, bundled; Cascadia Mono is the fallback. Card 029 checks the fallback inside xterm, which this step could not do without the app.
+
+Not taken: lowering P-45 for this theme, because the contrast rule is what makes a see-through terminal safe to read. A per-surface brightness mask in the scene was also left out, because a single cap is simpler and passes.
+
+Spec changes: `visual-direction.md` rewritten for Phosphor; `themes/phosphor.json` added and the three old themes removed; `contracts/theme.ts` (20 tokens added, `size.rail` removed), `channels/settings.ts` (default theme), `channels/dashboard.ts` (`frame`); `layout.md` anatomy, title bar, pages, areas; `motion.md` MOT-2; `ui-kit.md` UI-33 to UI-35; `hud.md` HUD-80, HUD-81, HUD-90 to HUD-92; `dashboard.md` DASH-2, DASH-4 and catalog; `graph.md` GRAPH-50 to GRAPH-55 and states; `workspace.md` WS-30 and pages; `settings.md` SET-11, SET-12 and tests; `activity.md` ACT-34; `03-stack.md` fonts; `spec/reference/art/` (mascot sheet, frame map, `background.md`); cards 018, 027, 028, 029, 034 and the stage 0 icon; features F-007, F-050; glossary. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.

@@ -402,9 +402,9 @@ At the end of this stage HSOS opens a themed, empty window with a command palett
 
 **Read first.** `spec/modules/settings.md` SET-11 to SET-17, `spec/contracts/theme.ts`, `spec/design/visual-direction.md`.
 
-**Files.** `resources/themes/graphite.json`, `resources/themes/paper.json`, `resources/themes/ink.json` (copies of `spec/design/themes/`), `src/modules/settings/service/theme-store.ts`, `src/modules/settings/panel/apply-theme.ts`, `src/modules/settings/register.ui.ts`.
+**Files.** `resources/themes/phosphor.json` (a copy of `spec/design/themes/phosphor.json`), `tests/fixtures/themes/test-light.json`, `src/modules/settings/service/theme-store.ts`, `src/modules/settings/panel/apply-theme.ts`, `src/modules/settings/register.ui.ts`.
 
-**Steps.** Copy the themes. Implement SET-11 to SET-17 and the theme channels. `apply-theme.ts` sets the variables on `:root` and `data-theme-kind`. Bundle Geist and Geist Mono in `resources/fonts/` with `@font-face` rules in `src/ui/fonts.css` (this card may add those two paths).
+**Steps.** Copy the themes. Implement SET-11 to SET-17 and the theme channels. `apply-theme.ts` sets the variables on `:root` and `data-theme-kind`. Bundle VT323 and Jersey 10 (SIL Open Font License, with their licence files) in `resources/fonts/` with `@font-face` rules in `src/ui/fonts.css` (this card may add those two paths). `test-light.json` is a test theme of kind `light` that sets only `color.bg.app` and `color.text.primary`, for the switch test.
 
 **Tests.** `tests/settings/theme-store.test.ts`: SET-11, SET-12, SET-14, SET-16. `tests/settings/apply-theme.ui.test.tsx`: SET-13, SET-15.
 
@@ -546,8 +546,8 @@ At the end of this stage HSOS opens a themed, empty window with a command palett
 
 **Steps.**
 1. `electron-builder.yml`: app id `local.hsos.app`, product name `HSOS`, Windows target `nsis` with `oneClick: false`, `perMachine: false`, `allowToChangeInstallationDirectory: true`; `asarUnpack` for `node-pty` and `better-sqlite3`.
-2. Icon: a 256 by 256 `.ico` of the letters `HS` in Geist 600, `#F5A524` on `#100F0E`, radius 48.
-3. E2E: the app starts with a corrupt `settings.json` (REL-7, P-32), the palette opens, the settings screen opens, theme switch to Paper changes `--color-bg-app` without reload, killing the renderer reloads it.
+2. Icon: a 256 by 256 `.ico` of the letters `HS` in Jersey 10, `#FF003C` on `#0B0A09`, radius 48, drawn at whole pixels.
+3. E2E: the app starts with a corrupt `settings.json` (REL-7, P-32), the palette opens, the settings screen opens, a switch to the theme `test-light` (copied into `themesDir` by the test) changes `--color-bg-app` without reload, killing the renderer reloads it.
 
 **Tests.** `tests/e2e/stage-0.e2e.ts`.
 

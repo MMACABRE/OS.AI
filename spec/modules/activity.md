@@ -77,7 +77,7 @@ Side view `activity.artifacts`.
 - **ACT-31.** Activating a tile opens it: `html` in a browser panel as a local file when the `browser` module is present, else in the system browser; `image` in a file viewer; `pdf` and `video` in the system's default program through `shell.openPath`.
 - **ACT-32.** Tile menu: Open, Reveal in Explorer, Copy Path, Send Path to Terminal, Pin Comment (adds an `artifact` comment through `review`), Remove from Inbox.
 - **ACT-33.** The search field filters by relative path as typed. No request leaves the machine and no Claude run is involved.
-- **ACT-34.** The activity rail icon for Artifacts shows a dot when artifacts arrived since the view was last open.
+- **ACT-34.** The side view tab button for Artifacts shows a dot when artifacts arrived since the view was last open.
 
 ## Commands
 

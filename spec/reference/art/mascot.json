@@ -1,0 +1,63 @@
+{
+  "image": "mascot.png",
+  "cell": 16,
+  "columns": 6,
+  "states": {
+    "dancing": {
+      "row": 0,
+      "frames": 6,
+      "fps": 8,
+      "loop": "loop",
+      "activity": "working, background"
+    },
+    "waving": {
+      "row": 1,
+      "frames": 4,
+      "fps": 6,
+      "loop": "loop",
+      "activity": "needs-you"
+    },
+    "cheering": {
+      "row": 2,
+      "frames": 6,
+      "fps": 6,
+      "loop": "from 4",
+      "activity": "done"
+    },
+    "resting": {
+      "row": 3,
+      "frames": 4,
+      "fps": 4,
+      "loop": "loop, hold frame 0",
+      "activity": "idle"
+    },
+    "sleeping": {
+      "row": 4,
+      "frames": 4,
+      "fps": 3,
+      "loop": "loop",
+      "activity": "ended, no session"
+    },
+    "turn": {
+      "row": 5,
+      "frames": 3,
+      "fps": 12,
+      "loop": "once",
+      "activity": "any state change, 3 frames"
+    },
+    "reading": {
+      "row": 6,
+      "frames": 4,
+      "fps": 3,
+      "loop": "loop",
+      "activity": "Notes page, reading"
+    },
+    "working": {
+      "row": 7,
+      "frames": 4,
+      "fps": 8,
+      "loop": "loop",
+      "activity": "Code page, editing"
+    }
+  }
+}

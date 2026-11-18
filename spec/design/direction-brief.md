@@ -48,4 +48,4 @@ The owner picks one direction, or parts of several. The spec author then:
 3. adds the mascot sheet and the background description to `spec/reference/art/`;
 4. logs the choice in `docs/JOURNAL.md`.
 
-Stage U starts after this. Until then the spec's direction is Graphite.
+Stage U starts after this. Done on 2026-11-18: the owner chose Phosphor, and the spec author recorded it (JOURNAL step 38). This brief is kept for history.

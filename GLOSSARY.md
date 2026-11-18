@@ -128,13 +128,17 @@
 
 **Widget**: A live tile on the dashboard, sized in grid cells, that shows one part of the app and opens it when activated.
 
+**Free widget**: A widget drawn with no box, floating over the background.
+
 **Edit mode**: The dashboard state in which widgets can be moved, resized, added and removed.
 
 **Session ribbon**: The strip above each Claude terminal that keeps the session's model, effort, folder, repo, chat name and subagents in view.
 
-**Mascot**: HSOS's own small pixel-art character that shows what a Claude session is doing.
+**Mascot**: HSOS's own small pixel-art character, a strawberry, that shows what a Claude session is doing.
 
 **Background**: The animated scene drawn behind every page.
+
+**Steam source**: A thing on the page, such as a graph node or a live session ribbon, that the background pours steam from in its colour.
 
 **Glass surface**: A surface partly see-through to the background, by an amount the theme sets for its role.
 
@@ -143,3 +147,7 @@
 **Look first**: The rule that the owner approves the whole look in demo mode before any backend is built.
 
 **Design round**: The step before Stage U in which a designer shows the owner several visual directions and the owner picks one.
+
+**Phosphor**: The visual direction the owner chose: old-CRT pixel art with one colour per job, and the one built-in theme.
+
+**Side view tabs**: The row of buttons at the top of the side area that picks its side view.

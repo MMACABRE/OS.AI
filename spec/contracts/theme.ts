@@ -3,7 +3,7 @@
  */
 import { z } from 'zod';
 
-/** Every token name the app uses. A theme may set any subset; the rest come from Graphite. */
+/** Every token name the app uses. A theme may set any subset; the rest come from Phosphor. */
 export const TOKEN_NAMES = [
   'color.bg.app',
   'color.bg.panel',
@@ -62,7 +62,6 @@ export const TOKEN_NAMES = [
   'size.tab',
   'size.titlebar',
   'size.statusbar',
-  'size.rail',
   'motion.instant',
   'motion.quick',
   'motion.normal',
@@ -89,6 +88,31 @@ export const TOKEN_NAMES = [
   // The animated background (UI-30, UI-32).
   'backdrop.scene',
   'backdrop.fps',
+  // Phosphor (spec/design/visual-direction.md): one colour per job.
+  'color.structure',
+  'color.structure.deep',
+  'color.brand',
+  'color.live',
+  'color.knowledge',
+  'color.memory',
+  'font.display',
+  'font.size.display',
+  // Text and box shadows that make each colour role glow.
+  'glow.accent',
+  'glow.danger',
+  'glow.live',
+  'glow.structure',
+  // The stepped pixel edge under a lifted button and its largest tilt (MOT-2).
+  'button.lift',
+  'button.tilt',
+  // The old-monitor look of the background scene (UI-34): barrel bend in px, scanline and corner darkness 0 to 1.
+  'crt.barrel',
+  'crt.scanlines',
+  'crt.vignette',
+  // Dashboard grid spacing in px (DASH-2).
+  'size.grid.gapX',
+  'size.grid.gapY',
+  'size.grid.edge',
 ] as const;
 
 export type TokenName = (typeof TOKEN_NAMES)[number];
@@ -102,7 +126,7 @@ export const ThemeFile = z.object({
 });
 export type ThemeFile = z.infer<typeof ThemeFile>;
 
-/** A theme with every token present, after missing ones are filled from Graphite. */
+/** A theme with every token present, after missing ones are filled from Phosphor. */
 export type ResolvedTheme = {
   readonly name: string;
   readonly kind: 'dark' | 'light';

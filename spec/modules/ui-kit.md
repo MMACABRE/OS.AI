@@ -67,12 +67,14 @@ type PanelViewState =
 
 ## Background and glass
 
-Every visual direction draws an animated background behind the whole app and lets surfaces show it through glass (P-45, `design/direction-brief.md`). The scene itself comes from the chosen direction; these rules hold for any scene.
+Every visual direction draws an animated background behind the whole app and lets surfaces show it through glass (P-45, `design/direction-brief.md`). The scene itself comes from the chosen direction (Phosphor: `phosphor-dust`, described in `spec/reference/art/background.md`); these rules hold for any scene.
 
 - **UI-30.** `Backdrop` is mounted once, by the app frame, behind every page, and is never unmounted while the window lives (MOT-7). It draws the scene named by the token `backdrop.scene` into one canvas through an `OffscreenCanvas` in a worker, so drawing never runs on the renderer's main thread. Scenes are registered in `src/modules/ui-kit/backdrop/scenes/`; an unknown name draws the `still` scene, a flat `color.bg.app`.
 - **UI-31.** Every surface has a role: `app`, `panel`, `terminal`, `overlay`, `widget`, `ribbon`. Its background is its colour token at the opacity `surface.<role>.alpha` (0 to 1) and, where `surface.<role>.blur` is above 0, `backdrop-filter: blur(<n>px)`. The `terminal` role, and any surface holding reading text (editor, transcript, viewer), never goes below `surface.text.minAlpha`; a theme value under it is raised to it and reported (SET-14).
 - **UI-32.** Budget: the scene runs at most at `backdrop.fps` frames a second (at most 30), its worker uses under 3 % of one CPU core on the reference machine (`05-testing.md`, performance), and it pauses while the window is minimised or hidden. With `data-motion="reduced"` it draws one frame and stops (MOT-12).
-- **UI-33.** The `Backdrop` never takes pointer or keyboard input, and nothing in it is read by screen readers.
+- **UI-33.** The `Backdrop` never takes pointer or keyboard input (`pointer-events: none`), and nothing in it is read by screen readers. The app frame listens to pointer movement and clicks on `window` with passive listeners and posts them to the worker as positions (at most once per frame); a click that lands on no control and starts no drag is posted as a `puff`. Scenes may react to these; nothing else reaches them.
+- **UI-34.** The old-monitor look is split in two. The scene draws its own barrel bend (`crt.barrel`, in px at the corners) inside the worker, so only the background is bent. Scanlines (`crt.scanlines`) and the corner vignette (`crt.vignette`) are one still element over the whole window with `pointer-events: none` that never animates and is not read by screen readers. No filter bends or displaces any element above the background, so every element is hit where it is drawn. A scene never draws a pixel brighter than 0.6 of `color.accent` per channel (relative luminance 0.29 for Phosphor), which is the worst frame the contrast check of P-45 assumes.
+- **UI-35.** Steam sources: a component calls `useBackdropSource(ref, colourToken, strength)` to make its element a source of the scene's colour, for example a graph node, a live session ribbon or the focused terminal. The frame posts the sources' centres, colours and strengths to the worker at most 10 times a second, and only for sources on the visible page. Sources leave when their component unmounts or its page hides (WS-41).
 
 ## Icons
 
@@ -115,4 +117,8 @@ Each is a 16 by 16 SVG with 1.5 px strokes, round caps, no fill, stored in `src/
 | UI-32 | e2e | the app running a scene | the window is minimised for 2 s | the worker drew no frame in that time |
 | UI-32 | e2e | the reference machine | the Code page is idle for 60 s with a scene running | the worker's CPU stays under 3 % of one core |
 | UI-33 | component | the backdrop | the accessibility tree is read | it holds no node from the backdrop |
+| UI-33 | component | fake worker; the pointer moves over the page and clicks empty space | one frame passes | the worker received one position message and one `puff`; no event listener on the backdrop canvas |
+| UI-34 | component | the app frame | it renders | the overlay element has `pointer-events: none`, no animation, and no element above the backdrop has a `filter` with `url(` |
+| UI-34 | unit | the `phosphor-dust` scene drawing 300 frames into an `OffscreenCanvas` with every source at full strength | each frame is read | no pixel channel is above 0.6 of `color.accent`'s |
+| UI-35 | component | two sources, one on a hidden page | 1 000 ms pass | the worker received at most 10 source messages, each holding only the visible source |
 | SET-15 | component | `data-motion="reduced"` | a `Dialog` opens | it only fades, for at most `motion.quick` (MOT-12) |

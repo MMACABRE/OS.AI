@@ -16,7 +16,7 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 | Part | Where | Does |
 |---|---|---|
 | Project store | `main` | Current project, recent list, workspace file load and save |
-| App frame | `ui` | Title bar, activity rail, side panel, right panel, status bar |
+| App frame | `ui` | Title bar, side view tabs, side area, right area, status bar |
 | Dock | `ui` | Dock panels with split, tab and drag, on `dockview` |
 | Panel registry | `ui` | Panel definitions registered by modules |
 | Welcome view | `ui` | Shown when no project is open |
@@ -57,7 +57,7 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 
 ### Frame
 
-- **WS-30.** The activity rail shows one icon per registered side view, in registration order, and the settings icon at the bottom. Selecting the icon of the active view collapses its area. Selecting another switches to it.
+- **WS-30.** The side view tabs show one button per registered side view, in registration order, and the settings button last, in a row at the top of the side area. Selecting the button of the active view collapses its area to the tab row. Selecting another switches to it. The title bar holds the parts listed in `design/layout.md` (Title bar); its repo button reads the open project's git status (GIT-14).
 - **WS-31.** The side and right areas resize by dragging their inner edge, within the limits in `SideAreaState`. Double-clicking the edge resets to the default width.
 - **WS-32.** The status bar renders items registered with `registerStatusItem`, grouped by `side`, sorted by `order`.
 - **WS-33.** Window width below 1100 collapses the right area; below 800 the left area too. Widening again restores the areas that were open before the automatic collapse, and only those.
@@ -73,8 +73,8 @@ The window shows one of three pages at a time. The title bar, the status bar and
 | Page | Holds | Default layout |
 |---|---|---|
 | `dashboard` | The widget screens of the `dashboard` module (DASH-1) | its own |
-| `code` | The activity rail, side and right areas and the dock described above | `design/layout.md` |
-| `notes` | A second dock, for the notes of the vault and the project: the full graph and markdown viewers | the full graph on the left two thirds, the viewer of the selected note on the right |
+| `code` | The side view tabs, side and right areas and the dock described above | `design/layout.md` |
+| `notes` | The notes list (GRAPH-55) and a second dock, for the notes of the vault and the project: the full graph and markdown viewers | the notes list floating on the left, the graph in the middle, the viewer of the selected note on the right (`design/layout.md`, Pages) |
 
 - **WS-40.** The title bar has a page switcher with three segments, "Dashboard", "Code" and "Notes", and a marker under the active one. `Ctrl+1`, `Ctrl+2` and `Ctrl+3` (global) switch to them; `Ctrl+Alt+Left` and `Ctrl+Alt+Right` (global) go to the page beside the current one.
 - **WS-41.** Every page stays mounted once shown. Switching pages hides the others (`content-visibility: hidden`, `inert`), so terminals, viewers and the graph keep their state and a terminal keeps receiving output. A hidden page's panels are told through `usePageVisible()` and pause their own drawing.

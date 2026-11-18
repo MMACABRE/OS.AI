@@ -44,7 +44,7 @@ Read from the npm registry on 2026-11-17. Install these exact versions. `package
 | `dependency-cruiser` | 18.8.0 | Dependency direction check |
 | `prettier` | 3.10.1 | Formatting |
 
-Package manager: `npm`. Fonts: Geist and Geist Mono, bundled as files, loaded from disk.
+Package manager: `npm`. Fonts: VT323 and Jersey 10 (SIL Open Font License), bundled as files, loaded from disk. Cascadia Mono, shipped with Windows 11, is the fallback for glyphs VT323 lacks.
 
 ### Third-party APIs
 

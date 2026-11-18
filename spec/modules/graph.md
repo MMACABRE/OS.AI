@@ -75,6 +75,19 @@ Dock panel `graph.view`, single instance, and a compact local graph in the side 
 - **GRAPH-28.** Keyboard: arrow keys move selection to the nearest neighbour in that direction; Enter opens; `/` focuses search; `0` fits the view.
 - **GRAPH-29.** With more than 5 000 nodes, labels show only on hover and search, and edges are drawn at 50 percent opacity. More than 50 000 nodes shows the view with a notice "Large graph: filters are on" and only the `project` root until the owner changes the filter.
 
+### Motion, pointer and camera
+
+These hold for the graph view, the local graph and the Dashboard's `graph.mini` (DASH catalog).
+
+- **GRAPH-50.** Camera: the scroll wheel zooms at the pointer between 0.7x and 5x; a drag on empty space pans; a double-click on empty space resets to the fitted view (GRAPH-25 still opens a note on a node). Labels of nodes outside GRAPH-22's list appear from 1.8x zoom.
+- **GRAPH-51.** After layout settles (GRAPH-20), every node drifts slowly around its place, by at most 6 px; a pointer sweep faster than 600 px a second pushes the nodes near it away, and they spring back. A slow or resting pointer never pushes, so a node can always be reached, and a hovered node holds still. When the project's `CLAUDE.md` is in the graph, it is pinned at the centre of the view and never drifts. Under reduced motion nothing drifts or is pushed (MOT-12).
+- **GRAPH-52.** Each drawn node is a steam source (UI-35) in its kind colour, the open note at 3 times the strength of the rest. The graph itself draws no halos; the steam is the halo.
+- **GRAPH-53.** The selected node (GRAPH-24) has a pixel bracket in `color.accent`. The note open in the focused viewer glows in `color.accent` far brighter than the rest.
+
+### Notes list
+
+- **GRAPH-55.** The side view `graph.notes` is the Notes page's list of notes: a search field, then a tree of the markdown files of the indexed roots, grouped by root and by folder, each with its link count (`degree`) from the index. The note open in the focused viewer is in `color.accent`. Activating a note opens it in the notes dock (WS-43). It reads only the index, never the disk (P-4).
+
 ### Local graph and backlinks
 
 - **GRAPH-30.** The side view `graph.local` follows the file open in the focused viewer. It shows that note and its neighbours to `localDepth`, laid out the same way, and below it a list of backlinks: the linking note's label and the line context. Activating a backlink opens that note at that line.
@@ -111,8 +124,9 @@ Claude Code loads some files into every session and reads the rest only when it 
 
 | Panel | Loading | Empty | Error |
 |---|---|---|---|
-| Graph view | "Indexing notes… 1 240 of 3 000" with a progress bar; nodes appear as batches finish | "No markdown notes found. Notes in this project and your vault appear here." with "Choose vault folder" | "The note index could not be read." with "Rebuild" |
-| Local graph | skeleton | GRAPH-31 | same as the graph view |
+| Graph view | "Indexing notes… 1 240 of 3 000" with a progress bar and the file being read; nodes appear as batches finish | "No notes yet." and "Notes in this project and your vault appear here.", with "New note" (runs `files.newFile` in the project root) and "Set vault folder" | "The note index could not be read." with "Rebuild", "Show log" and "Settings" |
+| Local graph | the loading state of the graph view | GRAPH-31 | same as the graph view |
+| Notes list | the loading state of the graph view | "No notes yet." with "New note" | same as the graph view |
 
 ## Tests
 
@@ -145,3 +159,7 @@ Claude Code loads some files into every session and reads the rest only when it 
 | GRAPH-43 | component | the same graph | "Only not reached" | only `c` is drawn |
 | GRAPH-44 | component | a node | it is hovered for 400 ms | the card shows the preview; focus has not moved; Escape closes it |
 | GRAPH-45 | integration | a 10 000-character note with frontmatter | `preview` | 4 000 characters at most, no frontmatter, `truncated` true |
+| GRAPH-50 | component | the graph view at 1x | wheel up 20 notches at a node, then a double-click on empty space | zoom stops at 5x with that node under the pointer; the double-click returns to the fitted view |
+| GRAPH-51 | component | fake clock; the pointer sweeps at 300 px/s, then at 900 px/s past a node | each sweep | the node moves only on the second sweep and is back within 2 000 ms; with `CLAUDE.md` in the graph it never moves |
+| GRAPH-52 | component | fake backdrop; 3 nodes, one the open note | one source tick | 3 sources; the open note's strength is 3 times the others' |
+| GRAPH-55 | component | an index with `a.md` (degree 4) and `notes/b.md` | the notes list renders | a tree with `a.md 4` and `notes/b.md`; no disk read was made |

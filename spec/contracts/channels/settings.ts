@@ -30,7 +30,7 @@ export type SettingsProblem = z.infer<typeof SettingsProblem>;
 
 /** The `settings` module's own section: appearance and general options. */
 export const AppearanceSettings = z.object({
-  theme: z.string().default('Graphite'),
+  theme: z.string().default('Phosphor'),
   /** Multiplies every px size. 1 means 100 percent. */
   uiScale: z.number().min(0.8).max(1.5).default(1),
   reduceMotion: z.enum(['system', 'on', 'off']).default('system'),
@@ -43,7 +43,7 @@ export const appearanceSection: SettingsSection<AppearanceSettings> = {
   moduleId: 'settings',
   title: 'Appearance',
   schema: AppearanceSettings,
-  defaults: { theme: 'Graphite', uiScale: 1, reduceMotion: 'system', vaultPath: null },
+  defaults: { theme: 'Phosphor', uiScale: 1, reduceMotion: 'system', vaultPath: null },
 };
 
 export const ThemeSummary = z.object({

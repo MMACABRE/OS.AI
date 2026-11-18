@@ -45,16 +45,16 @@ Rules for this stage, on top of `spec/04-implementer-protocol.md`:
 
 **Read first.** `spec/design/motion.md`, `spec/modules/ui-kit.md` UI-6, UI-30 to UI-33, `spec/design/visual-direction.md`, `spec/contracts/theme.ts`.
 
-**Files.** `src/modules/ui-kit/motion/`, `src/modules/ui-kit/backdrop/` (with `scenes/still.ts` and the chosen direction's scene), `src/modules/ui-kit/components/` (`Surface`, `RollingNumber`, and the motion of every existing component), `src/modules/settings/panel/apply-theme.ts`, `eslint-rules/no-layout-animation.js`, `eslint.config.js`.
+**Files.** `src/modules/ui-kit/motion/`, `src/modules/ui-kit/backdrop/` (with `scenes/still.ts`, `scenes/phosphor-dust.ts` from `spec/reference/art/background.md`, the CRT overlay and `useBackdropSource`), `src/modules/ui-kit/components/` (`Surface`, `RollingNumber`, and the motion of every existing component), `src/modules/settings/panel/apply-theme.ts`, `eslint-rules/no-layout-animation.js`, `eslint.config.js`.
 
 **Steps.**
 1. `motion/`: helpers for MOT-2 to MOT-4 and MOT-8, the stagger of MOT-3, and the reduced form of MOT-12 from `data-motion`.
 2. `Surface` (UI-31) and the alpha floor of P-45. `RollingNumber` (MOT-8).
-3. `backdrop/`: the worker, the `OffscreenCanvas`, the scene registry, the frame cap and the pause (UI-30, UI-32, UI-33).
+3. `backdrop/`: the worker, the `OffscreenCanvas`, the scene registry, the frame cap and the pause (UI-30, UI-32, UI-33); the `phosphor-dust` scene with its barrel bend and brightness cap, the still CRT overlay (UI-34), pointer and puff forwarding (UI-33) and steam sources (UI-35).
 4. Give every existing ui-kit component its motion. `apply-theme.ts` sets `data-motion` (SET-15).
 5. The lint rule of MOT-1.
 
-**Tests.** `tests/ui-kit/motion.ui.test.tsx`: MOT-2, MOT-3, MOT-4, MOT-8, MOT-12 rows. `tests/ui-kit/backdrop.ui.test.tsx`: UI-30, UI-33. `tests/ui-kit/surface.test.ts`: UI-31. `tests/lint/no-layout-animation.test.ts`: MOT-1.
+**Tests.** `tests/ui-kit/motion.ui.test.tsx`: MOT-2, MOT-3, MOT-4, MOT-8, MOT-12 rows. `tests/ui-kit/backdrop.ui.test.tsx`: UI-30, UI-33, UI-34, UI-35. `tests/ui-kit/phosphor-dust.test.ts`: the UI-34 unit row. `tests/ui-kit/surface.test.ts`: UI-31. `tests/lint/no-layout-animation.test.ts`: MOT-1.
 
 **Done when.** Tests pass. Feature `F-065` passes.
 
@@ -70,10 +70,10 @@ Rules for this stage, on top of `spec/04-implementer-protocol.md`:
 
 **Read first.** `spec/design/layout.md`, `spec/modules/workspace.md` "Frame", "Pages", `spec/design/motion.md` MOT-5 to MOT-7, MOT-11.
 
-**Files.** `src/modules/workspace/panel/` (title bar, page switcher, activity rail, status bar, dock host, the three page hosts, `page-transition.ts`), `src/modules/workspace/register.ui.ts`, `src/ui/App.tsx`, `src/ui/module-list.ts`.
+**Files.** `src/modules/workspace/panel/` (title bar with wordmark, clock and repo button, page switcher, side view tabs, status bar, dock host, the three page hosts, `page-transition.ts`), `src/modules/workspace/register.ui.ts`, `src/ui/App.tsx`, `src/ui/module-list.ts`.
 
 **Steps.**
-1. The frame of `layout.md` with the page switcher of WS-40 and the background mounted once (UI-30).
+1. The frame of `layout.md` with its title bar (wordmark, clock, page switcher of WS-40, project switcher, repo button), the side view tabs (WS-30) and the background mounted once (UI-30).
 2. Pages that stay mounted (WS-41), focus moving with the page (WS-45), and `usePageVisible()`.
 3. `page-transition.ts`: MOT-5, MOT-6 and MOT-11 through `document.startViewTransition`, with a helper that gives an element its shared `view-transition-name` for one transition.
 4. The `code` and `notes` docks with `dockview` (card 007), holding the demo panels registered so far.
@@ -99,7 +99,8 @@ Rules for this stage, on top of `spec/04-implementer-protocol.md`:
 **Steps.**
 1. The terminal panel drawing the demo replay with the see-through background of TERM-76, and the header slot of TERM-75.
 2. The ribbon (HUD-80 to HUD-83) contributed to `terminalHeader`.
-3. The mascot (HUD-90 to HUD-93) from the sprite sheet, with the placeholder of HUD-91 when the sheet is missing.
+3. The mascot (HUD-90 to HUD-93) from the sprite sheet, copied from `spec/reference/art/`, with the placeholder of HUD-91 when the sheet is missing.
+4. Check VT323 in xterm: render the demo replay's box-drawing and status characters and confirm each falls back to Cascadia Mono rather than a missing glyph. Record any character that does not in `PROGRESS.md` under `Deviations`.
 
 **Tests.** `tests/terminal/header-slot.ui.test.tsx`: TERM-75, TERM-76. `tests/hud/ribbon.ui.test.tsx`: HUD-80 to HUD-83 rows. `tests/hud/mascot.ui.test.tsx`: HUD-90 to HUD-93 rows.
 
@@ -200,7 +201,7 @@ Rules for this stage, on top of `spec/04-implementer-protocol.md`:
 **Files.** `src/modules/graph/panel/`, `src/modules/browser/panel/`, `src/modules/graph/register.ui.ts`, `src/modules/browser/register.ui.ts`.
 
 **Steps.**
-1. The graph view, local graph, backlinks, agent view and hover cards on the demo vault, opening notes in the `notes` dock.
+1. The graph view, local graph, backlinks, agent view and hover cards on the demo vault, opening notes in the `notes` dock; the camera, drift, steam and selection of GRAPH-50 to GRAPH-53; the notes list `graph.notes` (GRAPH-55); the Notes page arrangement of `layout.md` (Pages).
 2. The browser panel's frame, tabs and agent indicator. In demo mode the page area shows a fixture screenshot, since no page view exists yet.
 
 **Tests.** The `component` rows of `graph.md` and of `browser.md` for its panel.

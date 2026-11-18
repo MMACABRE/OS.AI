@@ -20,7 +20,7 @@ Values are theme tokens. A theme may change them within these bounds: `instant` 
 ## Rules
 
 - **MOT-1.** Only `opacity`, `transform`, `filter` and `clip-path` animate. Layout properties (width, height, top, left, margin, padding) never animate; a size change is shown with `transform` and the final layout is applied at once.
-- **MOT-2.** Buttons and other controls: hover lifts the surface tone over `motion.instant`; press scales to 0.96 over `motion.instant` and springs back with `motion.ease.spring` over `motion.quick` on release. A toggle's thumb slides with `motion.ease.spring`.
+- **MOT-2.** Buttons, pressable rows and other controls: hover lifts them over `motion.instant`: up 2 to 3 px, tilted toward the pointer by up to `button.tilt` (rows wider than 200 px by half), brighter, with the stepped edge `button.lift` below. Press sinks 1 px and scales to 0.96 over `motion.instant`, dropping the edge and flashing brighter, and springs back with `motion.ease.spring` over `motion.quick` on release. A toggle's thumb slides with `motion.ease.spring`. Under reduced motion only the brightness changes.
 - **MOT-3.** Entering things fade in and move 8 px from the side they come from, over `motion.normal`. Lists enter with a stagger of 20 ms per item, at most 8 items staggered. Leaving things fade out and move 4 px, over `motion.quick`.
 - **MOT-4.** Menus, tooltips and popovers scale from 0.96 at their anchor with a fade. Dialogs scale from 0.94 and fade, over `motion.slow`, and the content behind them dims.
 - **MOT-5.** Page transitions use the browser's View Transitions API (`document.startViewTransition`). The leaving page slides and fades toward the side of the page switcher it is leaving to, the entering page comes from the other side, over `motion.page`. Elements that exist on both pages carry the same `view-transition-name` and move between their two places instead of fading (MOT-6).
@@ -42,6 +42,7 @@ Values are theme tokens. A theme may change them within these bounds: `instant` 
 |---|---|---|---|---|
 | MOT-1 | unit | the lint rule over `src/**/*.module.css` | a `transition` or `@keyframes` naming `width` | lint fails |
 | MOT-2 | component | a `Button` | pointer down, then up | its transform reaches `scale(0.96)`, then returns through the spring easing |
+| MOT-2 | component | a `Button`, pointer entering at its right edge | hover | it moves up at least 2 px and rotates toward the right by at most `button.tilt`; its box shadow is `button.lift` |
 | MOT-3 | component | a list of 12 items entering | it renders | the first 8 have delays 0 to 140 ms; the rest have 140 ms |
 | MOT-4 | component | a `Dialog` | it opens | it starts at `scale(0.94)` and opacity 0 and ends at `scale(1)` and opacity 1 over `motion.slow`, and the content behind it dims |
 | MOT-9 | component | fake clock; a session becomes `needs-you` | 2 000 ms pass | its dot pulsed 3 times and is still |

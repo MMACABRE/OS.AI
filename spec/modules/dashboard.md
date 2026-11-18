@@ -16,9 +16,9 @@ The home page of HSOS: screens of widgets the owner arranges, resizes and swipes
 ## Screens and grid
 
 - **DASH-1.** The page shows one screen at a time, of 1 to 8 screens, with a row of dots under the grid for the screens (the current one filled). The owner changes screen by a horizontal swipe on the touchpad or a drag on empty grid space, by `Ctrl+PageDown` and `Ctrl+PageUp` while the page has focus, or by pressing a dot. The screens slide over `motion.page` with `motion.ease.spring`, following the finger during a swipe and settling when it lifts.
-- **DASH-2.** Each screen is a grid of `columns` by `rows` cells (settings; default 8 by 6). The grid fills the page with a 12 px gap; cells stretch with the window, and widgets keep their cells, so a resize never rearranges anything.
+- **DASH-2.** Each screen is a grid of `columns` by `rows` cells (settings; default 8 by 6). The grid fills the page inside an edge of `size.grid.edge`, with gaps of `size.grid.gapX` across and `size.grid.gapY` down; cells stretch with the window, and widgets keep their cells, so a resize never rearranges anything.
 - **DASH-3.** A widget instance has a `type`, a `screen`, a cell position `x`, `y` and a size `w`, `h` in cells, and its own `config`. Instances never overlap and never leave the grid. Each type declares its smallest and largest size.
-- **DASH-4.** Widgets are `Surface role="widget"` (UI-31) with `radius.panel`. Each is its own error boundary and draws the four states of P-40 inside its frame.
+- **DASH-4.** A widget type's `frame` is `box` or `free`. A `box` widget is `Surface role="widget"` (UI-31) with `radius.panel` and the box parts of `visual-direction.md` (Shape); a `free` widget has no surface or frame and floats over the background, its text with the 3 px black shadow. In edit mode both show the edit frame of DASH-5. Each is its own error boundary and draws the four states of P-40 inside its frame.
 
 ## Edit mode
 
@@ -39,19 +39,19 @@ The home page of HSOS: screens of widgets the owner arranges, resizes and swipes
 
 Each module in the first column contributes its widgets to `dashboardWidgets`. Sizes are in cells, width by height.
 
-| Module | Type | Smallest, largest, default | Shows | Activating it |
-|---|---|---|---|---|
-| `hud` | `hud.ribbon` | 2×1, 8×3, 4×2 | The session ribbon (HUD-80) of the target session, or of the session chosen in its config. At 2×1: mascot, title and model only. | Goes to that session's terminal on the Code page |
-| `hud` | `hud.sessions` | 2×2, 8×6, 4×3 | The attention board (HUD-1 to HUD-5); at 2×2 only the sessions that need the owner | A row: its terminal |
-| `hud` | `hud.usage` | 1×1, 4×3, 2×2 | At 1×1 the higher of the two percentages; larger, both bars with reset times | Opens the Usage popover of HUD-61 |
-| `hud` | `hud.context` | 1×1, 4×3, 2×2 | The target session's context: percentage, then tokens of the window, then the cache state as space allows | Opens the Context popover of HUD-61 |
-| `hud` | `hud.quickBar` | 2×1, 8×2, 8×1 | The quick bar (HUD-60 to HUD-68), as many buttons as fit, the rest under "More" | Each button as in the HUD |
-| `hud` | `hud.skills` | 2×2, 6×6, 4×4 | Favourite skills; from 3 rows high, the search field and the full deck (HUD-30 to HUD-37) | A skill: as HUD-31 |
-| `hud` | `hud.mascot` | 1×1, 4×4, 2×2 | The mascot (HUD-90) of the target session, large, with its state word under it from 2×2 | Goes to the target session's terminal |
-| `sessions` | `sessions.recent` | 2×2, 8×6, 4×3 | The newest sessions of every project (SESS-30 with `projectPath: null`), title, project and time | A row: its first SESS-32 action; "All" opens Session History |
-| `git` | `git.status` | 2×1, 4×3, 2×2 | Branch, ahead and behind, number of changes; from 2×2 the repo link (GIT-14) and "Sync" | Opens the Changes view on the Code page |
-| `activity` | `activity.recent` | 2×2, 8×6, 4×2 | The newest activity events | An event: as in the Activity view |
-| `graph` | `graph.mini` | 2×2, 8×6, 2×3 | The local graph (GRAPH-30) around the last opened note, animated | Goes to the Notes page; the mini graph becomes the full graph (MOT-6) |
+| Module | Type | Smallest, largest, default | Frame | Shows | Activating it |
+|---|---|---|---|---|---|
+| `hud` | `hud.ribbon` | 2×1, 8×3, 4×2 | box | The session ribbon (HUD-80) of the target session, or of the session chosen in its config. At 2×1: mascot, title and model only. | Goes to that session's terminal on the Code page |
+| `hud` | `hud.sessions` | 2×2, 8×6, 4×3 | box | The attention board (HUD-1 to HUD-5); at 2×2 only the sessions that need the owner | A row: its terminal |
+| `hud` | `hud.usage` | 1×1, 4×3, 2×2 | box | At 1×1 the higher of the two percentages; larger, both bars with reset times | Opens the Usage popover of HUD-61 |
+| `hud` | `hud.context` | 1×1, 4×3, 2×2 | box | The target session's context: percentage, then tokens of the window, then the cache state as space allows | Opens the Context popover of HUD-61 |
+| `hud` | `hud.quickBar` | 2×1, 8×2, 8×1 | free | The quick bar (HUD-60 to HUD-68), as many buttons as fit, the rest under "More" | Each button as in the HUD |
+| `hud` | `hud.skills` | 2×2, 6×6, 4×4 | box | Favourite skills; from 3 rows high, the search field and the full deck (HUD-30 to HUD-37) | A skill: as HUD-31 |
+| `hud` | `hud.mascot` | 1×1, 4×4, 2×2 | free | The mascot (HUD-90) of the target session, large, with its state word under it from 2×2 | Goes to the target session's terminal |
+| `sessions` | `sessions.recent` | 2×2, 8×6, 4×3 | box | The newest sessions of every project (SESS-30 with `projectPath: null`), title, project and time | A row: its first SESS-32 action; "All" opens Session History |
+| `git` | `git.status` | 2×1, 4×3, 2×2 | box | Branch, ahead and behind, number of changes; from 2×2 the repo link (GIT-14) and "Sync" | Opens the Changes view on the Code page |
+| `activity` | `activity.recent` | 2×2, 8×6, 4×2 | box | The newest activity events | An event: as in the Activity view |
+| `graph` | `graph.mini` | 2×2, 8×6, 2×3 | free | The local graph (GRAPH-30) around the last opened note, animated: nodes drift and are steam sources (UI-35), with the pointer, zoom and pan of GRAPH-50 to GRAPH-53. CLAUDE.md, when in the graph, is pinned at the widget's centre | Goes to the Notes page; the mini graph becomes the full graph (MOT-6) |
 
 ## The file
 
@@ -92,6 +92,7 @@ Each module in the first column contributes its widgets to `dashboardWidgets`. S
 | DASH-2 | component | an 8×6 grid in a 1600×900 page, then 1200×700 | it renders | every widget keeps its `x`, `y`, `w`, `h` |
 | DASH-3 | unit | the placement check | two instances sharing a cell; one at `x: 7, w: 2` on 8 columns | both refused |
 | DASH-4 | component | a widget type whose component throws, beside a healthy widget | the screen renders | the broken one shows its error state in its frame; the other renders |
+| DASH-4 | component | a `free` and a `box` widget | the screen renders | only the `box` one has a `widget` surface and frame |
 | DASH-5 | component | fake clock | the pointer is held on an empty cell for 499 ms, then for 500 ms | edit mode starts only the second time |
 | DASH-5 | component | `data-motion="reduced"` | edit mode starts | no widget sways |
 | DASH-6 | component | edit mode, a 2×2 widget, a free 2×2 area and an occupied one | it is dragged over each | the outline is accent over the free area and danger over the occupied one; dropping on the occupied one leaves it where it was |

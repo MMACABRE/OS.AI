@@ -41,8 +41,8 @@ Only values that differ from the defaults are stored in `settingsFile`.
 
 ### Themes
 
-- **SET-11.** The active theme is the one whose `name` equals the `theme` setting. If none matches, Graphite is used and a problem is recorded.
-- **SET-12.** A theme is resolved by taking Graphite's tokens and overlaying the theme's tokens.
+- **SET-11.** The active theme is the one whose `name` equals the `theme` setting. If none matches, Phosphor is used and a problem is recorded.
+- **SET-12.** A theme is resolved by taking Phosphor's tokens (the one built-in theme, `resources/themes/phosphor.json`) and overlaying the theme's tokens.
 - **SET-13.** In the renderer, every token of the resolved theme is set as a CSS variable on `:root` using `tokenToCssVariable`. The attribute `data-theme-kind` on `<html>` is `dark` or `light`. Applying a theme causes no reload.
 - **SET-14.** A token name not in `TOKEN_NAMES`, or a value containing `url(`, `;`, `{` or `}`, is ignored and reported as a problem.
 - **SET-15.** `uiScale` is applied as the renderer zoom factor. `reduceMotion` set to `on`, or `system` with the system preference on, sets `data-motion="reduced"` on the root element, and components switch to the fades of MOT-12. `off` sets `data-motion="full"` even when Windows asks for reduced motion.
@@ -96,11 +96,11 @@ Only values that differ from the defaults are stored in `settingsFile`.
 | SET-7 | integration | a valid file | `setValue` succeeds | `settings.json.bak` holds the old content; the reader's listener fired once |
 | SET-8 | integration | the app is running with a temp config folder | the file is edited on disk | the reader's listener fires within 1 000 ms |
 | SET-9 | unit | two sections | only the first changes on disk | only the first section's listener fires |
-| SET-11 | unit | `theme: "Nope"` | the theme resolves | Graphite is active; one problem |
-| SET-12 | unit | a theme setting only `color.accent` | it resolves | `color.accent` is the theme's; every other token equals Graphite's |
-| SET-14 | unit | a token value `red; background: url(x)` | it resolves | the token keeps Graphite's value; one problem |
+| SET-11 | unit | `theme: "Nope"` | the theme resolves | Phosphor is active; one problem |
+| SET-12 | unit | a theme setting only `color.accent` | it resolves | `color.accent` is the theme's; every other token equals Phosphor's |
+| SET-14 | unit | a token value `red; background: url(x)` | it resolves | the token keeps Phosphor's value; one problem |
 | SET-15 | component | `reduceMotion: 'on'`; then `'off'` with the system preference on | the theme is applied | the root has `data-motion="reduced"`; then `data-motion="full"` |
-| SET-16 | integration | a theme named "Graphite" | `saveTheme` | `SET_INVALID`; no file written |
+| SET-16 | integration | a theme named "Phosphor" | `saveTheme` | `SET_INVALID`; no file written |
 | SET-18 | unit | default `Ctrl+B`, file maps the command to `null` | the binding resolves | the command has no key |
 | SET-20 | unit | two commands on `Ctrl+B` | bindings resolve | the later one holds the key; one problem names both |
 | P-32 | e2e | `settings.json` is corrupted before launch | the app starts | the window opens, the settings screen shows the problem banner |

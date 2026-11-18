@@ -69,12 +69,12 @@ Claude Code's most used slash commands as buttons, so the owner does not have to
 
 Claude Code prints its model, effort, folder and mascot at the top of the conversation, and they scroll out of sight as the chat grows. The ribbon keeps them in view above every Claude terminal.
 
-- **HUD-80.** The HUD contributes to `terminalHeader` (TERM-75). For a terminal with a Claude session that is not `ended` (the newest bound session, SESS-11), it draws the ribbon; for any other terminal it returns null. It is `Surface role="ribbon"`, 28 px high when collapsed.
+- **HUD-80.** The HUD contributes to `terminalHeader` (TERM-75). For a terminal with a Claude session that is not `ended` (the newest bound session, SESS-11), it draws the ribbon; for any other terminal it returns null. It is `Surface role="ribbon"`, 32 px high when collapsed. A live ribbon is a steam source (UI-35) in `color.live`, or `color.brand` while its session needs the owner.
 - **HUD-81.** Collapsed, from left to right:
 
 | Part | Content | Pressing it |
 |---|---|---|
-| Mascot | HUD-90, 20 px high | expands or collapses the ribbon |
+| Mascot | HUD-90, 32 px high (the 16 by 16 cell at 2x) | expands or collapses the ribbon |
 | Chat name | the session title (the custom title of SESS-61 when set), cut with an ellipsis, full in its tooltip | opens Session History (`sessions.history`) |
 | Model and effort | `model` and `· <effort>` | the model menu of HUD-62 |
 | Mode | the HUD-64 label, shown when not `default` | as HUD-64 |
@@ -96,13 +96,14 @@ An original pixel-art character drawn for HSOS (`design/direction-brief.md`), no
 | Activity | State | Loop |
 |---|---|---|
 | `working`, `background` | dancing | a dance of at least 6 frames at 8 frames a second |
-| `needs-you` | waving | waves and hops, toned with `color.accent` |
+| `needs-you` | waving | waves and hops; the waving arm is `color.accent` |
 | `done` | cheering | one jump, then a slow bob |
 | `idle` | resting | blinks every few seconds |
 | `ended` or no session | sleeping | slow breathing with a small "z" |
 
-- **HUD-91.** A change of state plays a 3-frame turn before the new loop. The sprite sheet is `resources/art/mascot.png` with its frame map `mascot.json`, from the chosen direction (`spec/reference/art/`). Until the design round delivers them, a placeholder sheet of plain coloured blocks is used.
-- **HUD-92.** Each running subagent has a mini mascot, 12 px high, that follows the session's mascot in the ribbon and dances while its subagent runs. At most 5 are drawn; more show as `+<n>`.
+  While the activity is `working` or `background`, a mascot shown on the Notes page uses the state reading (it reads a book) and one shown on the Code page uses working (it types on a laptop); everywhere else it dances. A page's mascot is on the page it is drawn on, so the same session can dance on the Dashboard while it types in its Code page ribbon.
+- **HUD-91.** A change of state plays a 3-frame turn before the new loop. The sprite sheet is `resources/art/mascot.png` with its frame map `mascot.json`, copied from `spec/reference/art/`. The map names each state's row, frame count, frames a second and loop. A missing or unreadable sheet draws a placeholder of plain coloured blocks and records a problem.
+- **HUD-92.** Each running subagent has a mini mascot, 16 px high (the cell at 1x), that follows the session's mascot in the ribbon and dances while its subagent runs. At most 5 are drawn; more show as `+<n>`.
 - **HUD-93.** Under `data-motion="reduced"` each state shows its first frame and nothing loops (MOT-12). The mascot is decorative: it has no accessible name, and the state is also said in words wherever the mascot is the only sign of it (the ribbon's tooltip, the mascot widget's word).
 
 ### Sessions (the attention board)
@@ -276,7 +277,8 @@ All component tests use a fake bus fed with `ClaudeSession`, `UsageLimits`, `Ski
 | HUD-82 | component | two running subagents | the mascot is pressed | the ribbon lists both with type, model and current tool, and the terminal was resized once |
 | HUD-83 | component | an expanded ribbon | a subagent starts | its row enters with the MOT-3 motion |
 | HUD-90 | component | a session going `working`, `needs-you`, `done`, `idle` | the mascot renders each | the dancing, waving, cheering and resting frames show in turn |
-| HUD-91 | component | no sprite sheet in resources | the mascot renders | the placeholder sheet is used and nothing throws |
+| HUD-90 | component | one `working` session; its mascot on the Dashboard, in its Code page ribbon and on the Notes page | they render | dancing, working and reading frames, in that order |
+| HUD-91 | component | no sprite sheet in resources | the mascot renders | the placeholder sheet is used, a problem is recorded and nothing throws |
 | HUD-92 | component | 7 running subagents | the ribbon renders | 5 mini mascots and `+2` |
 | HUD-93 | component | `data-motion="reduced"` | a `working` session's mascot renders | one frame shows and no animation runs |
 | HUD-60 | component | no Claude terminal | the bar renders | Usage, Context and Skills are enabled; the others are disabled with "Start a Claude session first" |
