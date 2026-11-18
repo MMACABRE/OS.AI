@@ -45,3 +45,16 @@ Use a temp folder for `logsDir` and `createFakeClock` for the 500 ms flush timer
 | DIAG-6 | `debug` returns false                                             | a debug record is logged and flushed  | nothing is written                                                   |
 
 Also worth a test: `readRecent` returns the newest N records oldest first across `<process>.log` and `<process>.1.log`; `createBusLogger` sends `diagnostics.write` with process `ui` and never throws when the bus call rejects.
+
+## 013 Crash reports and health (blocked on wiring, see PROGRESS.md)
+
+Code: `src/modules/diagnostics/service/crash-reports.ts` (`writeCrashReport`, `cleanCrashReports`, `crashFileName`), `src/modules/diagnostics/service/health.ts` (`toHealth`), `src/modules/diagnostics/register.service.ts` (cleanup at start), `src/services/shared/service-main.ts` (DIAG-8 handlers, `CRASH_EXIT_CODE`).
+
+`tests/diagnostics/crash-reports.test.ts` (temp folders):
+
+| Rule    | Given                                                             | When                                           | Then                                                                                                          |
+| ------- | ----------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| DIAG-7  | 300 records logged for `pty-host` and flushed to a temp `logsDir` | `writeCrashReport` runs for a `pty-host` death | `crashDir\<time>-pty-host.json` exists with exactly the last 200 records, the exit code, time and app version |
+| DIAG-10 | 60 crash files, 5 of them 40 days old (time in the name)          | `cleanCrashReports(crashDir, now)` runs        | 50 remain and none is older than 30 days                                                                      |
+
+Also worth a test: `toHealth` turns a working set of 2 048 KB into 2 MB and uptime into `now - createdAt`; a service that throws an uncaught exception exits with 70 (needs the app, e2e).

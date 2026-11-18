@@ -33,6 +33,20 @@ function controlType(value: unknown): string | null {
     : null;
 }
 
+/** Exit code of a process ended by an uncaught exception or unhandled rejection (DIAG-8). */
+export const CRASH_EXIT_CODE = 70;
+
+/** Logs an uncaught exception or unhandled rejection with its stack, then exits with 70; the supervisor restarts the service (DIAG-8). */
+function installCrashHandlers(log: Logger): void {
+  const crash = (event: string, reason: unknown) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    log.log('error', event, { message: error.message, stack: error.stack });
+    process.exit(CRASH_EXIT_CODE);
+  };
+  process.on('uncaughtException', (error) => crash('uncaught_exception', error));
+  process.on('unhandledRejection', (reason) => crash('unhandled_rejection', reason));
+}
+
 /**
  * Shared start code of every service entry: the bus on the parent port and on the renderer's port,
  * the ready message, and the stop message. Card 010.
@@ -43,6 +57,7 @@ export function startServiceRuntime(name: ServiceId): ServiceRuntime {
   const log: Logger = {
     log: (level, event, data) => console.log(JSON.stringify({ level, event, process: name, ...data })),
   };
+  installCrashHandlers(log);
   const stopHandlers: (() => Promise<void>)[] = [];
   const listeners: ((envelope: Envelope, from: Peer) => void)[] = [];
   const replyTo = new Map<string, 'ui' | 'main'>();

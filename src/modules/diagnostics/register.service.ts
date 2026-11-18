@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { diagnosticsChannels } from '@hsos/contracts/channels/diagnostics';
 import type { ServiceContext, SettingsSection } from '@hsos/contracts/module';
 import { ok } from '@hsos/contracts/result';
+import { cleanCrashReports } from './service/crash-reports';
 import { createFileLogger, readRecent } from './service/file-logger';
 
 export type DiagnosticsSettings = { readonly debug: boolean };
@@ -16,9 +17,12 @@ export const diagnosticsSettings: SettingsSection<DiagnosticsSettings> = {
 
 /**
  * Main side of diagnostics: writes the renderer's records to `ui.log` and answers `getRecent`
- * from the log files. DIAG-1 to DIAG-6. Card 012.
+ * from the log files (DIAG-1 to DIAG-6, card 012), and clears old crash files at start (DIAG-10, card 013).
  */
 export function register(ctx: ServiceContext): void {
+  void cleanCrashReports(ctx.paths.crashDir, ctx.clock.now()).then((removed) => {
+    if (removed > 0) ctx.log.log('info', 'diagnostics.crash_files_removed', { removed });
+  });
   const settings = ctx.registerSettings(diagnosticsSettings);
   const uiLog = createFileLogger({
     process: 'ui',
