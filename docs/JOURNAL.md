@@ -335,3 +335,28 @@ Known limits, recorded for the owner:
 ### Step 32. Session recovery requested, design drafted
 
 The owner asked that no Claude session is ever lost to a terminal crash, a power cut or a quit, because running `claude` again starts an empty chat. Findings: transcripts are never deleted on a crash, plain `claude` just starts a new session; `--session-id <uuid>` lets HSOS choose the id before launch. Design: new module `sessions` with an fsynced append-only ledger, auto-resume on terminal restore, transcript backup and a picker. It's drafted in `docs/drafts/session-recovery.md`. Paused at the owner's request before writing it into `spec/`.
+
+### Step 33. Terminal input: the best of Windows Terminal and VS Code
+
+The owner reported two things. Shift+Enter makes a new line in Claude Code in the VS Code terminal but not in Windows Terminal. Wispr Flow dictation lands in Windows Terminal but not in the VS Code terminal, so every dictation is copied and pasted by hand. The owner asked for both, plus anything else either terminal does better, researched and written into the spec without questions. Findings and sources are in `docs/research/terminal-best-of-both.md`.
+
+Findings:
+
+- Wispr Flow puts the text on the clipboard, presses Shift+Insert through Windows, and restores the old clipboard about half a second after the first read. Since Claude Code 2.1.269 turns on the kitty keyboard protocol in the VS Code terminal, VS Code's xterm.js encodes Shift+Insert as a key sequence and the browser paste never fires. Windows Terminal binds Shift+Insert to paste, so it works there.
+- Windows Terminal 1.25 added the kitty protocol, so Shift+Enter now works there too. The owner's observation was true for 1.24 and earlier.
+- HSOS's `ESC CR` for Shift+Enter glues two lines into one command in PowerShell. Tested in ConPTY on this machine: ConPTY reports it as Alt+Enter, which PSReadLine leaves unbound. Binding Alt+Enter to `AddLine` fixes it, so one sequence serves both Claude Code and PowerShell.
+- A bug in the existing spec: TERM-7 and LINK-3 dot-sourced the init script by path. Under Windows PowerShell's default `Restricted` policy, which applies on this machine, that fails. Loading the file's text as a script block works. The owner has no PowerShell 7, so HSOS runs Windows PowerShell 5.1 here.
+
+Decisions:
+
+- Paste keys are taken before xterm encodes them and the browser's own paste reads the clipboard, once, during the key press (TERM-41, TERM-46). A later xterm with the kitty protocol cannot break dictation.
+- One paste pipeline for every source. Trailing whitespace is trimmed only when the program has not asked for bracketed paste, as Windows Terminal does. Under bracketed paste the confirmation threshold rises to 100 000 characters, so long dictations into Claude Code never open a dialog (TERM-43, TERM-46).
+- Synthetic key presses from other programs are treated as the owner's own (TERM-47). HSOS warns once when it runs elevated, because Windows then blocks dictation apps and Explorer drops (TERM-48). Input-method and Win+H text is written once (TERM-49).
+- A new reference script, `spec/reference/terminal-init.ps1`, tested in ConPTY with Windows PowerShell 5.1: the Alt+Enter binding, OSC 133 prompt marks and OSC 7 for the folder. HSOS uses the marks for Ctrl+Up and Ctrl+Down between commands at a prompt, and the folder to restart or restore a terminal where it really was (TERM-70 to TERM-73). A `shellIntegration` setting turns it off. `pty-host` writes the script at every start (TERM-8).
+- Variables that name another terminal (`WT_SESSION`, `VSCODE_*` and similar) are removed from shell environments, so Claude Code never thinks it runs in Windows Terminal or VS Code (TERM-2).
+- Not taken: quake mode, admin profiles, command decorations, sticky scroll, a recent-command picker, terminal IntelliSense. The owner has not asked for them.
+- `write-file-atomic` added to the terminal module's allowed packages. TERM-50 already required atomic writes without listing it.
+
+Spec changes: `spec/modules/terminal.md` (TERM-2, TERM-7, TERM-8, TERM-41, TERM-43, TERM-45 to TERM-49, TERM-57, TERM-70 to TERM-73, two commands, tests), `spec/modules/claude-link.md` (LINK-3, LINK-4 test), `spec/contracts/channels/terminal.ts` (`shellIntegration`, `hostInfo`), `spec/contracts/paths.ts` (`terminalInitFile`), `spec/02-architecture.md` (data table), `spec/reference/terminal-init.ps1`, cards 030, 034, 036 and 051, features F-055 and F-056, glossary. 481 rules, 56 features. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.
+
+The owner can fix VS Code today, before HSOS exists, with one keybinding: `{ "key": "shift+insert", "command": "workbench.action.terminal.paste", "when": "terminalFocus" }`.

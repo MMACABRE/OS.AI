@@ -22,6 +22,14 @@
 
 **Reattach**: A terminal panel reconnecting to a shell that kept running while the UI reloaded.
 
+**Shell integration**: The PowerShell script HSOS loads into every shell (`terminal-init.ps1`). It makes Shift+Enter start a new line and prints prompt marks and the current folder.
+
+**Prompt mark**: An invisible `OSC 133` sequence the shell prints where a prompt starts, ends, and where a command starts and finishes. HSOS uses it to jump between commands.
+
+**Bracketed paste**: A mode a program turns on so pasted text arrives wrapped in markers, as one block, instead of as typed keys. Claude Code uses it.
+
+**Dictation app**: A program such as Wispr Flow that turns speech into text, puts the text on the clipboard and presses a paste key in the focused window.
+
 **Claude session**: One running Claude Code conversation, identified by its session id.
 
 **Subagent**: An agent started by a Claude session.

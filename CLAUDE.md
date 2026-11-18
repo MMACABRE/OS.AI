@@ -2,7 +2,7 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-17):** spec complete except one open change: Claude session recovery (no session lost after a crash or power cut, auto-resume). Design is in `docs/drafts/session-recovery.md`, not yet in `spec/`.
+**Status (2026-11-18):** spec complete except one open change: Claude session recovery (no session lost after a crash or power cut, auto-resume). Design is in `docs/drafts/session-recovery.md`, not yet in `spec/`. Terminal input (dictation apps, Shift+Enter in PowerShell, shell integration) was added on 2026-11-18, see JOURNAL step 33.
 
 **Next:** spec author writes that draft into `spec/` and `tasks/` (new module `sessions`, cards after 055, renumber). Implementation not started; after that comes task card 001 in `tasks/stage-0.md`.
 
@@ -39,4 +39,4 @@ You are the spec author. Log every decision in `docs/JOURNAL.md` and push after 
 - `GLOSSARY.md`: terms
 - `features.json`: features and pass flags
 - `docs/JOURNAL.md`: how the spec was made
-- branch `research/round-1`, `docs/research/`: research findings
+- branch `research/round-1`, `docs/research/`: research findings. Newer findings are in `docs/research/` on `main`.

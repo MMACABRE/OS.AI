@@ -50,7 +50,7 @@ export const TerminalSettings = z.object({
   scrollbackLines: z.number().int().min(1000).max(200_000).default(20_000),
   cursorStyle: z.enum(['block', 'bar', 'underline']).default('block'),
   cursorBlink: z.boolean().default(false),
-  /** What Shift+Enter sends. The default inserts a newline in Claude Code. */
+  /** What Shift+Enter sends. The default inserts a newline in Claude Code and, with shell integration, in PowerShell (TERM-45). */
   shiftEnterSequence: z.string().default('\u001b\r'),
   copyOnSelect: z.boolean().default(false),
   rightClickPastes: z.boolean().default(true),
@@ -61,6 +61,8 @@ export const TerminalSettings = z.object({
   /** Bytes of recent output kept per terminal for reattach. */
   replayBufferBytes: z.number().int().min(65_536).max(16_777_216).default(2_097_152),
   useWebgl: z.boolean().default(true),
+  /** Load terminal-init.ps1 into PowerShell shells: Shift+Enter newlines, prompt marks, live folder (TERM-70). */
+  shellIntegration: z.boolean().default(true),
 });
 export type TerminalSettings = z.infer<typeof TerminalSettings>;
 
@@ -104,6 +106,9 @@ export const terminalChannels = {
     z.object({ projectId: zProjectId, id: zTerminalId }),
     z.string().nullable(),
   ),
+
+  /** Facts about the pty-host process, found once at start (TERM-48). */
+  hostInfo: request('terminal.hostInfo', 'pty-host', zEmpty, z.object({ elevated: z.boolean() })),
 
   /** Extra environment variables for every shell started from now on. Used by claude-link. */
   setExtraEnv: request(

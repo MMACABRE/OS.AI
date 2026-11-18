@@ -97,6 +97,7 @@ Contract: `contracts/paths.ts`. All paths come from `DataPaths`, never from stri
 | Terminal restore | `%LOCALAPPDATA%\HSOS\terminals\<projectId>\<terminalId>.json` | serialised scrollback |
 | Browser profile | `%LOCALAPPDATA%\HSOS\browser\` | Chromium partition |
 | Claude link | `%LOCALAPPDATA%\HSOS\link\` | forwarder script, port file |
+| Terminal init script | `%LOCALAPPDATA%\HSOS\terminal\terminal-init.ps1` | PowerShell, rewritten at every start (TERM-8) |
 
 - `projectId` is the first 16 hex characters of the SHA-256 of the project's absolute path, lower-cased, with forward slashes.
 - Every JSON file HSOS writes has a top-level `"version"` number. A loader that meets a higher version than it knows refuses to load and keeps defaults.

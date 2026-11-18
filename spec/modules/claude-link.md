@@ -96,7 +96,7 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | `HSOS_SESSION_SETTINGS` | `linkDir\session-settings.json` |
 | `HSOS_SHELL_INIT` | `linkDir\shell-init.ps1` |
 
-- **LINK-3.** When `HSOS_SHELL_INIT` is set and the shell is `pwsh.exe` or `powershell.exe`, `terminal` starts it with the extra arguments `-NoExit -Command ". $env:HSOS_SHELL_INIT"`. This rule is implemented in `terminal`'s spawn step and listed here because `claude-link` supplies the variable.
+- **LINK-3.** When `HSOS_SHELL_INIT` is set and the shell is `pwsh.exe` or `powershell.exe`, `terminal` loads the file through the loader of TERM-7, which reads it as text and runs it as a script block, so it works under the `Restricted` execution policy. This rule is implemented in `terminal`'s spawn step and listed here because `claude-link` supplies the variable.
 - **LINK-4.** `shell-init.ps1` defines a function `claude` that finds the real `claude` executable with `Get-Command claude -CommandType Application`, and runs it with `--plugin-dir $env:HSOS_PLUGIN_DIR --settings $env:HSOS_SESSION_SETTINGS`, then `--mcp-config $env:HSOS_MCP_CONFIG` when that variable is set and the file exists, then the owner's own arguments. `HSOS_MCP_CONFIG` is set by LINK-2 to `linkDir\mcp.json` when `mcp` is enabled. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
 - **LINK-5.** With `enabled` false, no server listens, no variables are set, and shells start without the wrapper.
 - **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file.
@@ -185,7 +185,7 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 |---|---|---|---|---|
 | LINK-1 | integration | the first port is taken | the service starts | it listens on the next port and `getStatus` reports it |
 | LINK-2 | integration | a fake terminal channel | the service starts | `setExtraEnv` was called once with the five variables |
-| LINK-4 | integration | the generated `shell-init.ps1` and a stub `claude.cmd` on PATH that prints its arguments | `pwsh -NoProfile -Command ". init; claude -p hi"` | output contains `--plugin-dir`, `--settings` and `-p hi` |
+| LINK-4 | integration | the generated `shell-init.ps1` and a stub `claude.cmd` on PATH that prints its arguments | `powershell.exe -NoProfile -Command "<TERM-7 loader>; claude -p hi"` with `HSOS_SHELL_INIT` set to the file | output contains `--plugin-dir`, `--settings` and `-p hi` |
 | LINK-6 | integration | a temp home folder with a `.claude\settings.json` | the service starts and stops | that file's bytes are unchanged |
 | LINK-10 | integration | a request without the token | it is posted | status 401; no session exists |
 | LINK-11 | integration | a `Stop` body that is not JSON | it is posted | status 200; no crash; one warning logged |

@@ -55,6 +55,8 @@
     { "id": "F-051", "stage": 6, "card": "086", "passes": false, "feature": "Reliability bar REL-1 to REL-10", "steps": ["Run the reliability tests three times", "All pass every time"] },
     { "id": "F-052", "stage": 6, "card": "087", "passes": false, "feature": "Property test and two-hour soak", "steps": ["Run the property test", "Run npm run soak", "Both pass"] },
     { "id": "F-053", "stage": 6, "card": "088", "passes": false, "feature": "Performance budgets measured", "steps": ["Run the performance test", "Every value is recorded; none is 50 percent over budget"] },
-    { "id": "F-054", "stage": 6, "card": "089", "passes": false, "feature": "Installer and first-run checks", "steps": ["Run the installer without administrator rights", "First launch lists Git, Claude Code, GitHub CLI and PowerShell 7 checks"] }
+    { "id": "F-054", "stage": 6, "card": "089", "passes": false, "feature": "Installer and first-run checks", "steps": ["Run the installer without administrator rights", "First launch lists Git, Claude Code, GitHub CLI and PowerShell 7 checks"] },
+    { "id": "F-055", "stage": 1, "card": "034", "passes": false, "feature": "Dictation apps and Shift+Enter work in every terminal", "steps": ["Put text on the clipboard and send Shift+Insert from another program: the text lands in the terminal", "In PowerShell, type a command, press Shift+Enter, type another, press Enter: both run as separate lines", "Paste 6 000 characters into a program using bracketed paste: no confirmation"] },
+    { "id": "F-056", "stage": 1, "card": "036", "passes": false, "feature": "Prompt marks and live folder", "steps": ["Run three commands, press Ctrl+Up: the view jumps to the previous prompt", "cd to another folder, restart HSOS: the restored terminal starts in that folder"] }
   ]
 }

@@ -90,13 +90,13 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 **Stage.** 1
 
-**Read first.** `spec/modules/terminal.md` TERM-1 to TERM-7, TERM-42, `spec/contracts/channels/terminal.ts`.
+**Read first.** `spec/modules/terminal.md` TERM-1 to TERM-8, TERM-42, TERM-48, `spec/contracts/channels/terminal.ts`, `spec/reference/terminal-init.ps1`.
 
-**Files.** `src/modules/terminal/service/terminal-registry.ts`, `src/modules/terminal/service/resolve-shell.ts`, `src/modules/terminal/register.service.ts`, `src/services/pty-host/module-list.ts`, `src/services/pty-host/index.ts`, `tests/fakes/fake-pty.ts`.
+**Files.** `src/modules/terminal/service/terminal-registry.ts`, `src/modules/terminal/service/resolve-shell.ts`, `src/modules/terminal/service/shell-env.ts`, `src/modules/terminal/service/terminal-init.ps1` (copy of the reference), `src/modules/terminal/service/write-terminal-init.ts`, `src/modules/terminal/service/host-info.ts`, `src/modules/terminal/register.service.ts`, `src/services/pty-host/module-list.ts`, `src/services/pty-host/index.ts`, `tests/fakes/fake-pty.ts`.
 
-**Steps.** Implement TERM-1 to TERM-7, `create`, `list`, `write`, `resize`, `kill`, `isBusy` (true when `powershell.exe -NoProfile -Command "(Get-CimInstance Win32_Process -Filter 'ParentProcessId=<pid>').Count"` prints a number above 0; started with an argument array and a 2 000 ms timeout; false on timeout), `setExtraEnv`. `FakePty` implements `PtyProcess` and `PtyFactory`.
+**Steps.** Implement TERM-1 to TERM-8, `create`, `list`, `write`, `resize`, `kill`, `isBusy` (true when `powershell.exe -NoProfile -Command "(Get-CimInstance Win32_Process -Filter 'ParentProcessId=<pid>').Count"` prints a number above 0; started with an argument array and a 2 000 ms timeout; false on timeout), `setExtraEnv`, `hostInfo` (TERM-48, service side). `shell-env.ts` builds the TERM-2 environment. Copy `terminal-init.ps1` unchanged and import it as text with Vite's `?raw` suffix; `write-terminal-init.ts` writes it with `write-file-atomic`. `FakePty` implements `PtyProcess` and `PtyFactory`.
 
-**Tests.** `tests/terminal/terminal-registry.test.ts`: TERM-2 to TERM-7 rows.
+**Tests.** `tests/terminal/terminal-registry.test.ts`: TERM-2 to TERM-8 integration rows, TERM-48 integration row. `tests/e2e/terminal-init.e2e.ts`: TERM-7 e2e row.
 
 **Done when.** Tests pass.
 
@@ -170,15 +170,15 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 **Stage.** 1
 
-**Read first.** `spec/modules/terminal.md` TERM-40, TERM-41, TERM-43, TERM-44, TERM-55.
+**Read first.** `spec/modules/terminal.md` TERM-40 to TERM-49, TERM-55, `docs/research/terminal-best-of-both.md` "Finding 2".
 
-**Files.** `src/modules/terminal/panel/terminal-keys.ts`, `src/modules/terminal/panel/paste-guard.ts`, `src/modules/terminal/panel/drop-paths.ts`, `src/modules/terminal/panel/TerminalPanel.tsx`.
+**Files.** `src/modules/terminal/panel/terminal-keys.ts`, `src/modules/terminal/panel/paste-pipeline.ts`, `src/modules/terminal/panel/paste-guard.ts`, `src/modules/terminal/panel/drop-paths.ts`, `src/modules/terminal/panel/elevation-notice.tsx`, `src/modules/terminal/panel/TerminalPanel.tsx`, `tests/e2e/helpers/send-input.ps1`.
 
-**Steps.** Implement the rules. Links (TERM-55) use `@xterm/addon-web-links`; file-path links with a line number open through `workspace` `openPanel('files.viewer', { path, line })`, which exists after card 044. Until then they do nothing.
+**Steps.** Implement the rules. `paste-pipeline.ts` is the one path of TERM-46; every paste source calls it. `send-input.ps1` is the e2e helper that sets the clipboard and presses keys through Windows: `Set-Clipboard`, then `Add-Type -AssemblyName System.Windows.Forms` and `[System.Windows.Forms.SendKeys]::SendWait('+{INSERT}')` or `('^v')`, then the optional second `Set-Clipboard` after the given delay. Links (TERM-55) use `@xterm/addon-web-links`; file-path links with a line number open through `workspace` `openPanel('files.viewer', { path, line })`, which exists after card 044. Until then they do nothing.
 
-**Tests.** `tests/terminal/terminal-input.ui.test.tsx`: TERM-41 rows, TERM-43, TERM-44.
+**Tests.** `tests/terminal/terminal-input.ui.test.tsx`: TERM-41, TERM-43, TERM-44, TERM-46, TERM-48 and TERM-49 component rows. `tests/e2e/terminal-input.e2e.ts`: TERM-45 and the two TERM-46, TERM-47 rows. Leave the TERM-47 manual row for the owner.
 
-**Done when.** Tests pass. Feature `F-014` passes.
+**Done when.** Tests pass. Features `F-014` and `F-055` pass.
 
 **Commit.** `feat(terminal): handle keys, paste and drops`
 
@@ -206,19 +206,19 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ## 036 Terminal commands and projects
 
-**Goal.** Terminal commands, and shells that keep running across project switches.
+**Goal.** Terminal commands, prompt marks, and shells that keep running across project switches.
 
 **Stage.** 1
 
-**Read first.** `spec/modules/terminal.md` "Commands", TERM-60, TERM-61.
+**Read first.** `spec/modules/terminal.md` "Commands", TERM-60, TERM-61, TERM-70 to TERM-73.
 
-**Files.** `src/modules/terminal/register.ui.ts`, `src/modules/terminal/service/terminal-registry.ts`, `src/modules/terminal/panel/terminal-commands.ts`.
+**Files.** `src/modules/terminal/register.ui.ts`, `src/modules/terminal/service/terminal-registry.ts`, `src/modules/terminal/panel/terminal-commands.ts`, `src/modules/terminal/panel/prompt-marks.ts`, `src/modules/terminal/panel/TerminalPanel.tsx`.
 
-**Steps.** Register the commands. `terminal.newClaude` creates a terminal with `launch: "claude"`. Implement TERM-60, TERM-61.
+**Steps.** Register the commands. `terminal.newClaude` creates a terminal with `launch: "claude"`. Implement TERM-60, TERM-61. `prompt-marks.ts` registers the OSC 133 and OSC 7 handlers with `terminal.parser.registerOscHandler`, keeps the markers and the state, and updates the panel's `cwd` (TERM-71 to TERM-73). `terminal.previousCommand` and `terminal.nextCommand` implement TERM-72.
 
-**Tests.** `tests/terminal/terminal-commands.ui.test.tsx`: `terminal.focus` with none open creates one. `tests/e2e/terminal-projects.e2e.ts`: TERM-60 row.
+**Tests.** `tests/terminal/terminal-commands.ui.test.tsx`: `terminal.focus` with none open creates one. `tests/terminal/prompt-marks.ui.test.tsx`: TERM-71 to TERM-73 rows. `tests/e2e/terminal-projects.e2e.ts`: TERM-60 row. `tests/e2e/terminal-init.e2e.ts`: TERM-70 row.
 
-**Done when.** Tests pass. Feature `F-017` passes.
+**Done when.** Tests pass. Features `F-017` and `F-056` pass.
 
 **Commit.** `feat(terminal): add terminal commands and keep shells across projects`
 

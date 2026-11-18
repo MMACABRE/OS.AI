@@ -14,15 +14,15 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Read first.** `spec/modules/claude-link.md` "How Claude Code reports to HSOS", "Files HSOS generates", "Hook entry", "Events registered", "Statusline command", LINK-1 to LINK-7, LINK-10, LINK-13, `spec/modules/terminal.md` TERM-7.
 
-**Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init-template.ts`, `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `src/modules/terminal/service/terminal-registry.ts`, `tests/fakes/fake-claude.ts`.
+**Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init-template.ts`, `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fakes/fake-claude.ts`.
 
 **Steps.**
 1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/mcp` used in card 076.
 2. `generated-files.ts`: writes the four files atomically from the tables. `shell-init-template.ts` returns the PowerShell text of LINK-4.
-3. TERM-7 in the terminal registry.
+3. Pass the variables to `terminal.setExtraEnv`. The terminal registry already loads `HSOS_SHELL_INIT` (TERM-7, card 030).
 4. `FakeClaude`: posts fixture JSON from `tests/fixtures/claude/` to the server with the right headers. Create the fixtures from the examples in the Claude Code hooks and statusline documentation: one file per event in the "Events registered" table, plus `statusline.json`.
 
-**Tests.** `tests/claude-link/link-server.test.ts`: LINK-1, LINK-2, LINK-6, LINK-10, LINK-13. `tests/claude-link/shell-init.test.ts`: LINK-4 row. `tests/terminal/terminal-registry.test.ts`: the TERM-7 rows.
+**Tests.** `tests/claude-link/link-server.test.ts`: LINK-1, LINK-2, LINK-6, LINK-10, LINK-13. `tests/claude-link/shell-init.test.ts`: LINK-4 row.
 
 **Done when.** Tests pass.
 
