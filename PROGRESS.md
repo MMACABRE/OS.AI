@@ -39,3 +39,11 @@ Did: main creates a `MessageChannelMain` once the page loads, posts one end to p
 Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 1 passed
 Deviations: pty-host no longer exits after 3 seconds (it now holds the port); the card 002 shell is still killed after 3 seconds.
 Next: 006
+
+## 006 Spike: page view and DevTools Protocol
+Status: done
+Date: 2026-11-18
+Did: A `WebContentsView` in session `persist:hsos-browser-spike` loaded `<h1>spike</h1>`, the debugger attached with 1.3, and `Page.captureScreenshot` returned data (the e2e test passed). As the card says, the spike code is removed from main and the test is kept with `test.skip`.
+Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 1 passed, 1 skipped
+Deviations: the view loads the HTML as a `data:` URL directly instead of `about:blank` first.
+Next: 007
