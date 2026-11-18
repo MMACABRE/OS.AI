@@ -15,3 +15,11 @@ Did: `createNodePtyFactory` wraps node-pty as `PtyProcess`. pty-host starts powe
 Checks: typecheck ok, lint ok, deps ok, test 2 passed, e2e 0 passed
 Deviations: pwsh is not installed here, so the spike and test use powershell.exe as the card allows. Main forks all three services in a loop so card 003's service also starts without changing main again. Killing the shell makes node-pty's console-list helper print "AttachConsole failed" to stderr; the test still passes and the exit event arrives.
 Next: 003
+
+## 003 Spike: SQLite in a utility process
+Status: done
+Date: 2026-11-18
+Did: workspace-service opens a database in the temp folder, writes and reads a row, logs it and deletes the file. The built app logs `{"id":1,"text":"sqlite-ok"}`; the same runs in plain Node in the test.
+Checks: typecheck ok, lint ok, deps ok, test 3 passed, e2e 0 passed
+Deviations: none
+Next: 004
