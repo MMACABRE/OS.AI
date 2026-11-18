@@ -2,11 +2,11 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete: 20 modules, 118 cards (001 to 118). Build order is look first: stage 0, Stage U (every screen on demo data, ending at the owner's approval in card 037), then stages 1 to 9. See JOURNAL steps 36 and 37.
+**Status (2026-11-18):** spec complete (20 modules, 118 cards). Build order look first: stage 0, Stage U (demo data, ends at owner approval in card 037), then stages 1 to 9 (JOURNAL 36, 37). Built: cards 001 to 010 (see `PROGRESS.md`). Handoff: `docs/handoff.md`.
 
-**Design round (`spec/design/direction-brief.md`): done.** The owner chose **Phosphor** and approved the Dashboard, Code page (layout C) and Notes page (layout C with a notes list). Every brief item exists as a throwaway mockup; start at `design-round/index.html`. Every owner decision and every open spec point is in `design-round/design-rounds.md`; theme tokens and the glass map in `design-round/theme/`. Short form: CRT pixel art; one colour per job (neon orange `#FF7A3D` structure, phosphor yellow `#F5FF3B` values and focus, neon red `#FF003C` attention and brand, cyan `#00F0FF` live, lavender `#C77DFF` knowledge, magenta `#FF00FF` memory); breathing HSOS and cyan clock top left; corner boxes; a floating, zoomable graph with CLAUDE.md pinned in the centre; a strawberry mascot; a dust-and-steam glyph background; every button lifts in 3D. This is the **look profile** every UI session keeps; screens without a mockup (settings, palette, file viewer, diff, browser, git changes, history) get their own layout, shown to the owner as options first. Phosphor is the only built-in theme.
+**Look profile: Phosphor** (`spec/design/visual-direction.md`, JOURNAL 38; mockups in `design-round/`, start at `index.html`, decisions in `design-round/design-rounds.md`). CRT pixel art; one colour per job (orange `#FF7A3D` structure, yellow `#F5FF3B` values and focus, red `#FF003C` attention and brand, cyan `#00F0FF` live, lavender `#C77DFF` knowledge, magenta `#FF00FF` memory); breathing HSOS and cyan clock top left; corner boxes; floating zoomable graph with CLAUDE.md pinned centre; strawberry mascot; dust-and-steam background; every button lifts in 3D. Screens without a mockup (settings, palette, file viewer, diff, browser, git changes, history) get their own layout, shown to the owner as options first. Phosphor is the only built-in theme.
 
-**Next:** Phosphor is in the spec (JOURNAL step 38): `spec/design/visual-direction.md`, `themes/phosphor.json`, `spec/reference/art/`. Implementation starts with card 001 in `tasks/stage-0.md`.
+**Next:** card 011 (Supervisor) in `tasks/stage-0.md`, then 012 to 014 to finish round 2 of the hsdevloop run.
 
 ## Before any work
 
@@ -16,7 +16,7 @@ The owner edits this repo from more than one device. At the start of every sessi
 
 You build HSOS from the spec. You do not design it.
 
-1. Run `pwsh scripts/init.ps1` (skip until task 001 has created it). Without PowerShell 7 use `powershell -ExecutionPolicy Bypass -File scripts/init.ps1` (verify).
+1. Run `pwsh scripts/init.ps1`. Without PowerShell 7: `powershell -ExecutionPolicy Bypass -File scripts/init.ps1` (works on this device).
 2. Read `spec/04-implementer-protocol.md` once per session. It is the loop you run.
 3. Do the lowest-numbered card in `tasks/` that `PROGRESS.md` does not list as done. One card, then stop. Card 037 is a gate: after it, wait for the owner's approval (protocol "Look first").
 
@@ -30,6 +30,14 @@ Rules:
 - No test may run the real `claude` command with a prompt. It spends the owner's usage. Before a test calls `claude`, check that `Get-Command claude -CommandType Application` resolves to the stub: Git Bash can reorder `PATH`.
 
 The pre-commit hook `scripts/guard.mjs` enforces the file rules. It guards against mistakes. Never bypass it.
+
+Build gotchas (found in cards 001 to 010):
+
+- node-pty builds from source for Electron and needs the Visual Studio component `Microsoft.VisualStudio.Component.VC.14.51.x86.x64.Spectre` (installed on this device).
+- Claude Code's shell sets `NoDefaultCurrentDirectoryInExePath=1`, which breaks node-pty's `GetCommitHash.bat`. Run `npm ci` as `env -u NoDefaultCurrentDirectoryInExePath npm ci` there.
+- TypeScript 7 has no JS API: ESLint and dependency-cruiser get `@typescript/typescript6` through `scripts/typescript6.mjs`.
+- Never run Prettier over existing tests: the guard rejects any changed test line. Format new files only.
+- Bash heredocs in Claude Code's shell can turn a double backslash into one and a backslash-r into a raw CR. Write files that hold backslashes with the Write or Edit tool.
 
 ## If you are changing the spec
 
@@ -49,4 +57,5 @@ Gotchas: working copies are CRLF (`core.autocrlf true`), so strip `\r` before sc
 
 ## /hsdevloop amendments
 
-- 2026-11-18, before round 1: the owner asked for an hsdevloop run over cards 001 to 037 in one session, stopping at the 037 gate. This replaces "one card, then stop" for that run only. Each card still gets its own commit and `PROGRESS.md` entry. Why: owner's instruction.
+- 2026-11-18, before round 1: the owner asked for an hsdevloop run over cards 001 to 037, stopping at the 037 gate. This replaces "one card, then stop" for that run only. Each card still gets its own commit and `PROGRESS.md` entry. Why: owner's instruction.
+- 2026-11-18, round 2: run paused by the owner after card 010. Tester budget for the run: 5 uses, 1 used (batch 1, cards 001 to 007). Resume with `docs/handoff.md`.
