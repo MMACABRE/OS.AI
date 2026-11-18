@@ -1,0 +1,8 @@
+.bad {
+  color: #ff0000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px;
+  margin: 2px 1px 0;
+  /* #abc in a comment is fine */
+  width: var(--size-row);
+}

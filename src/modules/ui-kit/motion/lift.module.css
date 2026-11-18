@@ -1,0 +1,53 @@
+/*
+ * Shared motion for pressable things (MOT-2, visual-direction.md "Buttons"): lift toward the pointer on
+ * hover, sink and flash on press. Only transform and filter animate (MOT-1). Components compose these
+ * classes instead of writing their own (UI-6). The pointer tilt reads --hsos-rx and --hsos-ry when set.
+ */
+.lift {
+  --hsos-rx: 0deg;
+  --hsos-ry: 0deg;
+  transform: perspective(20rem) rotateX(var(--hsos-rx)) rotateY(var(--hsos-ry));
+  transition:
+    transform var(--motion-instant) var(--motion-ease-out),
+    filter var(--motion-instant) var(--motion-ease-out),
+    box-shadow var(--motion-instant) var(--motion-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover:not(:disabled) {
+    transform: perspective(20rem) rotateX(var(--hsos-rx)) rotateY(var(--hsos-ry)) translate(-2px, -2px);
+    filter: brightness(1.3);
+    box-shadow: var(--button-lift);
+  }
+}
+
+.lift:active:not(:disabled) {
+  transform: perspective(20rem) rotateX(var(--hsos-rx)) rotateY(var(--hsos-ry)) translate(1px, 1px)
+    scale(0.96);
+  filter: brightness(1.6);
+  box-shadow: none;
+  transition-duration: var(--motion-instant);
+}
+
+/* Yellow (primary) pressables get the accent glow when lifted. */
+.liftAccent:hover:not(:disabled) {
+  filter: brightness(1.15) drop-shadow(var(--glow-accent));
+}
+
+/* Reduced motion: brightness stays, movement goes (visual-direction.md "Buttons"). */
+:global([data-motion='reduced']) .lift,
+:global([data-motion='reduced']) .lift:hover,
+:global([data-motion='reduced']) .lift:active {
+  transform: none;
+}
+
+/* Keyboard focus only: a 2 px ring in color.accent, offset 1 px, with glow.accent (visual-direction.md "Focus"). */
+.focusRing:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  box-shadow: var(--glow-accent);
+}
+
+.focusRing:focus:not(:focus-visible) {
+  outline: none;
+}

@@ -1,0 +1,46 @@
+/* An 8 px status light. Pills are allowed only for status lights (visual-direction.md "Forbidden"). */
+.dot {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.ok {
+  background: var(--color-state-ok);
+  box-shadow: var(--glow-live);
+}
+
+.warn {
+  background: var(--color-state-warn);
+  box-shadow: var(--glow-accent);
+}
+
+.danger {
+  background: var(--color-state-danger);
+  box-shadow: var(--glow-danger);
+}
+
+.info {
+  background: var(--color-state-info);
+}
+
+.neutral {
+  background: var(--color-text-muted);
+}
+
+.pulse {
+  animation: pulse var(--motion-slow) var(--motion-ease-out) 2;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(1.4);
+  }
+}
+
+:global([data-motion='reduced']) .pulse {
+  animation: none;
+}

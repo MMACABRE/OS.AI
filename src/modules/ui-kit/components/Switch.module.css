@@ -1,0 +1,53 @@
+.switch {
+  composes: focusRing from '../motion/lift.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  cursor: pointer;
+}
+
+/* A pixel track: two cells, the lit one is the state. */
+.track {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 1.125rem;
+  padding: 2px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-panel);
+}
+
+.thumb {
+  width: 0.875rem;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-text-muted);
+  transform: translateX(0);
+  transition: transform var(--motion-quick) var(--motion-ease-spring);
+}
+
+.on .track {
+  border-color: var(--color-accent);
+}
+
+.on .thumb {
+  background: var(--color-accent);
+  box-shadow: var(--glow-accent);
+  transform: translateX(1rem);
+}
+
+:global([data-motion='reduced']) .thumb {
+  transition: none;
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

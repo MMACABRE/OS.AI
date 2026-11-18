@@ -165,3 +165,17 @@ Also: `keyFromEvent` gives `Ctrl+Shift+P` for code `KeyP` with Ctrl and Shift, `
 | UI-21 | focus inside an element with `data-hsos-terminal`; `Ctrl+B` not global, `Ctrl+Shift+P` global | both keys are pressed                       | only the palette command runs                                                  |
 | UI-22 | focus in an `<input>`; bindings `F2` and `Ctrl+S`                                             | both are pressed                            | only `Ctrl+S` runs                                                             |
 | UI-23 | binding `Ctrl+K Ctrl+T`, fake clock                                                           | `Ctrl+K`, then 2 000 ms pass, then `Ctrl+T` | the command does not run (and it does run when `Ctrl+T` comes within 1 500 ms) |
+
+## 020 Base components
+
+Code: `src/modules/ui-kit/components/` (`Button`, `IconButton`, `TextField`, `NumberField`, `Switch`, `Select`, `Tooltip`, `Kbd`, `Badge`, `StatusDot`, each `.tsx` plus `.module.css`; `cx.ts`), `src/modules/ui-kit/motion/lift.module.css` (shared lift and focus ring), `src/modules/ui-kit/index.ts`, `eslint-rules/no-raw-css-values.js` (`findRawValues`, run by `npm run lint`), fixture `tests/fixtures/css/raw-values.module.css`.
+
+`tests/ui-kit/base-components.ui.test.tsx` (jsdom, Testing Library), for each component:
+
+- UI-2: it can be reached with Tab and operated with the keyboard alone (Button and IconButton with Enter and Space; Switch toggles with Space; NumberField steps with ArrowUp and ArrowDown and clamps to min and max; Select changes with the arrow keys; TextField takes typing and calls `onChange`), and its focusable element carries the shared `focusRing` class (`:focus-visible` cannot be checked in jsdom).
+- UI-3: `IconButton` has the accessible name `label` and, on focus, the tooltip shows the label and the `Kbd` of its `keyBinding` (Radix opens on focus).
+- Also: `TextField` with `invalidMessage` sets `aria-invalid` and shows the message with `role="alert"`; `StatusDot` has `role="img"` and the label as its name; `Kbd` renders `Ctrl+K Ctrl+T` as four key caps.
+
+`tests/ui-kit/no-raw-css.test.ts`:
+
+- UI-1: `findRawValues` on `tests/fixtures/css/raw-values.module.css` reports exactly 3 problems (hex on line 2, `rgba(` on line 3, `4px` on line 4) and nothing for `2px 1px 0`, the comment, or `var(--size-row)`; running the script over `src` exits 0.

@@ -1,0 +1,27 @@
+.select {
+  composes: input from './TextField.module.css';
+  padding-right: 1.5rem;
+  appearance: none;
+  cursor: pointer;
+}
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  color: var(--color-structure);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-small);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.select option {
+  background: var(--color-bg-overlay);
+  color: var(--color-text-primary);
+}

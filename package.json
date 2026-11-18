@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
-    "lint": "eslint .",
+    "lint": "eslint . && node eslint-rules/no-raw-css-values.js",
     "deps": "node --import ./scripts/typescript6.mjs node_modules/dependency-cruiser/bin/dependency-cruiser.mjs --config .dependency-cruiser.cjs src",
     "test": "vitest run",
     "e2e": "electron-vite build && playwright test",
