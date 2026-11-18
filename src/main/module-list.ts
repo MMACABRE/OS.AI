@@ -4,6 +4,7 @@ import * as diagnostics from '../modules/diagnostics/register.service';
 import { createFileLogger } from '../modules/diagnostics/service/file-logger';
 import * as settings from '../modules/settings/register.service';
 import { createSettingsStore } from '../modules/settings/service/settings-store';
+import { createThemeStore } from '../modules/settings/service/theme-store';
 import type { ModuleEntry } from '../modules/shell/loader/load-modules';
 import { systemClock } from '../modules/shell/system-clock';
 
@@ -21,7 +22,12 @@ export const createProcessLogger = (paths: DataPaths) =>
 export const createMainSettings = (paths: DataPaths, clock: Clock, log: Logger) =>
   createSettingsStore({ file: paths.settingsFile, clock, log });
 
-/** Extension points main itself reads or fills (cards 013, 014, 016). */
+/** The theme store, loaded before the window so its background is the theme's (cards 018, SET-17). */
+export const createMainThemes = (paths: DataPaths, builtInDir: string, log: Logger) =>
+  createThemeStore({ themesDir: paths.themesDir, builtInDir, log });
+
+/** Extension points main itself reads or fills (cards 013, 014, 016, 018). */
 export { processDeathReporters, processMetricsSources } from '../modules/diagnostics/register.service';
 export type { ProcessMetric } from '../modules/diagnostics/service/health';
-export { settingsStorePoint } from '../modules/settings/register.service';
+export { settingsStorePoint, themeStorePoint } from '../modules/settings/register.service';
+export { appearanceSection } from '@hsos/contracts/channels/settings';

@@ -2,10 +2,14 @@ import type { Bus } from '@hsos/contracts/bus';
 import type { Clock, UiContext } from '@hsos/contracts/module';
 import { createBusLogger } from '../modules/diagnostics/panel/bus-logger';
 import * as diagnostics from '../modules/diagnostics/register.ui';
+import * as settings from '../modules/settings/register.ui';
 import type { ModuleEntry } from '../modules/shell/loader/load-modules';
 
 /** Modules loaded in the renderer, in order (architecture §4, SHELL-20). */
-export const uiModules: readonly ModuleEntry<UiContext>[] = [{ id: 'diagnostics', module: diagnostics }];
+export const uiModules: readonly ModuleEntry<UiContext>[] = [
+  { id: 'settings', module: settings },
+  { id: 'diagnostics', module: diagnostics },
+];
 
 /** The renderer's logger for one module: records go to main with `diagnostics.write` (DIAG-1). */
 export const createModuleLogger = (bus: Bus, clock: Clock, module: string) =>

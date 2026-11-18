@@ -120,3 +120,27 @@ Code: `src/modules/settings/service/settings-watcher.ts` (`watchSettingsFiles`, 
 | SET-9 | two registered sections                                               | only the first one's values change on disk and the store reloads | only the first section's listener fires                                                                |
 
 Also: several writes within 200 ms give one `onChange`; `createRemoteSettingsReader` on a `FakeBus` returns defaults, then the `getSection` value, then follows `sectionChanged` for its own module only, and ignores a value that fails the schema.
+
+## 018 Themes
+
+Code: `resources/themes/phosphor.json`, `tests/fixtures/themes/test-light.json`, `resources/fonts/` (VT323, Jersey 10, OFL texts), `src/ui/fonts.css`, `src/modules/settings/service/theme-store.ts` (`createThemeStore`, `resolveTheme`, `themeSlug`), `src/modules/settings/panel/apply-theme.ts` (`applyTheme`, `applyMotion`), `src/modules/settings/register.ui.ts`, theme channels in `register.service.ts`, main's background and zoom in `src/main/index.ts`. Feature F-007.
+
+`tests/settings/theme-store.test.ts` (temp `themesDir`, `builtInDir` pointing at `resources/themes`):
+
+| Rule   | Given                                   | When                                    | Then                                                               |
+| ------ | --------------------------------------- | --------------------------------------- | ------------------------------------------------------------------ |
+| SET-11 | `theme: "Nope"`                         | `active('Nope')` and `problems('Nope')` | Phosphor is active; one problem                                    |
+| SET-12 | a theme setting only `color.accent`     | `resolveTheme`                          | `color.accent` is the theme's; every other token equals Phosphor's |
+| SET-14 | a token value `red; background: url(x)` | `resolveTheme`                          | the token keeps Phosphor's value; one problem                      |
+| SET-16 | a theme named "Phosphor"                | `save`                                  | `SET_INVALID`; no file written                                     |
+
+Also: `save` of "My Theme 2" writes `my-theme-2.json`; `load` copies `phosphor.json` into `themesDir` overwriting an edited copy.
+
+`tests/settings/apply-theme.ui.test.tsx` (jsdom):
+
+| Rule   | Given                                                            | When          | Then                                                                      |
+| ------ | ---------------------------------------------------------------- | ------------- | ------------------------------------------------------------------------- |
+| SET-13 | the resolved test-light theme                                    | `applyTheme`  | `--color-bg-app` on `:root` is `#F4F1EA` and `data-theme-kind` is `light` |
+| SET-15 | `reduceMotion: 'on'`; then `'off'` with the system preference on | `applyMotion` | the root has `data-motion="reduced"`; then `data-motion="full"`           |
+
+F-007 (e2e, card 025 covers it): copy `test-light.json` into `themesDir`, set `theme`, `--color-bg-app` changes without a reload.

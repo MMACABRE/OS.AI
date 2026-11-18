@@ -1,4 +1,5 @@
 import { createRoot } from 'react-dom/client';
+import './fonts.css';
 import type { Bus } from '@hsos/contracts/bus';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import type { ServiceId } from '@hsos/contracts/ids';

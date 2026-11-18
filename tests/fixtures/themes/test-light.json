@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "name": "test-light",
+  "kind": "light",
+  "tokens": {
+    "color.bg.app": "#F4F1EA",
+    "color.text.primary": "#1A1714"
+  }
+}

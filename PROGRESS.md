@@ -144,3 +144,11 @@ Did: `watchSettingsFiles` watches the folders of settings.json and keybindings.j
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. Folders are watched instead of files because an atomic write replaces the file. Key binding and theme reloads are no-ops until cards 018 and 019.
 Next: 018
+
+## 018 Themes
+Status: done (untested)
+Date: 2026-11-18
+Did: `resources/themes/phosphor.json` copied from the spec; VT323 and Jersey 10 with their OFL licences in `resources/fonts/` and `@font-face` rules in `src/ui/fonts.css`; the `test-light` fixture. `createThemeStore` copies built-in themes into `themesDir` at start, reads every theme, resolves the active one over Phosphor (SET-11, SET-12), ignores and reports unknown tokens and unsafe values (SET-14), and saves themes under a slug, refusing built-in names (SET-16). main loads it before the window, opens the window on the theme's `color.bg.app` (SET-17) and applies `uiScale` as the zoom factor (SET-15). The settings module serves `listThemes`, `getActiveTheme`, `saveTheme` and `activeThemeChanged` and reloads themes on a change in `themesDir`. The renderer sets every token as a CSS variable with `data-theme-kind` (SET-13) and keeps `data-motion` in step (SET-15).
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok (fonts bundled), e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. Fonts downloaded from the google/fonts repository. Files outside the list: `src/main/index.ts`, `src/main/module-list.ts`, `src/modules/settings/register.service.ts`, `src/ui/index.tsx` (imports fonts.css), `src/ui/module-list.ts`, `src/ui/vite-env.d.ts` (Vite's types for CSS imports). The packaged app reads built-in themes from `<resources>\themes`; card 025's builder config must copy `resources/themes` there.
+Next: 019

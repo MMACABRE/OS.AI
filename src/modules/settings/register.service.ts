@@ -15,6 +15,7 @@ import { terminalSection } from '@hsos/contracts/channels/terminal';
 import type { ExtensionPoint, ServiceContext, SettingsSection } from '@hsos/contracts/module';
 import { err, ok } from '@hsos/contracts/result';
 import type { SettingsStore } from './service/settings-store';
+import type { ThemeStore } from './service/theme-store';
 import { watchSettingsFiles } from './service/settings-watcher';
 import type { SettingsFileKind } from './service/settings-watcher';
 
@@ -45,11 +46,40 @@ export const CONTRACT_SECTIONS: readonly SettingsSection<unknown>[] = [
   dashboardSection,
 ] as readonly SettingsSection<unknown>[];
 
-/** main side of settings: the channels over the store (SET-1 to SET-7, card 016). */
+/** main fills this with the theme store, loaded before the window exists (SET-17). */
+export const themeStorePoint: ExtensionPoint<ThemeStore> = { id: 'settings.themes' };
+
+/**
+ * main side of settings: the channels over the settings store (SET-1 to SET-7, card 016), live reload
+ * (SET-8, card 017) and themes (SET-11 to SET-16, card 018).
+ */
 export function register(ctx: ServiceContext): void {
   const store = ctx.contributions(settingsStorePoint)[0];
-  if (store === undefined) throw new Error('settings: main did not provide the settings store.');
+  const themes = ctx.contributions(themeStorePoint)[0];
+  if (store === undefined || themes === undefined)
+    throw new Error('settings: main did not provide the settings and theme stores.');
+  const appearance = store.register(appearanceSection);
   for (const section of CONTRACT_SECTIONS) store.register(section);
+
+  const allProblems = () => [...store.getProblems(), ...themes.problems(appearance.get().theme)];
+  let lastProblems = JSON.stringify(allProblems());
+  const publishProblems = () => {
+    const problems = allProblems();
+    const text = JSON.stringify(problems);
+    if (text === lastProblems) return;
+    lastProblems = text;
+    ctx.bus.emit(settingsChannels.problemsChanged, problems);
+  };
+  let lastTheme = JSON.stringify(themes.active(appearance.get().theme));
+  const publishTheme = () => {
+    const theme = themes.active(appearance.get().theme);
+    const text = JSON.stringify(theme);
+    if (text !== lastTheme) {
+      lastTheme = text;
+      ctx.bus.emit(settingsChannels.activeThemeChanged, theme);
+    }
+    publishProblems();
+  };
 
   ctx.bus.handle(settingsChannels.getSection, ({ moduleId }) => {
     const value = store.getSection(moduleId);
@@ -58,17 +88,26 @@ export function register(ctx: ServiceContext): void {
   ctx.bus.handle(settingsChannels.setValue, ({ moduleId, key, value }) =>
     store.setValue(moduleId, key, value),
   );
-  ctx.bus.handle(settingsChannels.getProblems, () => ok(store.getProblems()));
+  ctx.bus.handle(settingsChannels.getProblems, () => ok(allProblems()));
   store.onSectionChanged((moduleId, value) =>
     ctx.bus.emit(settingsChannels.sectionChanged, { moduleId, value }),
   );
-  store.onProblemsChanged((problems) => ctx.bus.emit(settingsChannels.problemsChanged, problems));
+  store.onProblemsChanged(publishProblems);
+  appearance.onChange(publishTheme);
+
+  ctx.bus.handle(settingsChannels.listThemes, () => ok(themes.list()));
+  ctx.bus.handle(settingsChannels.getActiveTheme, () => ok(themes.active(appearance.get().theme)));
+  ctx.bus.handle(settingsChannels.saveTheme, async ({ theme }) => {
+    const saved = await themes.save(theme);
+    if (saved.ok) publishTheme();
+    return saved;
+  });
 
   // SET-8: edits on disk apply within a second; the files are re-read, never the event data (P-16).
   const reload: Record<SettingsFileKind, () => Promise<void>> = {
     settings: () => store.load(),
     keybindings: () => Promise.resolve(),
-    themes: () => Promise.resolve(),
+    themes: () => themes.load().then(publishTheme),
   };
   const stopWatching = watchSettingsFiles({
     settingsFile: ctx.paths.settingsFile,

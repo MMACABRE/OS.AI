@@ -1,0 +1,19 @@
+/*
+ * The two Phosphor fonts, bundled and loaded from disk, never from the network (visual-direction.md).
+ * Both are under the SIL Open Font License; the licences sit beside the files in resources/fonts/.
+ */
+@font-face {
+  font-family: 'VT323';
+  src: url('../../resources/fonts/VT323-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Jersey 10';
+  src: url('../../resources/fonts/Jersey10-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}

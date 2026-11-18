@@ -1,4 +1,5 @@
 import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { app, clipboard, dialog, ipcMain, MessageChannelMain, Notification, shell } from 'electron';
 import type { BrowserWindow } from 'electron';
 import type { EpochMs } from '@hsos/contracts/ids';
@@ -17,12 +18,15 @@ import {
 import { systemClock } from '../modules/shell/system-clock';
 import { buildOwnerIndex, createBroker } from './bus/broker';
 import {
+  appearanceSection,
   createMainSettings,
+  createMainThemes,
   createProcessLogger,
   mainModules,
   processDeathReporters,
   processMetricsSources,
   settingsStorePoint,
+  themeStorePoint,
 } from './module-list';
 import type { ProcessMetric } from './module-list';
 import { utilityProcessLauncher } from './supervisor/service-process';
@@ -78,10 +82,13 @@ function toEpoch(ms: number): EpochMs {
  * main's own modules (SHELL-20) and the extension points main fills or reads (cards 013, 014, 016).
  * Settings load before any module registers (architecture §6 step 2); a bad file falls back to defaults (P-32).
  */
-async function loadMainModules(): Promise<void> {
+async function loadMainModules(): Promise<MainLook> {
   const settings = createMainSettings(paths, systemClock, log.forModule('settings'));
   await settings.load();
+  const themes = createMainThemes(paths, builtInThemesDir(), log.forModule('settings'));
+  await themes.load();
   store.contribute(settingsStorePoint, settings);
+  store.contribute(themeStorePoint, themes);
   store.contribute(processMetricsSources, processMetrics);
   loadModules(
     mainModules,
@@ -102,6 +109,26 @@ async function loadMainModules(): Promise<void> {
     const failure = await shell.openPath(paths.logsDir);
     return failure === '' ? ok({}) : err('INTERNAL', 'The log folder could not be opened.', failure);
   });
+  const appearance = settings.register(appearanceSection);
+  return {
+    background: () => themes.active(appearance.get().theme).tokens['color.bg.app'],
+    uiScale: () => appearance.get().uiScale,
+    onAppearanceChange: (listener) => appearance.onChange(listener),
+  };
+}
+
+/** What the window needs from settings: the theme background (SET-17) and the zoom factor (SET-15). */
+type MainLook = {
+  background(): string;
+  uiScale(): number;
+  onAppearanceChange(listener: () => void): void;
+};
+
+/** `resources/themes` next to the app in development, under the resources folder when packaged. */
+function builtInThemesDir(): string {
+  return app.isPackaged
+    ? join(process.resourcesPath, 'themes')
+    : join(app.getAppPath(), 'resources', 'themes');
 }
 
 /** Gives the renderer and a service the two ends of a fresh message channel (§2.2, SHELL-11). */
@@ -222,11 +249,25 @@ app.on('second-instance', () => {
 
 // Start order of architecture §6: diagnostics and main's modules, the services, then the window.
 void app.whenReady().then(async () => {
-  await loadMainModules();
+  const look = await loadMainModules();
   registerSystem();
   supervisor.start();
-  const created = await createMainWindow({ appStateFile: paths.appStateFile, bus, clock: systemClock, log });
+  const created = await createMainWindow({
+    appStateFile: paths.appStateFile,
+    bus,
+    clock: systemClock,
+    log,
+    background: look.background(),
+  });
   window = created;
+  // SET-15: uiScale is the renderer's zoom factor; SET-17: the window colour follows the theme.
+  const applyLook = () => {
+    if (created.isDestroyed()) return;
+    created.webContents.setZoomFactor(look.uiScale());
+    created.setBackgroundColor(look.background());
+  };
+  created.webContents.on('did-finish-load', applyLook);
+  look.onAppearanceChange(applyLook);
   ipcMain.on('hsos-bus', (event, message: unknown) => {
     if (event.sender === created.webContents && isEnvelope(message)) broker.receive(message, 'ui');
   });
