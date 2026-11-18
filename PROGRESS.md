@@ -23,3 +23,11 @@ Did: workspace-service opens a database in the temp folder, writes and reads a r
 Checks: typecheck ok, lint ok, deps ok, test 3 passed, e2e 0 passed
 Deviations: none
 Next: 004
+
+## 004 Spike: file watcher on Windows
+Status: done
+Date: 2026-11-18
+Did: `createParcelFileWatcher` implements `FileWatcher` with @parcel/watcher, mapping create, update and delete, with `exclude` as `ignore`. Create, change, rename (as delete plus create) and delete in `a/b/` arrive within 2 seconds; nothing arrives under `node_modules`.
+Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 0 passed
+Deviations: none
+Next: 005
