@@ -33,3 +33,14 @@ Owner chose Phosphor and asked for: a strawberry mascot; less neon yellow and mo
 - Judge: not run yet.
 
 - Round 2b, owner's colour share: about 50 percent terracotta and phosphor yellow, 20 percent neon red, 30 percent cyan, lavender and magenta; red, cyan, lavender and magenta glow. Big numbers and the session title are phosphor yellow; sessions widget and needs-you row are neon red; usage, clock, band mark and graph outline carry the cool colours; unresolved graph nodes and the mascot frame are magenta. Glow on small text is softened so it stays legible.
+
+## Round 3 (2026-11-18)
+
+Owner: colours felt placed without order; HSOS horizontal top left in neon red with the cyan clock beside it; remove the symbol and other things without meaning; boxes to the page corners with more space between; graph without a box, floating, with a pixel halo on every node in different colours; frames symmetric, only decorative parts and buttons a little asymmetric; HSOS breathes slowly; terracotta becomes a brighter neon orange.
+
+- File: `design-round/dashboard/phosphor.html`; round 2 kept as `phosphor-r2.html`.
+- Colour jobs: neon orange `#FF7A3D` = structure (frames, titles); phosphor yellow = values and focus; neon red = attention and the brand; cyan = live activity; lavender = knowledge; magenta = memory. Bars: cyan below 60 percent, yellow from 60, red from 85.
+- Background dots walk the palette along the diagonal (orange, red, magenta, lavender, cyan) instead of random colours.
+- Layout: session and sessions boxes on the left edge, usage and context boxes bottom right, mascot free top right, graph free in the centre (4x5), quick bar free below it with the screen dots. The git widget is gone; its data is in the status bar. Grid gap 22 by 40 px, page edge 18 px.
+- Breathing: `transform` scale 1 to 1.035 and `filter` drop-shadow plus hue-rotate toward magenta, 7 s loop, off under reduced motion. Only allowed properties animate.
+- Open points for the spec: title bar grows from 36 to 56 px to hold the brand and clock; a widget can be frameless (`free`).
