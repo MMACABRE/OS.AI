@@ -26,3 +26,22 @@ How to test the supervisor without Electron: pass a fake `ProcessLauncher` that 
 | SHELL-14 | the app is running | the renderer is killed (`webContents.forcefullyCrashRenderer()` through `electronApp.evaluate`) | the window reloads and the `?e2e=1` ping view shows all three services again                                                                                                  |
 
 Also worth a test (not in the card): SHELL-7, `stop()` sends `{ type: 'stop' }` and kills a process still alive after 3 000 ms; a process killed on purpose (ready miss, manual restart) is not counted as a death; `getServiceStatus` lists the three services.
+
+## 012 Logging
+
+Code: `src/modules/diagnostics/service/redact.ts` (`redact`, `truncate`), `src/modules/diagnostics/service/file-logger.ts` (`createFileLogger`, `logFile`, `readRecent`), `src/modules/diagnostics/panel/bus-logger.ts` (`createBusLogger`), `src/modules/diagnostics/register.service.ts` (`write` and `getRecent` handlers, `diagnosticsSettings`).
+
+Use a temp folder for `logsDir` and `createFakeClock` for the 500 ms flush timer, or call `flush()` directly.
+
+`tests/diagnostics/logging.test.ts`:
+
+| Rule   | Given                                                             | When                                  | Then                                                                 |
+| ------ | ----------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------- |
+| DIAG-1 | a temp logs folder                                                | a logger writes 3 records and flushes | `<process>.log` has 3 lines, each parses as `LogRecord`              |
+| DIAG-2 | a log file of 5 MB (`ROTATE_BYTES`)                               | one more record is flushed            | `<process>.1.log` exists and the live file holds only the new record |
+| DIAG-3 | the logs folder is made read-only (or `logsDir` points at a file) | a record is logged and flushed        | no exception, `flush()` resolves, the process continues              |
+| DIAG-4 | data `{ authToken: 'abc', nested: { Cookie: 'x' }, name: 'ok' }`  | `redact` runs                         | both secret values are `[redacted]`; `name` is unchanged             |
+| DIAG-5 | a 5 000 character string value                                    | `redact` (or `truncate`) runs         | length is 2 000 and it ends with `…`                                 |
+| DIAG-6 | `debug` returns false                                             | a debug record is logged and flushed  | nothing is written                                                   |
+
+Also worth a test: `readRecent` returns the newest N records oldest first across `<process>.log` and `<process>.1.log`; `createBusLogger` sends `diagnostics.write` with process `ui` and never throws when the bus call rejects.

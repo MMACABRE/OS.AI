@@ -87,3 +87,11 @@ Did: `createSupervisor` starts the three services through a `ProcessLauncher`, m
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, e2e not run
 Deviations: Owner's rule from this session: implementers write code only, no tests written or run. The card's tests (`tests/shell/supervisor.test.ts`, `tests/e2e/supervisor.e2e.ts`) are described in the new root file `untested.md` for a later testing agent, so F-004 stays `passes: false`. `untested.md` is outside the card's file list. `reportDeath` only logs `service_death` until card 013 writes the crash report. Service ports are now sent when a service is ready or when the renderer finishes loading, not on every load for every started service. A renderer reloaded for being unresponsive is crashed first with `forcefullyCrashRenderer` (Electron's documented way to reload a hung renderer); that crash does not count as a loss.
 Next: 012
+
+## 012 Logging
+Status: done (untested)
+Date: 2026-11-18
+Did: `redact` replaces every string under a key naming a secret, at any depth, with `[redacted]` and cuts other strings to 2 000 characters (DIAG-4, DIAG-5). `createFileLogger` buffers records and appends them to `<process>.log` every 500 ms and on `close`, rotates at 5 MB up to `.4.log` (DIAG-1, DIAG-2), swallows every write failure (DIAG-3) and drops `debug` records unless the setting is on (DIAG-6). `readRecent` reads the newest records back across rotations. The renderer's `createBusLogger` sends records with `diagnostics.write`. `register` adds the `diagnostics` settings section and handles `write` (into `ui.log`) and `getRecent`.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule, see card 011); the test plan is in `untested.md`. `register.service.ts` imports `zod` for its settings schema although the module spec allows no third-party package; every settings section needs a zod schema (`SettingsSection.schema`). No process uses the file logger yet: wiring it into main and the services is outside this card's files (card 014's `ServiceContext.log` is the natural place). For card 014: `register` handles main-owned channels, so if `diagnostics` is also in `workspace-service`'s module list, `bus.handle` throws there (SHELL-18) and the loader skips the module (SHELL-20).
+Next: 013
