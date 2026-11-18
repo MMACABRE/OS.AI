@@ -31,3 +31,11 @@ Did: `createParcelFileWatcher` implements `FileWatcher` with @parcel/watcher, ma
 Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 0 passed
 Deviations: none
 Next: 005
+
+## 005 Spike: message ports to a utility process
+Status: done
+Date: 2026-11-18
+Did: main creates a `MessageChannelMain` once the page loads, posts one end to pty-host and the other through the preload to the page. pty-host sends 1 000 numbered 10 000-byte `Uint8Array` messages; the page checks order and size and shows `ports-ok 10000000`.
+Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 1 passed
+Deviations: pty-host no longer exits after 3 seconds (it now holds the port); the card 002 shell is still killed after 3 seconds.
+Next: 006
