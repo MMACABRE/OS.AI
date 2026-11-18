@@ -199,3 +199,17 @@ Code: `src/modules/ui-kit/components/` `PanelFrame` (with `PanelViewState`), `Em
 - Right on a collapsed folder calls `onToggle`; Right on an expanded folder selects its first child; Left on an expanded folder calls `onToggle`; Left on a child selects its parent; rows carry `aria-level` and `aria-expanded`.
 
 Also worth tests: `Tabs` arrow keys change and focus the tab; `SplitView` arrow keys on the separator change `aria-valuenow` and respect `minSizes`; `ProgressBar` clamps 1.4 to `aria-valuenow` 100.
+
+## 022 Overlays and icons
+
+Code: `src/modules/ui-kit/components/` `Dialog`, `ConfirmDialog`, `Menu` (dropdown and context, `MenuItem`), `Toast` (`ToastProvider`, `useToast`, `TOAST_MS`, `MAX_TOASTS`), `Icon`, `overlay-state.ts` (`useOverlayOpen`, `useAnyOverlayOpen`), `Overlay.module.css`; `src/modules/ui-kit/icons/` (49 `<name>.svg.tsx` pixel grids, `index.ts` with `ICONS` and `IconName`, `pixel-grid.ts`).
+
+`tests/ui-kit/overlays.ui.test.tsx` (jsdom, Testing Library, fake timers where noted):
+
+- Escape closes a `Dialog` (calls `onClose`) and focus returns to the button that opened it.
+- `ConfirmDialog` with `danger` focuses Cancel on open; without `danger`, the first focusable element.
+- At most 3 toasts: showing 4 leaves the last 3; a non-error toast is gone after 4 000 ms; an error toast stays until Dismiss.
+- SET-15 for a dialog: under `data-motion="reduced"` on the root, the dialog's animation is the fade (check the class or computed `animation-name` where jsdom allows).
+- `useAnyOverlayOpen` is true while a `Dialog` or an open `Menu` is mounted and false after (BROW-3).
+
+Also: every name in `ICONS` is 8 rows of 8 cells; `Icon` renders one `rect` per `#`.

@@ -176,3 +176,11 @@ Did: `PanelFrame` draws the box of the visual direction (2 px frame, corner brac
 Checks: typecheck ok, lint ok (CSS rule clean), deps ok, test 27 passed, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. "Show log" calls `openLog` from `UiKitActionsContext`, which the app frame provides (the ui-kit has no bus). `List` rows carry `text` for type-ahead and the accessible name; `SplitView` sizes are shares of the space. Extra optional props: `title` and `secondaryAction` on `EmptyState`, `settingsAction` on `ErrorState`, `label` on `Skeleton`, `light` on `PanelFrame`, `label` on `List`, `Tree`, `Tabs` and `SplitView`. Blink and sweep durations are multiples of motion tokens. Panel state CSS is shared in `PanelStates.module.css`.
 Next: 022
+
+## 022 Overlays and icons
+Status: done (untested)
+Date: 2026-11-18
+Did: `Dialog` on Radix (open while mounted, focus trapped, Escape closes, focus returns to the opener), `ConfirmDialog` (Cancel focused first with `danger`), `Menu` for dropdown and context menus on Radix with icons, key bindings and danger items, `Toast` with `useToast` (bottom right, 4 s, at most 3, errors stay), `Icon`, and `useOverlayOpen` with `useAnyOverlayOpen` so the browser panel can hide its page views while an overlay is open (BROW-3). Overlays sit on the overlay surface over a 62 percent dim, and fade only under reduced motion. The 49 icons of the set are 8 by 8 pixel drawings, one file per name.
+Checks: typecheck ok, lint ok (CSS rule clean), deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. Icons are pixel drawings in square cells, not the 1.5 px stroke icons ui-kit.md describes: visual-direction.md (which wins over the other design texts) says icons are 8 by 8 or 16 by 16 pixel drawings and forbids icons that are not pixel drawings. `Icon` sizes are 8, 16, 24 or 32 px (whole-number scales). `Menu` takes its trigger as children and a `kind`; `Dialog` takes optional `danger` and `initialFocus`. The icon files were generated from one table by a throwaway script.
+Next: 023

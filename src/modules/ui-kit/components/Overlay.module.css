@@ -1,0 +1,220 @@
+/* Overlays: dialogs, menus, toasts (visual-direction.md "Glass map": overlay surface over a 62 percent dim). */
+.dim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--color-bg-app) 62%, transparent);
+  animation: fade var(--motion-quick) var(--motion-ease-out);
+}
+
+.dialog {
+  composes: focusRing from '../motion/lift.module.css';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: min(32rem, calc(100vw - 4rem));
+  max-height: calc(100vh - 6rem);
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-dialog);
+  background: color-mix(
+    in srgb,
+    var(--color-bg-overlay) calc(var(--surface-overlay-alpha) * 100%),
+    transparent
+  );
+  box-shadow: var(--shadow-overlay);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  transform: translate(-50%, -50%);
+  animation: rise var(--motion-normal) var(--motion-ease-out);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-structure);
+  font-family: var(--font-display);
+  font-size: var(--font-size-number);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: var(--glow-structure);
+}
+
+.dangerTitle {
+  color: var(--color-state-danger);
+  text-shadow: var(--glow-danger);
+}
+
+.body {
+  min-height: 0;
+  overflow: auto;
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.menu {
+  z-index: 45;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(
+    in srgb,
+    var(--color-bg-overlay) calc(var(--surface-overlay-alpha) * 100%),
+    transparent
+  );
+  box-shadow: var(--shadow-overlay);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  animation: pop var(--motion-quick) var(--motion-ease-out);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--size-row);
+  padding: 0 0.5rem;
+  border-radius: 2px;
+  color: var(--color-text-primary);
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.item[data-highlighted] {
+  background: var(--color-bg-selected);
+  color: var(--color-accent);
+}
+
+.item[data-disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.itemDanger {
+  color: var(--color-state-danger);
+}
+
+.itemDanger[data-highlighted] {
+  color: var(--color-state-danger);
+  text-shadow: var(--glow-danger);
+}
+
+.itemIcon {
+  display: inline-flex;
+  width: 1rem;
+  flex: none;
+  color: var(--color-structure);
+}
+
+.itemKey {
+  margin-left: auto;
+  padding-left: 1rem;
+}
+
+.separator {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: var(--color-border-hairline);
+}
+
+.toasts {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(var(--size-statusbar) + 0.75rem);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(24rem, calc(100vw - 2rem));
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(
+    in srgb,
+    var(--color-bg-overlay) calc(var(--surface-overlay-alpha) * 100%),
+    transparent
+  );
+  box-shadow: var(--shadow-overlay);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  animation: slide var(--motion-normal) var(--motion-ease-out);
+}
+
+.toastError {
+  border-color: var(--color-state-danger);
+}
+
+.toastOk {
+  border-color: var(--color-state-ok);
+}
+
+.toastIcon {
+  display: inline-flex;
+  padding-top: 0.125rem;
+}
+
+.toastError .toastIcon {
+  color: var(--color-state-danger);
+}
+
+.toastOk .toastIcon {
+  color: var(--color-state-ok);
+}
+
+.toastMessage {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+/* Reduced motion: overlays only fade (SET-15, MOT-12). */
+:global([data-motion='reduced']) .dialog,
+:global([data-motion='reduced']) .menu,
+:global([data-motion='reduced']) .toast {
+  animation-name: fade;
+}
