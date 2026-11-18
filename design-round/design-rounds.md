@@ -116,3 +116,5 @@ Owner chose layout C and asked for a small notes list in it.
 - A notes list floats on the left without a box, like Files on Code page C: a search field, the note tree (spec, modules with link counts, docs, tasks, CLAUDE.md, skills, memory) with the open note in yellow. Recent is left out to keep it small.
 - The graph is centred in the space between the list and the note, so it no longer runs behind the note. This also settles the round 1 open point about graph labels showing through the note's text.
 - Open point for the spec: the notes list is a new side view for the Notes page (a filtered Files view: markdown notes only, with link counts from the graph index).
+
+- Owner approved Notes page layout C with the notes list (2026-11-18). It is the Notes page for the spec author; layouts A and B stay in the mockup for history.
