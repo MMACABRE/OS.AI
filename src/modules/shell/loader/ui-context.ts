@@ -10,6 +10,8 @@ import type {
   StatusItemDefinition,
   UiContext,
 } from '@hsos/contracts/module';
+import { createCommandRegistry } from '../../ui-kit/palette/command-registry';
+import type { CommandRegistry } from '../../ui-kit/palette/command-registry';
 
 /**
  * What the renderer's modules registered. The workspace reads panels from it (WS cards), the palette
@@ -18,6 +20,8 @@ import type {
 export type UiRegistry = {
   readonly panels: ReadonlyMap<string, PanelDefinition<unknown>>;
   readonly commands: ReadonlyMap<string, CommandDefinition>;
+  /** The palette's registry: the same commands, recent use and palette modes (UI-10 to UI-12, card 023). */
+  readonly commandRegistry: CommandRegistry;
   readonly statusItems: ReadonlyMap<string, StatusItemDefinition>;
   /** Set by the workspace once it can open panels; until then `openPanel` only logs. */
   setPanelOpener(opener: (type: string, state: unknown) => void): void;
@@ -37,18 +41,19 @@ function addUnique<T>(map: Map<string, T>, id: string, value: T, what: string): 
 
 export function createUiRegistry(): MutableRegistry {
   const panels = new Map<string, PanelDefinition<unknown>>();
-  const commands = new Map<string, CommandDefinition>();
+  const commandRegistry = createCommandRegistry();
   const statusItems = new Map<string, StatusItemDefinition>();
   let opener: ((type: string, state: unknown) => void) | null = null;
   return {
     panels,
-    commands,
+    commands: commandRegistry.commands,
+    commandRegistry,
     statusItems,
     setPanelOpener: (next) => {
       opener = next;
     },
     addPanel: (definition) => addUnique(panels, definition.type, definition, 'panel type'),
-    addCommand: (definition) => addUnique(commands, definition.id, definition, 'command'),
+    addCommand: (definition) => commandRegistry.add(definition),
     addStatusItem: (definition) => addUnique(statusItems, definition.id, definition, 'status item'),
     openPanel: (type, state) => {
       if (opener === null) return false;

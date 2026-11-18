@@ -62,3 +62,8 @@ export { MAX_TOASTS, TOAST_MS, ToastProvider, useToast } from './components/Toas
 export type { ToastApi, ToastInput } from './components/Toast';
 export { ICONS } from './icons';
 export type { IconName } from './icons';
+export { COMMAND_MODE, CommandPalette } from './palette/CommandPalette';
+export type { CommandPaletteProps, PaletteModeId } from './palette/CommandPalette';
+export { createCommandRegistry } from './palette/command-registry';
+export type { CommandRegistry, PaletteItem, PaletteMode } from './palette/command-registry';
+export { matchScore, rankCommands } from './palette/rank-commands';

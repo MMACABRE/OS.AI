@@ -8,6 +8,9 @@ import type { ServiceId } from '@hsos/contracts/ids';
 import { loadModules } from '../modules/shell/loader/load-modules';
 import { createUiContext, createUiRegistry } from '../modules/shell/loader/ui-context';
 import type { UiRegistry } from '../modules/shell/loader/ui-context';
+import { COMMAND_MODE } from '../modules/ui-kit/palette/CommandPalette';
+import { AppRoot, createMessageControl, createPaletteControl } from './app-root';
+import type { PaletteControl } from './app-root';
 import { createModuleLogger, uiModules } from './module-list';
 import { pingChannel } from '../modules/shell/bus/ping-channel';
 import { systemClock } from '../modules/shell/system-clock';
@@ -57,9 +60,12 @@ function checkPorts(show: (text: string) => void): void {
   });
 }
 
-/** Registers the renderer's modules (SHELL-20, card 014). The workspace reads the registry later. */
-/** The window key listener over the registered commands and the effective bindings (UI-20, SET-18, card 019). */
-function startKeys(bus: Bus, registry: UiRegistry): void {
+/**
+ * The window key listener over the registered commands and the effective bindings (UI-20, SET-18, card 019).
+ * Returns the effective key of a command, for the palette (UI-10).
+ */
+function startKeys(bus: Bus, registry: UiRegistry): (commandId: string) => string | null {
+  let byCommand: ReadonlyMap<string, string | null> = new Map();
   const keyLog = createModuleLogger(bus, systemClock, 'ui-kit');
   const dispatcher = createKeyDispatcher({
     target: window,
@@ -76,16 +82,26 @@ function startKeys(bus: Bus, registry: UiRegistry): void {
         loser: conflict.loser,
       });
     dispatcher.setBindings(resolved.byKey);
+    byCommand = resolved.byCommand;
   };
   apply({});
   void bus.call(settingsChannels.getKeybindings, {}).then((result) => {
     if (result.ok) apply(result.value);
   });
   bus.on(settingsChannels.keybindingsChanged, apply);
+  return (commandId) => byCommand.get(commandId) ?? null;
 }
 
-function loadUiModules(bus: Bus): UiRegistry {
+/** Registers the renderer's modules (SHELL-20, card 014) and the shell's own palette command (card 023). */
+function loadUiModules(bus: Bus, palette: PaletteControl): UiRegistry {
   const registry = createUiRegistry();
+  registry.commandRegistry.add({
+    id: 'shell.commandPalette',
+    title: 'Show all commands',
+    defaultKey: 'Ctrl+Shift+P',
+    global: true,
+    run: () => palette.open(COMMAND_MODE),
+  });
   const shellLog = createModuleLogger(bus, systemClock, 'shell');
   loadModules(
     uiModules,
@@ -102,25 +118,24 @@ function loadUiModules(bus: Bus): UiRegistry {
 }
 
 if (root !== null) {
-  const view = createRoot(root);
-  view.render(<p>HSOS</p>);
-  if (new URLSearchParams(window.location.search).get('e2e') !== '1')
-    checkPorts((text) => view.render(<p>{text}</p>));
+  const message = createMessageControl();
+  const palette = createPaletteControl();
   const bus = preload === null ? null : createRendererBus(preload, systemClock, log);
-  if (bus !== null) {
-    startKeys(bus, loadUiModules(bus));
-    // SHELL-5: the window shows now; the workspace restore (WS cards) will move this after it.
-    void bus.call(shellChannels.uiReady, {});
-  }
+  const registry = bus === null ? null : loadUiModules(bus, palette);
+  const keyFor = bus === null || registry === null ? () => null : startKeys(bus, registry);
+  createRoot(root).render(
+    <AppRoot bus={bus} registry={registry} keyFor={keyFor} palette={palette} message={message} />,
+  );
+  if (new URLSearchParams(window.location.search).get('e2e') !== '1') checkPorts(message.set);
+  // SHELL-5: the window shows now; the workspace restore (WS cards) will move this after it.
+  if (bus !== null) void bus.call(shellChannels.uiReady, {});
   if (bus !== null && new URLSearchParams(window.location.search).get('e2e') === '1') {
     const pingAll = async () => {
       const replies = await Promise.all(PING_TARGETS.map((service) => bus.call(pingChannel(service), {})));
-      view.render(
-        <p>
-          {replies
-            .map((reply) => (reply.ok ? `${reply.value.reply} ${reply.value.from}` : reply.error.code))
-            .join(', ')}
-        </p>,
+      message.set(
+        replies
+          .map((reply) => (reply.ok ? `${reply.value.reply} ${reply.value.from}` : reply.error.code))
+          .join(', '),
       );
     };
     setTimeout(() => void pingAll(), 500);

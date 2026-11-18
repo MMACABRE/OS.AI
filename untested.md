@@ -213,3 +213,19 @@ Code: `src/modules/ui-kit/components/` `Dialog`, `ConfirmDialog`, `Menu` (dropdo
 - `useAnyOverlayOpen` is true while a `Dialog` or an open `Menu` is mounted and false after (BROW-3).
 
 Also: every name in `ICONS` is 8 rows of 8 cells; `Icon` renders one `rect` per `#`.
+
+## 023 Command palette
+
+Code: `src/modules/ui-kit/palette/rank-commands.ts` (`matchScore`, `rankCommands`), `command-registry.ts` (`createCommandRegistry`, `PaletteMode`, `PaletteItem`), `CommandPalette.tsx` (+ `.module.css`, `COMMAND_MODE`), the registry in `src/modules/shell/loader/ui-context.ts` (`commandRegistry`), `src/ui/app-root.tsx` (`AppRoot`, palette and message controls), the `shell.commandPalette` command (`Ctrl+Shift+P`, global) in `src/ui/index.tsx`. Feature F-008.
+
+`tests/ui-kit/rank-commands.test.ts`:
+
+- UI-11: titles "Settings: Open", "Open Settings", "Toggle Side Bar", "Restart service"; query `set` ranks the prefix match "Settings: Open" first, then the word-start match "Open Settings", then any subsequence ("Restart service"); "Toggle Side Bar" is excluded. Among equal scores the id in `recent` comes first, then registration order.
+
+`tests/ui-kit/palette.ui.test.tsx` (jsdom, inside `ToastProvider`):
+
+- UI-13: with a command whose `run` rejects with "Boom", typing and pressing Enter closes the palette and shows an error toast "Boom"; a resolving command runs once and is marked used.
+- UI-14: focus a button, open the palette, press Escape: focus is back on the button.
+- Also UI-12: with a provider mode of prefix '' opened as `initialMode`, typing `>` switches to the commands list.
+
+F-008 (e2e, card 025 covers it): press Ctrl+Shift+P, type "set", "Open Settings" runs from the list (needs card 024's `settings.open`).

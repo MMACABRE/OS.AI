@@ -184,3 +184,11 @@ Did: `Dialog` on Radix (open while mounted, focus trapped, Escape closes, focus 
 Checks: typecheck ok, lint ok (CSS rule clean), deps ok, test 27 passed, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. Icons are pixel drawings in square cells, not the 1.5 px stroke icons ui-kit.md describes: visual-direction.md (which wins over the other design texts) says icons are 8 by 8 or 16 by 16 pixel drawings and forbids icons that are not pixel drawings. `Icon` sizes are 8, 16, 24 or 32 px (whole-number scales). `Menu` takes its trigger as children and a `kind`; `Dialog` takes optional `danger` and `initialFocus`. The icon files were generated from one table by a throwaway script.
 Next: 023
+
+## 023 Command palette
+Status: done (untested)
+Date: 2026-11-18
+Did: `rankCommands` filters by fuzzy match and ranks prefix, then word-start, then subsequence matches, recent commands first among equals (UI-11). `createCommandRegistry` holds every registered command (UI-10), recent use and provider modes (UI-12); `registerCommand` in the ui context now adds to it. `CommandPalette` (560 wide, 20 percent from the top, overlay surface and shadow) lists commands with their effective keys, moves with the arrows, runs on Enter and closes, shows an error toast when a command rejects (UI-13), switches from a provider mode to commands on `>`, announces itself as an overlay, and returns focus to where it was (UI-14). The renderer mounts it in a small root with the toast provider and the ui-kit's log action, and registers `shell.commandPalette` on `Ctrl+Shift+P`.
+Checks: typecheck ok, lint ok (CSS rule clean), deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. The palette is built on the Radix dialog with its own list rather than `cmdk`, because UI-11 needs its own ranking and `cmdk` would only add keyboard handling. `Ctrl+P` file mode waits for the files module to register its mode. Files outside the list: `src/ui/app-root.tsx`, `src/ui/index.tsx` (the root and the palette command), `src/modules/ui-kit/index.ts`. The plain text line the card 005 and 010 e2e checks read is kept in the root.
+Next: 024
