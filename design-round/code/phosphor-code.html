@@ -266,6 +266,34 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .btn3d:active { transform: perspective(320px) rotateX(var(--rx)) rotateY(var(--ry)) translate(1px, 1px) scale(.97); filter: brightness(1.7) drop-shadow(0 0 12px rgba(255,122,61,.8)); box-shadow: none; transition-duration: 60ms; }
 
+/* dialog (HUD-32, MOT-4): scales from 0.94 and fades over motion.slow; the page behind dims */
+.dim { position: absolute; inset: 0; z-index: 8; background: rgba(5,4,4,.62); opacity: 0; pointer-events: none; transition: opacity 260ms cubic-bezier(.2,0,0,1); }
+.dialog { position: absolute; z-index: 9; left: 50%; top: 50%; width: 520px; margin: -190px 0 0 -260px; padding: 18px 22px 18px; display: grid; gap: 12px;
+  background: rgba(34,29,26,.97); border: 2px solid var(--yellow); border-radius: 12px; box-shadow: inset 0 0 0 1px #000, 0 0 0 1px rgba(245,255,59,.2), 0 0 26px rgba(245,255,59,.22), 8px 10px 0 #120C0A;
+  opacity: 0; transform: scale(.94); pointer-events: none; transition: opacity 260ms cubic-bezier(.2,0,0,1), transform 260ms cubic-bezier(.2,0,0,1); }
+.dialog .cn { border-color: var(--yellow); filter: drop-shadow(0 0 3px rgba(245,255,59,.7)); }
+.open-dlg .dim { opacity: 1; pointer-events: auto; }
+.open-dlg .dialog { opacity: 1; transform: scale(1); pointer-events: auto; }
+.closing .dialog { transition: opacity 120ms cubic-bezier(.4,0,1,1), transform 120ms cubic-bezier(.4,0,1,1); }
+.dialog .dh { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--terra); text-shadow: 3px 3px 0 #4A1A08, var(--g-orange); }
+.dialog .dh .ico { width: 22px; height: 22px; }
+.dialog .dh .x { margin-left: auto; font-family: var(--font-ui); font-size: 20px; color: var(--muted); width: 30px; height: 30px; border-radius: var(--radius-c); }
+.dialog .skill { display: flex; gap: 10px; align-items: baseline; font-size: 20px; } .dialog .skill .nm { color: var(--lav); font-size: 24px; }
+.dialog .fld { display: grid; gap: 4px; font-size: 17px; color: var(--muted); }
+.dialog .inp, .dialog .sel { display: flex; align-items: center; height: 36px; padding: 0 10px; border: 2px solid var(--frame); border-radius: var(--radius-c); background: #0B0A09; color: var(--text); font-size: 19px; }
+.dialog .inp { border-color: var(--yellow); box-shadow: var(--g-yel); }
+.dialog .inp .caret { margin-left: 2px; }
+.dialog .sel b { margin-left: auto; font-weight: 400; color: var(--muted); }
+.dialog .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dialog .note { color: var(--text-2); font-size: 17px; padding: 6px 10px; border: 2px dashed #5A4034; border-radius: 6px; }
+.dialog .note b { font-weight: 400; color: var(--yellow); }
+.dialog .acts { display: flex; justify-content: flex-end; gap: 10px; }
+.dialog .acts button { padding: 2px 16px; font-size: 20px; border: 2px solid var(--frame); border-radius: var(--radius-c); background: rgba(18,16,16,.9); box-shadow: 2px 3px 0 #2A1A14; }
+.dialog .acts .pri { background: var(--accent); color: var(--accent-text); border-color: var(--accent); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.dialog .acts kbd { font-family: inherit; font-size: 15px; color: #4E5212; margin-left: 6px; }
+[data-still="1"] .dim, [data-still="1"] .dialog { transition: none; }
+@media (prefers-reduced-motion: reduce) { .dialog { transform: none !important; transition: opacity 120ms linear; } }
+
 /* CRT */
 .crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 .crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
@@ -429,6 +457,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       <span>5h 90%</span><span>7d 18%</span><span class="live">■ 2 running</span><span class="need">▲ 1 needs you</span>
     </footer>
   </div>
+  <div class="dim" id="dim"></div>
+  <section class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>
+    <div class="dh"><span data-icon-inline="spark"></span><span id="dlgT">Run in background</span><button class="x" aria-label="Close">✕</button></div>
+    <div class="skill"><span class="nm">hsuiux</span><span class="muted">UI, UX and design bundle</span></div>
+    <label class="fld"><span>Arguments</span><span class="inp">the empty state of the Notes graph<span class="caret"></span></span></label>
+    <div class="two">
+      <label class="fld"><span>Model</span><span class="sel">sonnet 5.5 <b>▾</b></span></label>
+      <label class="fld"><span>Effort</span><span class="sel">medium <b>▾</b></span></label>
+    </div>
+    <p class="note">This starts a separate Claude run on <b>sonnet 5.5</b> and uses your plan's usage.</p>
+    <div class="acts"><button class="cancel">Cancel</button><button class="pri">Run <kbd>Ctrl+Enter</kbd></button></div>
+  </section>
   <div class="crt" aria-hidden="true"><div class="scan"></div><div class="vig"></div><div class="glass"></div></div>
 </div>
 
@@ -543,7 +584,7 @@ document.querySelectorAll('[data-icon-inline]').forEach(s => s.outerHTML = svg(I
     h2.insertAdjacentHTML('afterend', '<div class="strip"></div>'); w.querySelector('.strip').style.backgroundImage = `url(${stURL})`;
   });
 })();
-document.querySelectorAll('.repo-btn, .quick button, .sk li, .runs button, .repo-row button, .skills .fold, .pages button, .hint, .winctl span, .rail button, .side .tabs button, .tree li, .rows .row, .row .open, .tabbar .tab, .tabbar .tools span, .ribbon .agents').forEach(b => {
+document.querySelectorAll('.dialog .acts button, .dialog .x, .repo-btn, .quick button, .sk li, .runs button, .repo-row button, .skills .fold, .pages button, .hint, .winctl span, .rail button, .side .tabs button, .tree li, .rows .row, .row .open, .tabbar .tab, .tabbar .tools span, .ribbon .agents').forEach(b => {
   b.classList.add('btn3d');
   b.addEventListener('pointermove', e => {
     const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5, wide = r.width > 160 ? .45 : 1;
@@ -551,6 +592,13 @@ document.querySelectorAll('.repo-btn, .quick button, .sk li, .runs button, .repo
   });
   b.addEventListener('pointerleave', () => { b.style.setProperty('--rx', '0deg'); b.style.setProperty('--ry', '0deg'); });
 });
+
+const openDlg = () => { screen.classList.remove('closing'); screen.classList.add('open-dlg'); };
+const closeDlg = () => { screen.classList.add('closing'); screen.classList.remove('open-dlg'); setTimeout(() => screen.classList.remove('closing'), 140); };
+document.querySelectorAll('.sk .run').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openDlg(); }));
+document.querySelectorAll('.dialog .cancel, .dialog .x, .dialog .pri, #dim').forEach(b => b.addEventListener('click', closeDlg));
+addEventListener('keydown', e => { if (e.key === 'Escape') closeDlg(); });
+if (q.get('dialog') === 'run') { if (still) openDlg(); else setTimeout(openDlg, 400); }
 
 /* the strawberry sprite, shared by the HUD mascot and the ribbon minis */
 const BODY = [

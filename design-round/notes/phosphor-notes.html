@@ -180,6 +180,35 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .blbox .row .from { color: var(--lav); } .blbox .row .ctx { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .blbox .row .ctx em { font-style: normal; color: var(--text-2); }
 
+/* panel states: empty, loading, error (over the graph) */
+.state-box { display: none; position: absolute; z-index: 3; width: 440px; padding: 18px 22px 18px; }
+[data-state] .state-box { display: block; }
+.st { display: none; gap: 10px; } [data-state="empty"] .st-empty, [data-state="loading"] .st-loading, [data-state="error"] .st-error { display: grid; }
+.st .sh { display: flex; gap: 8px; } .st .sh .ico { width: 24px; height: 24px; }
+.stt { font-family: var(--font-display); font-size: 36px; line-height: .95; color: var(--terra); text-shadow: 3px 3px 0 #4A1A08, var(--g-orange); }
+.st p { color: var(--text-2); line-height: 1.3; }
+.st .sa { display: flex; gap: 8px; margin-top: 4px; }
+.st .sa button { padding: 0 12px; font-size: 19px; border: 2px solid var(--frame); border-radius: var(--radius-c); background: rgba(18,16,16,.9); box-shadow: 2px 3px 0 #2A1A14; }
+.st .sa button.pri { background: var(--accent); color: var(--accent-text); border-color: var(--accent); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.st .prog { display: flex; gap: 10px; align-items: center; }
+.st .prog .cells { flex: 1; display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; height: 14px; }
+.st .prog .cells i { background: var(--bg-raised); border-radius: 1px; }
+.st .prog .cells i.f { background: var(--cyan); box-shadow: 0 0 6px rgba(0,240,255,.6); }
+.st .prog .pct { color: var(--yellow); text-shadow: var(--g-yel); font-size: 26px; font-variant-numeric: tabular-nums; width: 52px; text-align: right; }
+.st pre { font-family: inherit; color: #FF3D66; background: rgba(255,0,60,.08); border: 2px solid rgba(255,0,60,.45); border-radius: 6px; padding: 4px 10px; white-space: pre-wrap; font-size: 17px; }
+.led.red { background: var(--red); box-shadow: var(--g-red); animation: led .9s steps(1) infinite; }
+[data-state="error"] .state-box { border-color: var(--red); box-shadow: inset 0 0 0 1px #000, 0 0 18px rgba(255,0,60,.3); }
+[data-state="error"] .state-box .cn { border-color: var(--red); filter: drop-shadow(0 0 3px rgba(255,0,60,.8)); }
+[data-state="error"] .st-error .stt { color: #FF3D66; text-shadow: 3px 3px 0 #4A0012, var(--g-red); }
+[data-state="loading"] .state-box { border-color: rgba(0,240,255,.6); }
+[data-state="loading"] .state-box .cn { border-color: var(--cyan); filter: drop-shadow(0 0 3px rgba(0,240,255,.7)); }
+[data-state] .card, [data-state] .hover-card { display: none !important; }
+[data-state="empty"] .agent, [data-state="error"] .agent { visibility: hidden; }
+[data-state="empty"] .side ul, [data-state="empty"] .side .recent { display: none; }
+[data-state="empty"] .side::after { content: "No notes in this project"; color: var(--muted); font-size: 17px; text-shadow: 0 0 4px #000; }
+[data-state="empty"] .sheet .doc, [data-state="empty"] .sheet .bl, [data-state="empty"] .sheet .crumb, [data-state="empty"] .sheet .tabbar .tab { display: none; }
+[data-state="empty"] .sheet::after { content: "No note open"; margin: auto; color: var(--muted); font-size: 22px; }
+
 /* mascot, small, reading */
 .mascot { position: absolute; right: 0; top: -4px; display: flex; align-items: center; gap: 6px; z-index: 2; }
 .mascot canvas { display: block; cursor: pointer; }
@@ -273,6 +302,30 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
           <div class="kv"><span>kind</span><span>note</span><span>path</span><span>spec/design/motion.md</span><span>tags</span><span><span class="tag">#motion</span> <span class="tag">#rule</span></span><span>backlinks</span><span class="yel">11</span><span>agent</span><span>2 hops: CLAUDE.md, hud.md</span></div>
           <div class="acts"><button class="pri">Open</button><button>To the side</button><button>Path to terminal</button><button>Local graph</button></div>
         </section>
+        <section class="state-box boxed" aria-live="polite">
+          <i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>
+          <div class="st st-empty">
+            <div class="sh"><span data-ico="graph"></span><span class="led yel"></span></div>
+            <div class="stt">No notes yet</div>
+            <p>This project has no markdown notes. Write the first one, or point HSOS at a vault folder you already keep.</p>
+            <div class="sa"><button class="pri">New note</button><button>Set vault folder</button></div>
+          </div>
+          <div class="st st-loading">
+            <div class="sh"><span data-ico="graph"></span><span class="led cyan"></span></div>
+            <div class="stt">Indexing notes</div>
+            <div class="prog"><span class="cells" id="progCells"></span><span class="pct" id="progPct">41%</span></div>
+            <p class="muted"><span id="progN">1 240</span> of 3 000 files · <span class="cyan" id="progFile">spec/modules/hud.md</span></p>
+            <p class="muted">The graph fills in as notes are read. You can open notes meanwhile.</p>
+          </div>
+          <div class="st st-error">
+            <div class="sh"><span data-ico="graph"></span><span class="led red"></span></div>
+            <div class="stt">The note index could not be saved</div>
+            <pre>EACCES: permission denied
+%APPDATA%\HSOS\index\hsos.notes.sqlite</pre>
+            <p>Your notes are fine; only the graph's own index failed. Check that the folder is not read-only, then try again.</p>
+            <div class="sa"><button class="pri">Retry</button><button>Open log</button><button>Settings</button></div>
+          </div>
+        </section>
         <div class="mascot"><canvas id="berry" aria-label="Strawberry mascot"></canvas><div><div class="word">Reading</div><div class="doing">hud.md</div></div></div>
       </section>
       <div class="hover-card" id="hover" aria-hidden="true">
@@ -339,6 +392,8 @@ background runs behind all three…</div>
 <script>
 const q = new URLSearchParams(location.search), screen = document.getElementById('screen');
 const LAYOUT = ['a','b','c'].includes(q.get('layout')) ? q.get('layout') : 'a';
+const STATE = ['empty','loading','error'].includes(q.get('state')) ? q.get('state') : null;
+if (STATE) screen.dataset.state = STATE;
 screen.dataset.layout = LAYOUT; screen.dataset.still = q.get('still') === '1' ? '1' : '0';
 const tok = n => getComputedStyle(screen).getPropertyValue(n).trim();
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, still = screen.dataset.still === '1', animate = !reduce && !still;
@@ -357,7 +412,7 @@ const ICONS = {
 };
 const svg = (rows, c) => `<svg class="ico" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rows.map((r, y) => [...r].map((ch, x) => ch === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>` : '').join('')).join('')}</svg>`;
 document.querySelectorAll('[data-ico]').forEach(s => s.outerHTML = svg(ICONS[s.dataset.ico], tok('--terra')));
-document.querySelectorAll('.pages button, .hint, .repo-btn, .chip, .card .acts button, .sheet .tools button, .tabbar .tab, .side li, .bl .row, .blbox .row').forEach(b => {
+document.querySelectorAll('.st .sa button, .pages button, .hint, .repo-btn, .chip, .card .acts button, .sheet .tools button, .tabbar .tab, .side li, .bl .row, .blbox .row').forEach(b => {
   b.classList.add('btn3d');
   b.addEventListener('pointermove', e => { const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5, wide = r.width > 160 ? .45 : 1;
     b.style.setProperty('--ry', (x * 18 * wide).toFixed(1) + 'deg'); b.style.setProperty('--rx', (-y * 24).toFixed(1) + 'deg'); });
@@ -396,7 +451,7 @@ function drawBerry(t) {
   BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') box(x, y, 1, 1, BP[ch]); }));
   [4, 10].forEach(ex => { if (t < B.blinkEnd) { box(ex, 8.25, 2, .5, '#140406'); return; } box(ex, 7, 2, 2, '#140406'); box(ex + .5, 7.25, .5, .5, '#FF8A9E'); });
   box(6.5, 10.25, 3, .5, BP.k);
-  BOOK.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') box(2 + x, 11 + y, 1, 1, BOOKC[ch]); }));
+  if (STATE !== 'empty') BOOK.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') box(2 + x, 11 + y, 1, 1, BOOKC[ch]); }));
   if (animate && Math.floor(t / 2400) % 3 === 0) box(7 + (Math.floor(t / 200) % 4) * .5, 11, .5, 2, '#F2E8DE'); // a page turns
 }
 
@@ -439,7 +494,9 @@ gc.addEventListener('wheel', e => { e.preventDefault(); const [px, py] = canvasP
 gc.addEventListener('pointerdown', e => { drag.on = true; [drag.x, drag.y] = canvasPoint(e); gc.setPointerCapture(e.pointerId); });
 gc.addEventListener('pointermove', e => { if (!drag.on) return; const [px, py] = canvasPoint(e); cam.x -= (px - drag.x) / gs / cam.z; cam.y -= (py - drag.y) / gs / cam.z; drag.x = px; drag.y = py; });
 gc.addEventListener('pointerup', () => drag.on = false);
-const visible = n => !SHOWN || SHOWN.has(n.i);
+let loaded = .41;
+if (STATE === 'empty') { document.querySelector('.mascot .word').textContent = 'Resting'; document.querySelector('.mascot .doing').textContent = 'no note open'; document.querySelector('.side .aside').textContent = '0'; document.querySelector('.statusbar .lav').textContent = '0 notes · 1 root'; }
+const visible = n => STATE === 'empty' || STATE === 'error' ? false : STATE === 'loading' ? n.i < N.length * loaded : (!SHOWN || SHOWN.has(n.i));
 function stepGraph(t) {
   const r = gc.getBoundingClientRect(), k = gc.width / r.width, [mx, my] = toWorld((mouse.x - r.left) * k, (mouse.y - r.top) * k);
   let best = null, bd = 14 / cam.z;
@@ -479,6 +536,23 @@ function drawGraph() {
     const big = n.k === 'a' || n.k === 'o', show = n.label && (big || n === lit || n.i === SELECTED || n.r > 3 || z > 1.8 || (SHOWN && n.r > 2));
     if (show) { gx.font = `${Math.round((big ? 13 : 9) * gs * Math.min(1.6, sz))}px VT323`; gx.fillStyle = big || n === lit ? tok('--text') : tok('--text-2'); gx.fillText(n.label, x + s + Math.round(4 * gs), y + Math.round(3 * gs)); }
   });
+}
+const FILES = ['spec/modules/hud.md', 'spec/modules/graph.md', 'docs/JOURNAL.md', 'spec/design/motion.md', 'tasks/stage-0.md', 'GLOSSARY.md', 'docs/research/agent-map.md'];
+function stepLoading(t) {
+  if (STATE !== 'loading') return;
+  if (animate) loaded = Math.min(.98, .41 + ((t / 1000) % 14) * .04);
+  const f = Math.round(loaded * 20);
+  document.getElementById('progCells').innerHTML = Array.from({ length: 20 }, (_, i) => `<i class="${i < f ? 'f' : ''}"></i>`).join('');
+  document.getElementById('progPct').textContent = Math.round(loaded * 100) + '%';
+  document.getElementById('progN').textContent = Math.round(loaded * 3000).toLocaleString('en-US').replace(',', ' ');
+  if (animate) document.getElementById('progFile').textContent = FILES[Math.floor(t / 350) % FILES.length];
+}
+function placeState() {
+  if (!STATE) return;
+  const b = document.querySelector('.state-box'), w = b.parentElement.getBoundingClientRect(), sr = screen.getBoundingClientRect(), k = sr.width / 1440;
+  const cx = gox + 160 * gs, cy = goy + 125 * gs; // the graph's centre, in screen pixels
+  b.style.left = (cx * k - w.left - b.offsetWidth / 2) + 'px';
+  b.style.top = (STATE === 'loading' ? (goy + 250 * gs) * k - w.top - b.offsetHeight - 10 : cy * k - w.top - b.offsetHeight / 2) + 'px';
 }
 function placeHover() {
   const card = document.getElementById('hover'), n = NODES[HOVERED], [x, y] = toScreen(n.x, n.y), sr = screen.getBoundingClientRect(), k = sr.width / 1440;
@@ -544,11 +618,12 @@ addEventListener('pointermove', e => { if (!animate) return; const cx = e.client
 
 let last = 0;
 function frame(t) { requestAnimationFrame(frame); if (document.hidden || t - last < 33) return; last = t; mouse.speed *= .88;
-  BG.step(); drawBerry(t); stepGraph(t); drawGraph(); BG.draw(); placeHover(); }
+  BG.step(); drawBerry(t); stepLoading(t); stepGraph(t); drawGraph(); BG.draw(); placeHover(); }
 document.fonts.ready.then(() => {
   sizeGraph(); addEventListener('resize', () => { sizeGraph(); if (!animate) { drawGraph(); placeHover(); } });
   if (animate) requestAnimationFrame(frame);
-  else { for (let i = 0; i < 60; i++) { drawGraph(); BG.step(); } BG.draw(); drawBerry(performance.now()); placeHover(); }
+  else { stepLoading(0); for (let i = 0; i < 60; i++) { drawGraph(); BG.step(); } BG.draw(); drawBerry(performance.now()); placeHover(); }
+  placeState(); addEventListener('resize', placeState);
   document.title = 'ready';
 });
 </script>

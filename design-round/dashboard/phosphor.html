@@ -51,6 +51,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .clock { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--cyan); text-shadow: var(--g-cyan); font-variant-numeric: tabular-nums; margin-left: -8px; }
 .proj { font-size: 22px; color: var(--terra); margin-left: 8px; }
 .proj span { color: var(--muted); }
+.repo-btn { display: flex; align-items: center; gap: 6px; font-size: 19px; color: var(--text-2); padding: 0 10px; border: 2px solid var(--line); border-radius: var(--radius-c); margin-left: -10px; }
+.repo-btn .br { color: var(--cyan); } .repo-btn .ab { color: var(--muted); }
+.repo-btn .gh { width: 12px; height: 12px; background: var(--terra); clip-path: polygon(0 30%, 30% 30%, 30% 0, 70% 0, 70% 30%, 100% 30%, 100% 100%, 0 100%); }
 .pages { display: flex; gap: 2px; }
 .pages button { padding: 0 12px; font-size: 21px; color: var(--text-2); border-radius: var(--radius-c); }
 .pages button[aria-current] { background: var(--accent); color: var(--accent-text); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
@@ -173,7 +176,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 #graph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .graph-area { flex: 1; min-height: 0; }
 .app { pointer-events: none; }
-.titlebar, .statusbar, .w, .quick button, .mascot, .edit-bar, .legend { pointer-events: auto; }
+.titlebar, .statusbar, .w, .quick button, .repo-btn, .mascot, .edit-bar, .legend { pointer-events: auto; }
 [data-still="1"] .clock .colon { animation: none; }
 @media (prefers-reduced-motion: reduce) { .clock .colon { animation: none; } .brand.shimmer::after { animation: none; } }
 
@@ -247,6 +250,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       <div class="brand" data-text="HSOS">HSOS</div>
       <div class="clock"><span class="hh">16</span><span class="colon">:</span><span class="mm">42</span><span class="ss">:07</span></div>
       <div class="proj">hsos <span>▾</span></div>
+      <button class="repo-btn" title="Open owner/hsos on GitHub"><span class="gh"></span>owner/hsos <span class="br">main</span> <span class="ab">↑1 ↓0</span></button>
       <nav class="pages" aria-label="Pages"><button aria-current="page">Dashboard</button><button>Code</button><button>Notes</button></nav>
       <div class="grow"></div>
       <div class="hint">Ctrl+Shift+P</div>
@@ -390,7 +394,7 @@ document.querySelectorAll('.grid > section').forEach(w => w.insertAdjacentHTML('
   });
 })();
 /* every button tilts toward the pointer */
-document.querySelectorAll('.pages button, .quick button, .edit-bar button, .hint, .winctl span, .rows .row, .row .open').forEach(b => {
+document.querySelectorAll('.repo-btn, .pages button, .quick button, .edit-bar button, .hint, .winctl span, .rows .row, .row .open').forEach(b => {
   b.classList.add('btn3d');
   b.addEventListener('pointermove', e => {
     const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
@@ -570,7 +574,7 @@ const gc = document.getElementById('graph'), gx = gc.getContext('2d');
 const COL = { o: tok('--yellow'), n: tok('--text-2'), a: tok('--terra'), s: tok('--lav'), m: tok('--mag'), u: '#4A3A33' };
 const HALO_RGB = { a: [255,122,61], o: [245,255,59], n: [0,240,255], s: [199,125,255], m: [255,0,255] };
 const NODES = N.map(([x, y, r, k, label], i) => ({ hx: x, hy: y, x, y, vx: 0, vy: 0, r, k, label, pinned: i === 0,
-  ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 3 : 5 + Math.random() * 7, sp: .6 + Math.random() * .8 }));
+  ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 2 : 3.5 + Math.random() * 5, sp: .5 + Math.random() * .6 }));
 document.querySelector('.graph .count').textContent = NODES.length + ' notes';
 let gs = 1, gox = 0, goy = 0, hover = null;
 const cam = { x: 160, y: 125, z: 1 }, drag = { on: false, x: 0, y: 0 };
