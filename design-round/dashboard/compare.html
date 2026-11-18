@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Directions</title>
+<style>
+  :root { color-scheme: dark; --bg: #0E0D0C; --ink: #ECE8E1; --muted: #A39C92; --line: #2B2926; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 'Segoe UI', sans-serif; }
+  main { padding: 24px 16px 64px; max-width: 1800px; margin: 0 auto; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 28px; max-width: 70ch; }
+  section { margin-bottom: 48px; }
+  h2 { font-size: 20px; margin: 0 0 4px; }
+  section > p { color: var(--muted); margin: 0 0 12px; max-width: 80ch; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  figure { margin: 0; }
+  figure img { width: 100%; display: block; border: 1px solid var(--line); }
+  figcaption { color: var(--muted); font-size: 13px; padding-top: 6px; }
+  a { color: inherit; }
+  @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dashboard directions, round 1</h1>
+  <p class="lead">Three directions at 1440 by 900, each out of edit mode and in it. Open any live: <code>index.html?d=phosphor</code>, add <code>&amp;edit=1</code> for edit mode.</p>
+
+  <section>
+    <h2>Phosphor</h2>
+    <p>A 40-year-old phosphor monitor. Black glass, neon yellow light, a dithered dot-matrix field brighter toward the lower right, the name stacked down the left edge in extruded pixel type. Barrel bend, scanlines and a cyan fringe on display type. Terracotta for warnings and the mascot, neon red only for danger.</p>
+    <div class="pair">
+      <figure><a href="index.html?d=phosphor"><img src="shots/phosphor-0.png" alt="Phosphor dashboard"></a><figcaption>In use</figcaption></figure>
+      <figure><a href="index.html?d=phosphor&amp;edit=1"><img src="shots/phosphor-1.png" alt="Phosphor dashboard in edit mode"></a><figcaption>Edit mode</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Contour</h2>
+    <p>Flat terracotta fields that stand off the glass as pixel blocks, a hero widget wrapped in drifting contour lines (terracotta, then lavender), and clusters of pixel cells at two depths behind everything. The monitor effect is lighter. Neon yellow marks the one thing that matters now.</p>
+    <div class="pair">
+      <figure><a href="index.html?d=contour"><img src="shots/contour-0.png" alt="Contour dashboard"></a><figcaption>In use</figcaption></figure>
+      <figure><a href="index.html?d=contour&amp;edit=1"><img src="shots/contour-1.png" alt="Contour dashboard in edit mode"></a><figcaption>Edit mode</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Graphite</h2>
+    <p>The current spec direction, as written: quiet near-black metal, hairlines, one amber signal colour, no glass effects.</p>
+    <div class="pair">
+      <figure><a href="index.html?d=graphite"><img src="shots/graphite-0.png" alt="Graphite dashboard"></a><figcaption>In use</figcaption></figure>
+      <figure><a href="index.html?d=graphite&amp;edit=1"><img src="shots/graphite-1.png" alt="Graphite dashboard in edit mode"></a><figcaption>Edit mode</figcaption></figure>
+    </div>
+  </section>
+</main>
+</body>
+</html>

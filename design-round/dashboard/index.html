@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>HSOS Dashboard Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Jersey+10&family=VT323&family=Pixelify+Sans:wght@500;700&display=block" rel="stylesheet">
+<style>
+/* Throwaway design-round mockup. Not app code. ?d=graphite|phosphor|contour  &edit=1 */
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1440px; height: 900px; overflow: hidden; background: #000; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+/* ---------- direction tokens ---------- */
+[data-d="graphite"] {
+  --bg-app:#100F0E; --bg-panel:#161514; --bg-raised:#1E1C1A; --bg-overlay:#242220; --bg-sel:#2C2823;
+  --line:#2B2926; --line-strong:#45413C;
+  --text:#ECE8E1; --text-2:#ABA59C; --muted:#8A847C;
+  --accent:#F5A524; --accent-text:#1A1204;
+  --ok:#7CC47F; --warn:#E8B339; --danger:#F0705F; --info:#7FB2EA;
+  --font-ui:Geist,'Segoe UI',sans-serif; --font-mono:'Geist Mono',Consolas,monospace; --font-display:Geist,'Segoe UI',sans-serif;
+  --ui-size:13px; --small:11px; --num:20px; --radius:6px; --radius-c:4px;
+  --widget-alpha:.94;
+}
+[data-d="phosphor"] {
+  --bg-app:#0B0B07; --bg-panel:#11110B; --bg-raised:#1A1A10; --bg-overlay:#20200F; --bg-sel:#2A2B12;
+  --line:#3A3C1C; --line-strong:#6B6F25;
+  --text:#EEF2C4; --text-2:#C3C79A; --muted:#9A9D74;
+  --accent:#F5FF3B; --accent-text:#0B0B07;
+  --terra:#E07A5F; --red:#FF003C;
+  --ok:#F5FF3B; --warn:#E07A5F; --danger:#FF003C; --info:#00F0FF; --cyan:#00F0FF; --lav:#C77DFF;
+  --font-ui:'VT323',monospace; --font-mono:'VT323',monospace; --font-display:'Jersey 10',sans-serif;
+  --ui-size:19px; --small:16px; --num:34px; --radius:0; --radius-c:0;
+  --widget-alpha:.9;
+}
+[data-d="contour"] {
+  --bg-app:#14100E; --bg-panel:#1C1714; --bg-raised:#26201C; --bg-overlay:#2E2621; --bg-sel:#3A2E27;
+  --line:#3B312B; --line-strong:#5E4B40;
+  --text:#F4EDE6; --text-2:#C9BBB0; --muted:#A39388;
+  --accent:#F5FF3B; --accent-text:#14100E;
+  --terra:#E07A5F; --terra-deep:#8A3B2A; --terra-ink:#1F0D08; --red:#FF003C;
+  --ok:#F5FF3B; --warn:#E07A5F; --danger:#FF003C; --info:#C77DFF; --cyan:#00F0FF; --lav:#C77DFF;
+  --font-ui:Geist,'Segoe UI',sans-serif; --font-mono:'Geist Mono',Consolas,monospace; --font-display:'Pixelify Sans',sans-serif;
+  --ui-size:13px; --small:11px; --num:30px; --radius:0; --radius-c:0;
+  --widget-alpha:.9;
+}
+
+/* ---------- screen ---------- */
+.screen { position: relative; width: 1440px; height: 900px; background: var(--bg-app); color: var(--text);
+  font-family: var(--font-ui); font-size: var(--ui-size); line-height: 1.38; overflow: hidden; }
+#bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.app { position: absolute; inset: 0; display: grid; grid-template-rows: 36px 1fr 24px; }
+[data-crt="on"] .app { filter: url(#barrel); }
+
+/* title bar */
+.titlebar { display: flex; align-items: center; gap: 16px; padding: 0 0 0 12px; background: color-mix(in srgb, var(--bg-panel) 96%, transparent); border-bottom: 1px solid var(--line); position: relative; z-index: 2; }
+.proj { display: flex; align-items: center; gap: 6px; color: var(--text); font-weight: 500; }
+.proj .caret { color: var(--muted); }
+.pages { display: flex; gap: 2px; padding: 2px; background: var(--bg-raised); border-radius: var(--radius-c); }
+.pages button { padding: 3px 12px; border-radius: var(--radius-c); color: var(--text-2); }
+.pages button[aria-current] { background: var(--accent); color: var(--accent-text); font-weight: 600; }
+.tb-spacer { flex: 1; }
+.palette-hint { color: var(--muted); font-size: var(--small); padding: 3px 10px; border: 1px solid var(--line); border-radius: var(--radius-c); }
+.winctl { display: flex; height: 100%; }
+.winctl span { width: 46px; display: grid; place-items: center; color: var(--text-2); }
+
+/* status bar */
+.statusbar { display: flex; align-items: center; gap: 14px; padding: 0 12px; font-size: var(--small); color: var(--text-2);
+  background: color-mix(in srgb, var(--bg-panel) 96%, transparent); border-top: 1px solid var(--line); position: relative; z-index: 2; }
+.statusbar .grow { flex: 1; }
+.statusbar .need { color: var(--accent); }
+
+/* dashboard area */
+.dash { position: relative; display: grid; grid-template-columns: 1fr; padding: 20px 24px 14px; min-height: 0; }
+.gridwrap { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.grid { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); grid-template-rows: repeat(6, minmax(0,1fr)); gap: 12px; }
+.dots { display: flex; gap: 8px; justify-content: center; padding-top: 12px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--text-2); }
+.dots i.on { background: var(--text); border-color: var(--text); }
+
+/* widget */
+.w { position: relative; min-width: 0; min-height: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  background: color-mix(in srgb, var(--bg-panel) calc(var(--widget-alpha) * 100%), transparent);
+  border: 1px solid var(--line); border-radius: var(--radius); }
+.w h2 { font-size: var(--small); font-weight: 600; color: var(--text-2); letter-spacing: .02em; display: flex; justify-content: space-between; align-items: baseline; }
+.w h2 .aside { font-weight: 400; color: var(--muted); }
+.num { font-family: var(--font-mono); font-size: var(--num); line-height: 1; font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); }
+.muted { color: var(--muted); }
+.t2 { color: var(--text-2); }
+
+/* bars as pixel cells */
+.cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; height: 10px; }
+.cells i { background: var(--bg-raised); }
+.cells i.f { background: var(--accent); }
+.cells.warn i.f { background: var(--warn); }
+.cells.danger i.f { background: var(--danger); }
+[data-d="graphite"] .cells { gap: 0; height: 6px; border-radius: 3px; overflow: hidden; }
+
+/* session ribbon */
+.ribbon-top { display: flex; gap: 12px; align-items: center; }
+.ribbon-top canvas { flex: none; }
+.ribbon-title { font-size: calc(var(--ui-size) + 3px); font-weight: 600; color: var(--text); line-height: 1.2; }
+.ribbon-meta { color: var(--text-2); font-size: var(--small); }
+.state { display: inline-flex; align-items: center; gap: 6px; }
+.state svg { flex: none; }
+.ribbon-steps { display: grid; gap: 3px; margin-top: auto; font-family: var(--font-mono); font-size: var(--small); color: var(--text-2); }
+.ribbon-steps div { display: flex; gap: 8px; white-space: nowrap; overflow: hidden; }
+.ribbon-steps b { font-weight: 400; color: var(--text); }
+.ribbon-steps .now { color: var(--accent); }
+[data-d="phosphor"] .ribbon-steps .now { color: var(--cyan); }
+
+/* plan list in the ribbon */
+.ribbon { display: grid !important; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; column-gap: 20px; }
+.ribbon h2 { grid-column: 1 / -1; }
+.ribbon .ribbon-top { grid-column: 1; }
+.ribbon .plan { grid-column: 2; grid-row: 2 / 4; list-style: none; display: grid; gap: 5px; align-content: start; font-size: var(--small); color: var(--text-2); }
+.plan li { display: flex; gap: 8px; }
+.plan li::before { content: ""; flex: none; width: 9px; height: 9px; margin-top: .35em; border: 1.5px solid var(--muted); }
+.plan li.done { color: var(--muted); text-decoration: line-through; }
+.plan li.done::before { background: var(--muted); border-color: var(--muted); }
+.plan li.now { color: var(--text); }
+.plan li.now::before { background: var(--accent); border-color: var(--accent); }
+.ribbon .ribbon-steps { grid-column: 1; align-self: end; }
+.ctx-blocks { width: 100%; height: 34px; }
+
+/* sessions board */
+.rows { display: grid; gap: 2px; }
+.row { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: center; padding: 6px 8px; border-radius: var(--radius-c); }
+.row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .sub { color: var(--muted); font-size: var(--small); }
+.row.need { background: var(--bg-sel); }
+.row.need .title { color: var(--text); }
+.row .when { color: var(--muted); font-size: var(--small); font-family: var(--font-mono); }
+.btn { padding: 3px 10px; border-radius: var(--radius-c); background: var(--accent); color: var(--accent-text); font-weight: 600; font-size: var(--small); }
+.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line-strong); }
+
+/* usage */
+.usage { display: grid; gap: 18px; }
+.big { font-size: calc(var(--num) * 1.9); }
+.usage .lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+
+/* mascot widget */
+.mascot { align-items: center; justify-content: flex-end; overflow: visible; }
+.mascot canvas { position: absolute; left: 50%; top: -34px; z-index: 3; transform: translateX(-50%); }
+.mascot .word { font-family: var(--font-display); font-size: calc(var(--num) * .8); line-height: 1; }
+
+/* quick bar */
+.quick { flex-direction: row; align-items: center; gap: 8px; padding: 8px 10px; }
+.quick button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--radius-c); background: var(--bg-raised); color: var(--text); white-space: nowrap; }
+.quick button kbd { font-family: var(--font-mono); font-size: var(--small); color: var(--muted); }
+.quick .more { margin-left: auto; }
+
+/* graph */
+.graph svg { width: 100%; flex: 1; }
+
+/* ---------- edit mode ---------- */
+.edit-bar { display: none; }
+[data-edit="1"] .grid { transform: scale(.94); }
+[data-edit="1"] .grid::before { content: ""; position: absolute; inset: -6px; pointer-events: none;
+  background-image: radial-gradient(circle, var(--line-strong) 1.4px, transparent 1.6px);
+  background-size: calc((100% + 12px) / 8) calc((100% + 12px) / 6); }
+[data-edit="1"] .w { outline: 1.5px solid var(--accent); outline-offset: -1px; }
+[data-edit="1"] .w:nth-child(odd) { transform: rotate(-.4deg); }
+[data-edit="1"] .w:nth-child(even) { transform: rotate(.35deg); }
+[data-edit="1"] .w .h { position: absolute; width: 8px; height: 8px; background: var(--accent); border: 1.5px solid var(--bg-app); z-index: 3; }
+.w .h { display: none; }
+[data-edit="1"] .w .h { display: block; }
+.h.tl { left: -8px; top: -8px; } .h.tr { right: -8px; top: -8px; } .h.bl { left: -8px; bottom: -8px; } .h.br { right: -8px; bottom: -8px; }
+.h.r { right: -8px; top: calc(50% - 4px); } .h.b { bottom: -8px; left: calc(50% - 4px); }
+.w .rm { display: none; }
+[data-edit="1"] .w .rm { display: grid; place-items: center; position: absolute; left: -12px; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #0B0B07; z-index: 4; font-weight: 700; }
+[data-edit="1"] .edit-bar { display: flex; gap: 8px; position: absolute; top: 4px; right: 24px; z-index: 5; }
+[data-edit="1"] .edit-bar button { padding: 4px 12px; border-radius: var(--radius-c); background: var(--bg-overlay); border: 1px solid var(--line-strong); }
+[data-edit="1"] .edit-bar .done { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+[data-edit="1"] .dash { padding-top: 26px; }
+
+/* ---------- PHOSPHOR ---------- */
+[data-d="phosphor"] .dash { grid-template-columns: 112px 1fr; column-gap: 20px; padding-left: 0; }
+.band { display: none; }
+[data-d="phosphor"] .band { display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 6px 0 4px; position: relative; }
+[data-d="phosphor"] .band .word { font-family: 'Jersey 10'; font-size: 132px; line-height: .8; color: var(--accent);
+  writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: -.01em;
+  text-shadow: 3px 0 0 #8E9420, 6px 0 0 #4E5212, -2px 0 0 rgba(0,240,255,.5); }
+[data-d="phosphor"] .band .mark { width: 72px; height: 150px; }
+[data-d="phosphor"] .band .ver { color: var(--muted); font-size: var(--small); writing-mode: vertical-rl; transform: rotate(180deg); }
+[data-d="phosphor"] .titlebar { background: #0B0B07; border-bottom: 2px solid var(--line); }
+[data-d="phosphor"] .titlebar .proj { font-size: 22px; color: var(--accent); }
+[data-d="phosphor"] .pages { background: transparent; gap: 0; }
+[data-d="phosphor"] .pages button { padding: 0 12px; font-size: 21px; }
+[data-d="phosphor"] .pages button[aria-current] { box-shadow: 3px 3px 0 #6B6F25; }
+[data-d="phosphor"] .statusbar { background: #0B0B07; border-top: 2px solid var(--line); font-size: 17px; }
+[data-d="phosphor"] .w { border: 2px solid var(--line-strong); box-shadow: 4px 4px 0 #2A2B12;
+  clip-path: polygon(0 6px, 6px 6px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 6px), 0 calc(100% - 6px)); }
+[data-d="phosphor"][data-edit="1"] .w { clip-path: none; }
+[data-d="phosphor"] .w h2 { font-size: 18px; font-weight: 400; color: var(--accent); letter-spacing: .04em; text-transform: uppercase; }
+[data-d="phosphor"] .num { color: var(--text); text-shadow: 2px 2px 0 #3A3C1C; }
+[data-d="phosphor"] .ribbon-title { font-size: 26px; font-weight: 400; line-height: 1; }
+[data-d="phosphor"] .w.ribbon { border-color: var(--accent); }
+[data-d="phosphor"] .w.mascot { background: transparent; border-style: dashed; box-shadow: none; clip-path: none; }
+[data-d="phosphor"] .mascot .word { color: var(--terra); text-shadow: 3px 3px 0 #5A2C20; }
+[data-d="phosphor"] .row.need { background: var(--accent); color: var(--accent-text); }
+[data-d="phosphor"] .row.need .title, [data-d="phosphor"] .row.need .sub, [data-d="phosphor"] .row.need .when { color: var(--accent-text); }
+[data-d="phosphor"] .row.need .btn { background: var(--accent-text); color: var(--accent); }
+[data-d="phosphor"] .quick button { background: transparent; border: 2px solid var(--line-strong); font-size: 20px; padding: 2px 12px; }
+[data-d="phosphor"] .quick button:first-child { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+[data-d="phosphor"] .quick button:first-child kbd { color: #3A3C1C; }
+[data-d="phosphor"] .cells i.f { box-shadow: 0 2px 0 #6B6F25; }
+[data-d="phosphor"] .cells { height: 12px; gap: 3px; }
+[data-d="phosphor"] .dots i { border-radius: 0; }
+
+/* ---------- CONTOUR ---------- */
+[data-d="contour"] .w h2 { font-family: 'Pixelify Sans'; font-size: 14px; font-weight: 500; color: var(--text); letter-spacing: 0; }
+[data-d="contour"] .w h2 .aside { font-family: var(--font-ui); font-size: 11px; }
+[data-d="contour"] .titlebar { background: rgba(20,16,14,.92); }
+[data-d="contour"] .titlebar .proj { font-family: 'Pixelify Sans'; font-size: 16px; }
+[data-d="contour"] .pages { margin-left: 22px; }
+[data-d="contour"] .w { border: 0; }
+[data-d="contour"] .w.solid { background: var(--terra); color: var(--terra-ink); box-shadow: 4px 4px 0 var(--terra-deep), 8px 8px 0 #4A2017; }
+[data-d="contour"] .w.solid h2, [data-d="contour"] .w.solid h2 .aside, [data-d="contour"] .w.solid .muted, [data-d="contour"] .w.solid .t2 { color: var(--terra-ink); }
+[data-d="contour"] .w.solid .cells i { background: rgba(31,13,8,.22); }
+[data-d="contour"] .w.solid .cells i.f { background: var(--terra-ink); }
+[data-d="contour"] .w.yellow { background: var(--accent); color: var(--accent-text); box-shadow: 4px 4px 0 #8E9420, 8px 8px 0 #4E5212; }
+[data-d="contour"] .w.yellow h2, [data-d="contour"] .w.yellow .muted { color: var(--accent-text); }
+[data-d="contour"] .w.contoured::before, [data-d="contour"] .w.contoured::after { content: ""; position: absolute; pointer-events: none; border: 1.5px solid var(--terra); }
+[data-d="contour"] .w.contoured::before { inset: -5px -6px -4px -5px; opacity: .8; }
+[data-d="contour"] .w.contoured::after { inset: -9px -11px -8px -9px; opacity: .45; border-color: var(--lav); transform: translate(2px, -1px) skewX(-.8deg); }
+[data-d="contour"] .num { font-family: 'Pixelify Sans'; font-weight: 700; }
+[data-d="contour"] .ribbon-title { font-family: 'Pixelify Sans'; font-size: 20px; font-weight: 500; }
+[data-d="contour"] .mascot .word { font-family: 'Pixelify Sans'; font-weight: 700; color: var(--terra-ink); }
+[data-d="contour"] .row.need { background: color-mix(in srgb, var(--terra) 22%, transparent); }
+[data-d="contour"] .quick button:first-child { background: var(--accent); color: var(--accent-text); }
+[data-d="contour"] .quick button:first-child kbd { color: #4E5212; }
+[data-d="contour"] .cells { height: 10px; }
+[data-d="contour"] .w.graph { transform: translateY(10px); }
+[data-d="contour"][data-edit="1"] .w.contoured::before, [data-d="contour"][data-edit="1"] .w.contoured::after { display: none; }
+
+/* ---------- CRT layer ---------- */
+.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; display: none; }
+[data-crt="on"] .crt { display: block; }
+.crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,var(--scan, .22)) 2px 3px); mix-blend-mode: multiply; }
+.crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,var(--vig, .55)) 100%); }
+.crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,255,230,.06); }
+[data-d="contour"] .crt { --scan: .12; --vig: .42; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="barrel" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="barrelMap" result="map" preserveAspectRatio="none" x="0" y="0" width="1440" height="900"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G" id="barrelDisp"/>
+  </filter>
+</svg>
+
+<div class="screen" id="screen">
+  <canvas id="bg" width="1440" height="900" aria-hidden="true"></canvas>
+  <div class="app">
+    <header class="titlebar">
+      <div class="proj">hsos <span class="caret">▾</span></div>
+      <nav class="pages" aria-label="Pages">
+        <button aria-current="page">Dashboard</button><button>Code</button><button>Notes</button>
+      </nav>
+      <div class="tb-spacer"></div>
+      <div class="palette-hint">Ctrl+Shift+P</div>
+      <div class="winctl" aria-hidden="true"><span>&#x2500;</span><span>&#x25A1;</span><span>&#x2715;</span></div>
+    </header>
+
+    <main class="dash">
+      <aside class="band" aria-hidden="true">
+        <svg class="mark" viewBox="0 0 72 150" fill="none" stroke="#F5FF3B" stroke-width="2">
+          <circle cx="36" cy="40" r="34"/><rect x="26" y="4" width="20" height="142" rx="4"/>
+        </svg>
+        <div class="word">HSOS</div>
+        <div class="ver">0.1 · stage U</div>
+      </aside>
+
+      <div class="edit-bar"><button>Add widget</button><button>Screens</button><button class="done">Done</button></div>
+
+      <div class="gridwrap">
+        <div class="grid" id="grid">
+          <section class="w ribbon contoured" style="grid-area: 1 / 1 / span 2 / span 4">
+            <h2>Session <span class="aside">hsos · opus 5.5</span></h2>
+            <div class="ribbon-top">
+              <canvas class="sprite" data-px="3" width="48" height="48"></canvas>
+              <div>
+                <div class="ribbon-title">Fix PTY resize race</div>
+                <div class="ribbon-meta"><span class="state" data-s="run"></span> Editing · 12:41 · context 61%</div>
+              </div>
+            </div>
+            <ol class="plan"><li class="done">Reproduce resize race in a test</li><li class="done">Find where cols reach the PTY</li><li class="now">Debounce resize to one frame</li><li>Run term suite</li><li>Write the change note</li></ol>
+            <div class="ribbon-steps">
+              <div><span class="muted">12:38</span><b>Read</b> src/term/pty.ts</div>
+              <div><span class="muted">12:40</span><b>Bash</b> pnpm vitest term/pty</div>
+              <div class="now"><span>12:41</span>Edit src/term/pty.ts:88</div>
+            </div>
+          </section>
+
+          <section class="w usage-w solid" style="grid-area: 1 / 5 / span 2 / span 2">
+            <h2>Usage <span class="aside">plan</span></h2>
+            <div class="usage">
+              <div><div class="lab"><span class="num">42%</span><span class="muted">5 h · resets 2:14</span></div><div class="cells" data-v="42"></div></div>
+              <div><div class="lab"><span class="num">18%</span><span class="muted">7 d · resets Fri</span></div><div class="cells" data-v="18"></div></div>
+            </div>
+          </section>
+
+          <section class="w mascot solid" style="grid-area: 1 / 7 / span 2 / span 2">
+            <canvas class="sprite" data-px="9" width="144" height="144"></canvas>
+            <div class="word">Thinking</div>
+          </section>
+
+          <section class="w sessions" style="grid-area: 3 / 1 / span 3 / span 4">
+            <h2>Sessions <span class="aside">1 needs you · 2 running</span></h2>
+            <div class="rows">
+              <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash: pnpm build</div><div class="sub">waiting 3 min</div></div><span class="btn">Open</span></div>
+              <div class="row"><span class="state" data-s="run"></span><div><div class="title">hsos · Fix PTY resize race</div><div class="sub">Editing src/term/pty.ts</div></div><span class="when">12:41</span></div>
+              <div class="row"><span class="state" data-s="run"></span><div><div class="title">notes-sync · Index backlinks</div><div class="sub">Running tests</div></div><span class="when">06:02</span></div>
+              <div class="row"><span class="state" data-s="done"></span><div><div class="title">hsos · Write card 014 tests</div><div class="sub">Finished, 3 files changed</div></div><span class="when">11:20</span></div>
+              <div class="row"><span class="state" data-s="idle"></span><div><div class="title">dotfiles · Tidy PowerShell profile</div><div class="sub">Idle since yesterday</div></div><span class="when">Tue</span></div>
+            </div>
+          </section>
+
+          <section class="w context" style="grid-area: 3 / 5 / span 2 / span 2">
+            <h2>Context <span class="aside">Fix PTY…</span></h2>
+            <div><span class="num big">61%</span></div><svg class="ctx-blocks" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div class="t2 mono" style="font-size:var(--small)">122k of 200k · cache warm</div>
+            <div class="muted" style="font-size:var(--small)">system · tools · <span style="color:var(--accent)">messages</span> · free</div>
+          </section>
+
+          <section class="w git" style="grid-area: 5 / 5 / span 1 / span 2; flex-direction: row; align-items: center; justify-content: space-between">
+            <div><div style="font-weight:600">main <span class="mono">↑1 ↓0</span></div><div class="muted" style="font-size:var(--small)">3 changes</div></div>
+            <span class="btn ghost">Sync</span>
+          </section>
+
+          <section class="w graph contoured" style="grid-area: 3 / 7 / span 3 / span 2">
+            <h2>Graph <span class="aside">dashboard.md</span></h2>
+            <svg id="graph" viewBox="0 0 160 200" aria-label="Local graph around dashboard.md"></svg>
+          </section>
+
+          <section class="w quick" style="grid-area: 6 / 1 / span 1 / span 8">
+            <button>New session <kbd>Ctrl+Shift+T</kbd></button>
+            <button>Resume <kbd>R</kbd></button>
+            <button>Compact <kbd>C</kbd></button>
+            <button>Model: opus 5.5</button>
+            <button>Plan mode</button>
+            <button>Skills</button>
+            <button class="more">More</button>
+          </section>
+        </div>
+        <div class="dots" aria-label="Screen 1 of 3"><i class="on"></i><i></i><i></i></div>
+      </div>
+    </main>
+
+    <footer class="statusbar">
+      <span>main ↑1 ↓0</span><span>3 changes</span><span class="grow"></span>
+      <span>5h 42%</span><span>7d 18%</span><span class="need">● 1 needs you</span>
+    </footer>
+  </div>
+  <div class="crt" aria-hidden="true"><div class="scan"></div><div class="vig"></div><div class="glass"></div></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search);
+const D = q.get('d') || 'phosphor';
+const screen = document.getElementById('screen');
+screen.dataset.d = D; screen.dataset.edit = q.get('edit') === '1' ? '1' : '0';
+screen.dataset.crt = D === 'graphite' ? 'off' : 'on';
+document.querySelectorAll('[data-d]').forEach(()=>{});
+document.documentElement.dataset.d = D; // tokens resolve on .screen via attribute selector
+const css = getComputedStyle(screen);
+const tok = n => css.getPropertyValue(n).trim();
+
+/* pixel bars */
+document.querySelectorAll('.cells').forEach(el => {
+  const v = +el.dataset.v, n = 20, f = Math.round(v / 100 * n);
+  if (v >= 85) el.classList.add('danger'); else if (v >= 60) el.classList.add('warn');
+  el.innerHTML = Array.from({length: n}, (_, i) => `<i class="${i < f ? 'f' : ''}"></i>`).join('');
+});
+
+/* state glyphs: shape + word, never colour alone */
+const glyph = {
+  need: c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 13 13H1Z" fill="${c}"/></svg>`,
+  run:  c => `<svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" fill="none" stroke="${c}" stroke-width="2"/><rect x="5" y="5" width="4" height="4" fill="${c}"/></svg>`,
+  done: c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7 6 11 12 3" fill="none" stroke="${c}" stroke-width="2.2"/></svg>`,
+  idle: c => `<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${c}" stroke-width="2"/></svg>`,
+};
+document.querySelectorAll('.state[data-s]').forEach(el => {
+  const s = el.dataset.s, solid = el.closest('.need') && D === 'phosphor';
+  const c = solid ? tok('--accent-text') : s === 'need' ? tok('--accent') : s === 'run' ? tok('--text') : s === 'done' ? tok('--text-2') : tok('--muted');
+  el.innerHTML = glyph[s](c);
+});
+
+/* edit-mode handles */
+document.querySelectorAll('.w').forEach(w => {
+  w.insertAdjacentHTML('beforeend', '<span class="rm" aria-label="Remove">×</span>' + ['tl','tr','bl','br','r','b'].map(k => `<span class="h ${k}"></span>`).join(''));
+});
+
+/* mascot: original 16x16 sprite for HSOS */
+const SPR = [
+  "........y.......",
+  "........k.......",
+  "....kkkkkkkk....",
+  "...kohhooooook..",
+  "..kohoooooooook.",
+  "..kooeeooooeeok.",
+  "..kooeeooooeeok.",
+  "..koooooooooook.",
+  "..kooroooooorok.",
+  "..koooommoooook.",
+  "...kooooooook...",
+  "....kkkkkkkk....",
+  "....kdk..kdk....",
+  "....kkk..kkk....",
+  "................",
+  "................"];
+const PAL = { k:'#3A1A12', o:'#E07A5F', h:'#F7B9A4', e:'#120806', r:'#FF003C', m:'#3A1A12', d:'#9C4A35', y:'#F5FF3B' };
+document.querySelectorAll('canvas.sprite').forEach(cv => {
+  const px = +cv.dataset.px, g = cv.getContext('2d');
+  const depth = D === 'graphite' ? 0 : Math.max(1, Math.round(px / 3));
+  // extrusion: stacked dark copies down-right give the voxel depth
+  for (let z = depth; z >= 1; z--) {
+    g.fillStyle = z === depth ? 'rgba(0,0,0,.55)' : '#5A2C20';
+    SPR.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') g.fillRect(x * px + z, y * px + z, px, px); }));
+  }
+  SPR.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { g.fillStyle = PAL[ch]; g.fillRect(x * px, y * px, px, px); } }));
+});
+
+/* context composition as stacked pixel blocks */
+(() => { const el = document.querySelector('.ctx-blocks'); if (!el) return;
+  const parts = [[18,'--text-2','system'],[22,'--muted','tools'],[60,'--accent','messages'],[22,'--line-strong','free']];
+  let x = 0, s = ''; const cell = 5;
+  parts.forEach(([n,v]) => { for (let i = 0; i < n; i++) { const col = Math.floor(x / 8), row = x % 8; s += `<rect x="${col*cell}" y="${row*cell}" width="${cell-1}" height="${cell-1}" fill="${tok(v)}"/>`; x++; } });
+  el.setAttribute('viewBox', `0 0 ${Math.ceil(x/8)*cell} 40`); el.innerHTML = s; })();
+
+/* mini graph */
+(() => {
+  const N = [[80,96,7,'a'],[40,40,4,'n'],[122,44,4,'n'],[30,130,4,'s'],[130,150,5,'c'],[78,170,3,'n'],[100,20,3,'m'],[18,82,3,'u'],[146,100,3,'n'],[60,60,3,'n']];
+  const E = [[0,1],[0,2],[0,3],[0,4],[0,5],[2,6],[1,7],[4,8],[0,9],[1,9],[3,5]];
+  const col = D === 'graphite' ? {a:'#F5A524',n:'#ABA59C',s:'#7FB2EA',c:'#F5A524',m:'#7CC47F',u:'#5C5750',e:'#3A3733'}
+    : D === 'phosphor' ? {a:'#F5FF3B',n:'#C3C79A',s:'#C77DFF',c:'#F5FF3B',m:'#00F0FF',u:'#5E602E',e:'#4E5212'}
+    : {a:'#F5FF3B',n:'#C9BBB0',s:'#C77DFF',c:'#F5FF3B',m:'#00F0FF',u:'#5E4B40',e:'#5E4B40'};
+  const sq = D !== 'graphite';
+  let s = E.map(([a,b]) => `<line x1="${N[a][0]}" y1="${N[a][1]}" x2="${N[b][0]}" y2="${N[b][1]}" stroke="${col.e}" stroke-width="1.2"/>`).join('');
+  s += N.map(([x,y,r,k]) => sq ? `<rect x="${x-r}" y="${y-r}" width="${r*2}" height="${r*2}" fill="${col[k]}"/>` : `<circle cx="${x}" cy="${y}" r="${r}" fill="${col[k]}"/>`).join('');
+  s += `<text x="${N[0][0]-8}" y="${N[0][1]-12}" fill="${tok('--text')}" font-size="8" font-family="${D==='phosphor'?'VT323':'Geist'}">dashboard.md</text>`;
+  document.getElementById('graph').innerHTML = s;
+})();
+
+/* seeded random */
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+/* backgrounds */
+const bg = document.getElementById('bg'), b = bg.getContext('2d');
+if (D === 'phosphor') {
+  // dithered dot-matrix terrain, brighter low-right: asymmetric weight
+  const c = 6, W = 1440 / c, H = 900 / c;
+  const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = x / W, v = y / H;
+    let n = .5 + .22 * Math.sin(u * 9 + Math.sin(v * 5) * 2) + .18 * Math.sin(v * 13 - u * 4) + .12 * Math.sin((u + v) * 23);
+    n *= .25 + .9 * Math.pow(u, 1.4) * (.4 + .6 * v);
+    if (n > (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16) { b.fillStyle = 'rgba(245,255,59,.16)'; b.fillRect(x * c, y * c, c - 2, c - 2); }
+  }
+} else if (D === 'contour') {
+  // pixel-cell clusters on two depth layers
+  const draw = (cell, alpha, count) => {
+    const cols = ['#E07A5F','#E07A5F','#F5FF3B','#FF003C','#F7B9A4','#8A3B2A','#8A3B2A','#E07A5F','#C77DFF','#00F0FF','#F5FF3B','#8A3B2A','#E07A5F','#F7B9A4','#E07A5F','#8A3B2A','#FF00FF'];
+    for (let k = 0; k < count; k++) {
+      let x = Math.floor(rnd() * 1440 / cell), y = Math.floor(rnd() * 900 / cell);
+      const shape = Math.floor(rnd() * 4), color = cols[Math.floor(rnd() * cols.length)], len = 14 + Math.floor(rnd() * 50);
+      b.globalAlpha = alpha; b.fillStyle = color; b.strokeStyle = color; b.lineWidth = Math.max(1, cell / 6);
+      for (let i = 0; i < len; i++) {
+        const px = x * cell, py = y * cell, s = cell - 2;
+        if (shape === 0) b.fillRect(px, py, s, s);
+        else if (shape === 1) { b.beginPath(); b.arc(px + s / 2, py + s / 2, s / 2, 0, 7); b.fill(); }
+        else if (shape === 2) { b.fillRect(px + s * .4, py, s * .2, s); b.fillRect(px, py + s * .4, s, s * .2); }
+        else for (let j = 0; j < 3; j++) b.fillRect(px + j * s / 3, py, s / 6, s);
+        const d = Math.floor(rnd() * 4); x += [1,-1,0,0][d]; y += [0,0,1,-1][d];
+      }
+    }
+    b.globalAlpha = 1;
+  };
+  draw(22, .10, 26);  // far layer
+  draw(12, .16, 30);  // near layer
+}
+
+/* barrel distortion map: R = x shift, G = y shift */
+if (screen.dataset.crt === 'on') {
+  const mw = 288, mh = 180, m = document.createElement('canvas'); m.width = mw; m.height = mh;
+  const mg = m.getContext('2d'), img = mg.createImageData(mw, mh);
+  for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
+    const nx = x / mw * 2 - 1, ny = y / mh * 2 - 1, r2 = nx * nx + ny * ny, i = (y * mw + x) * 4;
+    img.data[i] = 128 + 127 * nx * r2 * .5; img.data[i + 1] = 128 + 127 * ny * r2 * .5; img.data[i + 2] = 128; img.data[i + 3] = 255;
+  }
+  mg.putImageData(img, 0, 0);
+  document.getElementById('barrelMap').setAttribute('href', m.toDataURL());
+  document.getElementById('barrelDisp').setAttribute('scale', D === 'phosphor' ? '26' : '14');
+}
+document.fonts.ready.then(() => { document.title = 'ready'; });
+</script>
+</body>
+</html>
