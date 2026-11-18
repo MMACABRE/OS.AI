@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Page Layouts</title>
+<style>
+  :root { color-scheme: dark; --bg: #0E0D0C; --ink: #ECE8E1; --muted: #A39C92; --line: #2B2926; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 'Segoe UI', sans-serif; }
+  main { padding: 24px 16px 64px; max-width: 1500px; margin: 0 auto; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 28px; max-width: 75ch; }
+  section { margin-bottom: 48px; }
+  h2 { font-size: 20px; margin: 0 0 4px; }
+  section > p { color: var(--muted); margin: 0 0 12px; max-width: 85ch; }
+  figure { margin: 0; }
+  figure img { width: 100%; display: block; border: 1px solid var(--line); }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Code page layouts, Phosphor</h1>
+  <p class="lead">Three ways to lay out the Code page in the Phosphor look. Every option shows the same moment: the left terminal is focused, Claude is working in it with two subagents, and its session ribbon is expanded. The right terminal's session needs you for a Bash approval. Click a still to open it live; move the mouse to stir the dust and to make the strawberry look at you.</p>
+
+  <section>
+    <h2>A. Classic dock</h2>
+    <p>The spec's layout as written: the activity rail, Files, two terminals side by side, and the HUD panel on the right with the strawberry free on top. It holds the most at once, but each terminal is only about 400 px wide, so the ribbon drops its folder, repo and mode and the chat name gets cut.</p>
+    <figure><a href="phosphor-code.html?layout=a"><img src="shots/code-a.png" alt="Layout A: rail, Files, two terminals side by side, HUD panel"></a></figure>
+  </section>
+
+  <section>
+    <h2>B. Stage</h2>
+    <p>The focused terminal takes the stage at about 860 px, so the ribbon shows every part. The second terminal sits beside it at the top, with a compact HUD under it: the strawberry, usage and the two sessions that matter. Files folds into the rail until you open it.</p>
+    <figure><a href="phosphor-code.html?layout=b"><img src="shots/code-b.png" alt="Layout B: one large terminal, the second beside it, a compact HUD"></a></figure>
+  </section>
+
+  <section>
+    <h2>C. Open air</h2>
+    <p>Closest to the Dashboard. Files and the HUD lose their boxes and float over the dust, with the strawberry top right where it lives on the Dashboard. The terminals are stacked, full width, framed only by corner brackets, and more see-through, so the steam rising from each session's ribbon shows behind the text.</p>
+    <figure><a href="phosphor-code.html?layout=c"><img src="shots/code-c.png" alt="Layout C: floating Files and HUD, two stacked terminals"></a></figure>
+  </section>
+</main>
+</body>
+</html>

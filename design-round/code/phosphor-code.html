@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Phosphor Code Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=VT323&display=block" rel="stylesheet">
+<style>
+/* Code page, round 1, Phosphor look profile. Throwaway mockup, not app code.
+   ?layout=a  classic dock: rail, Files, two terminals side by side, HUD panel
+   ?layout=b  stage: one large terminal, the second beside it, a compact HUD under it
+   ?layout=c  open air: Files and HUD float free over the dust, terminals stacked
+   ?still=1   freezes motion for screenshots. Colour roles as on the Dashboard. */
+:root {
+  color-scheme: dark;
+  --bg-app:#0B0A09; --bg-panel:#121010; --bg-raised:#1C1816; --bg-overlay:#221D1A;
+  --line:#3A2A22; --frame:#B4512A;
+  --text:#F2E8DE; --text-2:#CDBFB3; --muted:#A08F84;
+  --terra:#FF7A3D; --terra-deep:#8A2E0E; --yellow:#F5FF3B; --red:#FF003C; --cyan:#00F0FF; --lav:#C77DFF; --mag:#FF00FF;
+  --accent:var(--yellow); --accent-text:#0B0A09;
+  --ok:var(--cyan); --warn:var(--yellow); --danger:var(--red);
+  --g-red:0 0 6px rgba(255,0,60,.8), 0 0 18px rgba(255,0,60,.4);
+  --g-cyan:0 0 6px rgba(0,240,255,.75), 0 0 18px rgba(0,240,255,.35);
+  --g-yel:0 0 8px rgba(245,255,59,.45); --g-orange:0 0 6px rgba(255,122,61,.55);
+  --font-ui:'VT323',monospace; --font-display:'Jersey 10',sans-serif;
+  --ui:19px; --small:16px; --num:34px; --radius:10px; --radius-c:6px; --edge:18px;
+  --term-alpha:.88;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1440px; height: 900px; overflow: hidden; background: #000; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+.screen { position: relative; width: 1440px; height: 900px; background: var(--bg-app); color: var(--text);
+  font-family: var(--font-ui); font-size: var(--ui); line-height: 1.2; overflow: hidden; }
+#bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: .8; }
+.app { position: absolute; inset: 0; display: grid; grid-template-rows: 56px 1fr 26px; filter: url(#barrel); pointer-events: none; }
+.titlebar, .statusbar, .rail, .side, .term, .hud > * { pointer-events: auto; }
+
+/* title bar, as on the Dashboard */
+.titlebar { display: flex; align-items: center; gap: 22px; padding-left: var(--edge); }
+.brand { position: relative; font-family: var(--font-display); font-size: 46px; line-height: 1; color: var(--red);
+  text-shadow: 3px 0 0 #7A001D, -2px 0 0 rgba(0,240,255,.5); transform-origin: 30% 60%; animation: breathe 7s ease-in-out infinite; cursor: default; }
+@keyframes breathe { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255,0,60,.55)) hue-rotate(0deg); }
+  50% { transform: scale(1.035); filter: drop-shadow(0 0 12px rgba(255,0,60,.9)) hue-rotate(-28deg); } }
+.brand::after { content: attr(data-text); position: absolute; left: 0; top: 0; color: #FFE3EA; text-shadow: 0 0 6px #fff, 0 0 16px rgba(255,0,60,.95);
+  clip-path: polygon(-40% 0, -18% 0, -32% 100%, -54% 100%); pointer-events: none; }
+.brand.shimmer::after { animation: shimmer 950ms cubic-bezier(.2,0,0,1); }
+@keyframes shimmer { to { clip-path: polygon(118% 0, 140% 0, 126% 100%, 104% 100%); } }
+.clock { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--cyan); text-shadow: var(--g-cyan); font-variant-numeric: tabular-nums; margin-left: -8px; }
+.clock .colon { animation: colon 1s steps(1) infinite; } @keyframes colon { 50% { opacity: .25; } }
+.proj { font-size: 22px; color: var(--terra); margin-left: 8px; } .proj span { color: var(--muted); }
+.pages { display: flex; gap: 2px; }
+.pages button { padding: 0 12px; font-size: 21px; color: var(--text-2); border-radius: var(--radius-c); }
+.pages button[aria-current] { background: var(--accent); color: var(--accent-text); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.grow { flex: 1; }
+.hint { color: var(--muted); font-size: var(--small); padding: 0 10px; border: 2px solid var(--line); border-radius: var(--radius-c); }
+.winctl { display: flex; height: 100%; } .winctl span { width: 46px; display: grid; place-items: center; color: var(--text-2); }
+
+.statusbar { display: flex; align-items: center; gap: 18px; padding: 0 var(--edge); font-size: 17px; color: var(--text-2); }
+.statusbar .terra { color: var(--terra); } .statusbar .live { color: var(--cyan); } .statusbar .need { color: #FF3D66; text-shadow: 0 0 4px rgba(255,0,60,.6); }
+
+/* the work area: one grid, three arrangements */
+.work { display: grid; gap: 14px; padding: 6px var(--edge) 10px; min-height: 0; }
+.rail { grid-area: rail; } .side { grid-area: side; } #t1 { grid-area: t1; } #t2 { grid-area: t2; } .hud { grid-area: hud; }
+[data-layout="a"] .work { grid-template-columns: 44px 220px 1fr 1fr 262px; grid-template-areas: "rail side t1 t2 hud"; }
+[data-layout="b"] .work { grid-template-columns: 44px 1fr 452px; grid-template-rows: 1fr 330px; grid-template-areas: "rail t1 t2" "rail t1 hud"; }
+[data-layout="b"] .side { display: none; }
+[data-layout="c"] .work { grid-template-columns: 214px 1fr 250px; grid-template-rows: 1.32fr 1fr; grid-template-areas: "side t1 hud" "side t2 hud"; gap: 14px 30px; --term-alpha:.74; }
+[data-layout="c"] .rail { display: none; }
+
+/* boxes: the Dashboard's pixel components */
+.w { position: relative; min-width: 0; min-height: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  background: rgba(18,16,16,.88); border: 2px solid var(--frame); border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 4px rgba(255,122,61,.10); background-size: 8px 8px; }
+.w h2, .term-title { font-size: 18px; font-weight: 400; color: var(--terra); text-shadow: var(--g-orange); letter-spacing: .05em; text-transform: uppercase;
+  display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.aside { margin-left: auto; color: var(--muted); letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; }
+.cn { position: absolute; width: 10px; height: 10px; pointer-events: none; border: 0 solid var(--terra); filter: drop-shadow(0 0 3px rgba(255,122,61,.6)); z-index: 2; }
+.cn.a { top: 6px; left: 6px; border-top-width: 2px; border-left-width: 2px; } .cn.b { top: 6px; right: 6px; border-top-width: 2px; border-right-width: 2px; }
+.cn.c { bottom: 6px; left: 6px; border-bottom-width: 2px; border-left-width: 2px; } .cn.d { bottom: 6px; right: 6px; border-bottom-width: 2px; border-right-width: 2px; }
+.ico { width: 16px; height: 16px; flex: none; align-self: center; }
+.led { width: 7px; height: 7px; flex: none; align-self: center; border-radius: 1px; }
+.led.cyan { background: var(--cyan); box-shadow: var(--g-cyan); animation: led 1.8s steps(1) infinite; }
+.led.red { background: var(--red); box-shadow: var(--g-red); animation: led .9s steps(1) infinite; }
+.led.yel { background: var(--yellow); box-shadow: var(--g-yel); }
+@keyframes led { 60% { opacity: .25; } }
+.strip { height: 6px; flex: none; margin-top: -3px; background-repeat: no-repeat; background-size: 100% 6px; image-rendering: pixelated; }
+.num { font-size: var(--num); line-height: 1; color: var(--yellow); text-shadow: var(--g-yel); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); } .t2 { color: var(--text-2); } .cyan { color: var(--cyan); }
+.cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; height: 12px; }
+.cells i { background: var(--bg-raised); border-radius: 1px; }
+.cells i.f { background: var(--ok); box-shadow: 0 0 6px rgba(0,240,255,.6); }
+.cells.warn i.f { background: var(--warn); box-shadow: 0 0 6px rgba(245,255,59,.5); }
+.cells.danger i.f { background: var(--danger); box-shadow: 0 0 6px rgba(255,0,60,.7); }
+
+/* activity rail */
+.rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; border: 2px solid var(--frame); border-radius: var(--radius); background: rgba(18,16,16,.88); }
+.rail button { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--radius-c); position: relative; }
+.rail button .ico { width: 18px; height: 18px; }
+.rail button[aria-pressed="true"] { background: var(--accent); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.rail button .dot { position: absolute; right: 3px; top: 3px; width: 6px; height: 6px; background: var(--cyan); box-shadow: var(--g-cyan); border-radius: 1px; }
+.rail .end { margin-top: auto; }
+
+/* Files side view */
+.side .tree { list-style: none; display: grid; gap: 1px; font-size: 18px; overflow: hidden; }
+.tree li { display: flex; gap: 6px; align-items: center; padding: 0 6px; border-radius: 4px; white-space: nowrap; color: var(--text-2); }
+.tree li .ind { flex: none; }
+.tree li.dir { color: var(--terra); }
+.tree li .m { margin-left: auto; color: var(--yellow); font-size: 15px; }
+.tree li.open { background: var(--accent); color: var(--accent-text); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.tree li.open .m { color: #4E5212; }
+.side .tabs { display: none; }
+[data-layout="c"] .side.w { background: none; border: 0; box-shadow: none; padding: 4px 0; }
+[data-layout="c"] .side .cn, [data-layout="c"] .side .strip { display: none; }
+[data-layout="c"] .side .tabs { display: flex; gap: 4px; margin-bottom: 4px; }
+[data-layout="c"] .side .tabs button { width: 30px; height: 30px; display: grid; place-items: center; border-radius: var(--radius-c); border: 2px solid var(--frame); background: rgba(18,16,16,.85); }
+[data-layout="c"] .side .tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+[data-layout="c"] .tree li { text-shadow: 0 0 4px #000, 0 0 8px #000; }
+[data-layout="c"] .tree li.open { text-shadow: none; }
+
+/* terminals */
+.term { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column;
+  background: rgba(10,9,8,var(--term-alpha)); border: 2px solid var(--frame); border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px #000, inset 0 0 0 4px rgba(255,122,61,.08); overflow: hidden; }
+.term.focus { border-color: var(--yellow); box-shadow: inset 0 0 0 1px #000, 0 0 0 1px rgba(245,255,59,.25), 0 0 16px rgba(245,255,59,.22); }
+.term.focus .cn { border-color: var(--yellow); filter: drop-shadow(0 0 3px rgba(245,255,59,.7)); }
+.term.need { border-color: var(--red); box-shadow: inset 0 0 0 1px #000, 0 0 14px rgba(255,0,60,.35); }
+.term.need .cn { border-color: var(--red); filter: drop-shadow(0 0 3px rgba(255,0,60,.8)); }
+[data-layout="c"] .term { border-color: transparent; box-shadow: none; }
+[data-layout="c"] .term.focus { border-color: transparent; box-shadow: 0 0 22px rgba(245,255,59,.12); }
+[data-layout="c"] .term .cn { width: 16px; height: 16px; top: 0; left: 0; }
+[data-layout="c"] .term .cn.b { left: auto; right: 0; } [data-layout="c"] .term .cn.c { top: auto; bottom: 0; } [data-layout="c"] .term .cn.d { top: auto; left: auto; right: 0; bottom: 0; }
+
+.tabbar { display: flex; align-items: center; gap: 8px; padding: 6px 12px 0 14px; flex: none; }
+.tabbar .tab { padding: 0 10px; border-radius: 5px 5px 0 0; color: var(--text-2); font-size: 18px; display: flex; gap: 6px; align-items: center; }
+.tabbar .tab.on { color: var(--text); background: var(--bg-raised); }
+.tabbar .tab .x { color: var(--muted); }
+.tabbar .tools { margin-left: auto; display: flex; gap: 4px; }
+.tabbar .tools span { width: 26px; height: 22px; display: grid; place-items: center; color: var(--muted); border-radius: 4px; }
+
+/* session ribbon (HUD-80..83) */
+.ribbon { flex: none; margin: 0 10px; border-radius: 6px; background: var(--bg-raised); border: 2px solid #4A2A1C; }
+.ribbon .line { display: flex; align-items: center; gap: 12px; height: 32px; padding: 0 10px 0 6px; white-space: nowrap; font-size: 18px; color: var(--text-2); }
+.ribbon .line > * { flex: none; }
+.ribbon .mini { image-rendering: pixelated; display: block; cursor: pointer; }
+.ribbon .chat { flex: 0 1 auto; min-width: 40px; color: var(--yellow); text-shadow: var(--g-yel); overflow: hidden; text-overflow: ellipsis; font-size: 20px; }
+.ribbon .mode { color: var(--lav); }
+.ribbon .repo { color: var(--terra); }
+.ribbon .ctx { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.ribbon .ctx .cells { width: 54px; grid-template-columns: repeat(8, 1fr); gap: 2px; height: 10px; }
+.ribbon .agents { color: var(--cyan); padding: 0 8px; border: 2px solid rgba(0,240,255,.5); border-radius: 4px; }
+.ribbon .sep { color: #5A4034; }
+.need .ribbon { border-color: rgba(255,0,60,.6); }
+.need .ribbon .chat { color: #FF3D66; text-shadow: 0 0 4px rgba(255,0,60,.6); }
+.ribbon .subs { display: grid; gap: 2px; padding: 4px 10px 8px 6px; border-top: 2px dashed #4A2A1C; font-size: 17px; clip-path: inset(0 0 0 0); }
+.subs .sub { display: grid; grid-template-columns: 18px 128px 84px 1fr 84px 44px; gap: 10px; align-items: center; color: var(--text-2); white-space: nowrap; }
+.subs .sub > * { overflow: hidden; text-overflow: ellipsis; }
+.subs .type { color: var(--cyan); } .subs .tool { color: var(--yellow); } .subs .time { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.subs .sub.done, .subs .sub.done .type, .subs .sub.done .tool { color: var(--muted); }
+[data-layout="a"] .subs .sub { grid-template-columns: 18px 96px 1fr 58px 40px; } [data-layout="a"] .subs .model { display: none; }
+[data-layout="a"] .ribbon .folder, [data-layout="a"] .ribbon .repo, [data-layout="a"] .ribbon .ctx .cells { display: none; }
+[data-layout="a"] .ribbon .mode { display: none; }
+[data-layout="a"] .hud .usage .lab .muted { font-size: 15px; }
+
+/* terminal text */
+.out { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 6px 16px 4px; overflow: hidden; white-space: pre; font-size: 19px; line-height: 1.2; color: var(--text-2); }
+[data-layout="c"] .out { text-shadow: 0 0 3px #000; }
+.out .u { color: var(--text); } .out .c { color: var(--cyan); } .out .y { color: var(--yellow); } .out .r { color: #FF3D66; }
+.out .o { color: var(--terra); } .out .m { color: var(--muted); } .out .l { color: var(--lav); }
+.out .add { color: var(--cyan); background: rgba(0,240,255,.08); } .out .del { color: #FF3D66; background: rgba(255,0,60,.08); }
+.out .ask { color: var(--text); background: rgba(255,0,60,.10); }
+.out .sel { color: var(--accent-text); background: var(--yellow); }
+.box { margin: 4px 0 2px; border: 2px solid #5A4034; border-radius: 6px; padding: 2px 10px; color: var(--text); }
+.box.need { border-color: var(--red); box-shadow: 0 0 10px rgba(255,0,60,.35); }
+.caret { display: inline-block; width: 10px; height: 19px; vertical-align: -3px; background: var(--yellow); box-shadow: var(--g-yel); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.foot { display: flex; gap: 14px; font-size: 16px; color: var(--muted); padding: 0 2px; }
+.foot .mode { color: var(--lav); }
+.spin { color: var(--terra); text-shadow: var(--g-orange); }
+
+/* HUD */
+.hud { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.hud .w { flex: none; }
+.mascot { position: relative; display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.mascot canvas { display: block; cursor: pointer; }
+.mascot .word { font-family: var(--font-display); font-size: 32px; line-height: .9; color: #FF2A55; text-shadow: 0 0 5px rgba(255,0,60,.55), 3px 3px 0 #5A0016; margin-top: 2px; }
+.mascot .doing { color: var(--muted); font-size: var(--small); }
+.usage { display: grid; gap: 14px; }
+.lab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.rows { display: grid; gap: 3px; }
+.row { display: grid; grid-template-columns: 16px 1fr auto; gap: 8px; align-items: start; padding: 4px 8px; border-radius: var(--radius-c); font-size: 18px; }
+.row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.row .sub { color: var(--muted); font-size: var(--small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .when { color: var(--muted); font-size: var(--small); }
+.row svg { margin-top: 3px; }
+.row.need { background: var(--red); color: #12030A; box-shadow: var(--g-red); }
+.row.need .sub, .row.need .when { color: #12030A; }
+.row.here { outline: 2px solid var(--yellow); outline-offset: -2px; }
+.row .open { padding: 0 8px; border: 2px solid #12030A; border-radius: 4px; color: #12030A; font-size: 16px; line-height: 1.2; }
+[data-layout="a"] .hud .mascot { margin-bottom: -6px; }
+[data-layout="b"] .hud { display: grid; grid-template-columns: 170px 1fr; grid-template-rows: auto 1fr; gap: 12px 14px; }
+[data-layout="b"] .hud .mascot { grid-row: 1 / 3; align-items: center; justify-content: center; text-align: center; }
+[data-layout="b"] .hud .ses { min-height: 0; overflow: hidden; }
+[data-layout="b"] .hud .ses .row:nth-child(n+3) { display: none; }
+[data-layout="b"] .hud .usage { grid-template-columns: 1fr 1fr; gap: 16px; }
+[data-layout="b"] #t2 .ribbon .folder, [data-layout="b"] #t2 .ribbon .ctx .cells { display: none; }
+[data-layout="b"] .hud .usage .lab { flex-direction: column; align-items: flex-start; gap: 2px; }
+[data-layout="c"] .hud .w { background: none; border: 0; box-shadow: none; padding: 2px 0; }
+[data-layout="c"] .hud .w .cn, [data-layout="c"] .hud .w .strip { display: none; }
+[data-layout="c"] .hud .row:not(.need) { text-shadow: 0 0 4px #000, 0 0 8px #000; }
+[data-layout="c"] .hud .ctxw { display: none; }
+
+/* buttons: lift and tilt toward the pointer */
+.btn3d { --rx: 0deg; --ry: 0deg; transform: perspective(320px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 140ms cubic-bezier(.2,0,0,1), filter 140ms ease-out; }
+@media (hover: hover) and (pointer: fine) {
+  .btn3d:hover { transform: perspective(320px) rotateX(var(--rx)) rotateY(var(--ry)) translate(-2px, -3px); filter: brightness(1.35) drop-shadow(0 0 6px rgba(255,122,61,.5));
+    box-shadow: 1px 1px 0 #2A1A14, 2px 2px 0 #3E170E, 3px 3px 0 #5A2410, 4px 5px 0 var(--terra-deep); }
+  .btn3d[aria-current]:hover, .btn3d[aria-pressed="true"]:hover, .tree li.open.btn3d:hover { filter: brightness(1.15) drop-shadow(0 0 10px rgba(245,255,59,.65));
+    box-shadow: 1px 1px 0 #B8BF2A, 2px 2px 0 #8E9420, 3px 3px 0 #6B6F18, 4px 5px 0 #3E4210; }
+  .row.need.btn3d:hover { filter: brightness(1.2) drop-shadow(0 0 10px rgba(255,0,60,.75)); box-shadow: 1px 1px 0 #D10032, 2px 2px 0 #A30027, 3px 3px 0 #75001C, 4px 5px 0 #4A0011; }
+  .row .open.btn3d:hover { background: #12030A; color: var(--red); }
+}
+.btn3d:active { transform: perspective(320px) rotateX(var(--rx)) rotateY(var(--ry)) translate(1px, 1px) scale(.97); filter: brightness(1.7) drop-shadow(0 0 12px rgba(255,122,61,.8)); box-shadow: none; transition-duration: 60ms; }
+
+/* CRT */
+.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
+.crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,.55) 100%); }
+.crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,240,230,.06); }
+
+[data-still="1"] .brand { animation: none; filter: drop-shadow(0 0 8px rgba(255,0,60,.75)); }
+[data-still="1"] .led, [data-still="1"] .caret, [data-still="1"] .clock .colon { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .brand { animation: none; filter: drop-shadow(0 0 6px rgba(255,0,60,.7)); } .brand.shimmer::after { animation: none; }
+  .led, .caret, .clock .colon { animation: none; } .btn3d, .btn3d:hover, .btn3d:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="barrel" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="barrelMap" result="map" preserveAspectRatio="none" x="0" y="0" width="1440" height="900"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="screen" id="screen">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand" data-text="HSOS">HSOS</div>
+      <div class="clock"><span class="hh">16</span><span class="colon">:</span><span class="mm">42</span></div>
+      <div class="proj">hsos <span>▾</span></div>
+      <nav class="pages" aria-label="Pages"><button>Dashboard</button><button aria-current="page">Code</button><button>Notes</button></nav>
+      <div class="grow"></div>
+      <div class="hint">Ctrl+Shift+P</div>
+      <div class="winctl" aria-hidden="true"><span>&#x2500;</span><span>&#x25A1;</span><span>&#x2715;</span></div>
+    </header>
+
+    <main class="work">
+      <nav class="rail" aria-label="Side views">
+        <button data-i="files" aria-pressed="true" aria-label="Files"></button>
+        <button data-i="branch" aria-label="Changes"><i class="dot"></i></button>
+        <button data-i="graph" aria-label="Graph"></button>
+        <button data-i="pulse" aria-label="Activity"></button>
+        <button data-i="box" aria-label="Artifacts"></button>
+        <button data-i="gear" class="end" aria-label="Settings"></button>
+      </nav>
+
+      <section class="w side" data-icon="files" data-led="yel">
+        <div class="tabs"><button data-i="files" aria-pressed="true" aria-label="Files"></button><button data-i="branch" aria-label="Changes"></button><button data-i="graph" aria-label="Graph"></button><button data-i="pulse" aria-label="Activity"></button></div>
+        <h2>Files <span class="aside">hsos</span></h2>
+        <ul class="tree">
+          <li class="dir"><span class="ind">▾</span>src</li>
+          <li class="dir" style="padding-left:20px"><span class="ind">▾</span>term</li>
+          <li style="padding-left:40px">fit.ts</li>
+          <li class="open" style="padding-left:40px">pty.ts<span class="m">M</span></li>
+          <li style="padding-left:40px">pty.test.ts<span class="m">M</span></li>
+          <li style="padding-left:40px">ribbon.tsx</li>
+          <li class="dir" style="padding-left:20px"><span class="ind">▸</span>hud</li>
+          <li class="dir" style="padding-left:20px"><span class="ind">▸</span>dock</li>
+          <li class="dir" style="padding-left:20px"><span class="ind">▸</span>sessions</li>
+          <li class="dir"><span class="ind">▸</span>spec</li>
+          <li class="dir"><span class="ind">▸</span>tasks</li>
+          <li class="dir"><span class="ind">▸</span>scripts</li>
+          <li>CLAUDE.md</li>
+          <li>PROGRESS.md<span class="m">M</span></li>
+          <li>features.json</li>
+          <li>package.json</li>
+        </ul>
+      </section>
+
+      <!-- terminal 1: Claude working, ribbon expanded with two subagents -->
+      <section class="term focus" id="t1" aria-label="Terminal 1">
+        <i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>
+        <div class="tabbar"><span class="term-title"><span data-icon-inline="term"></span>Terminal</span>
+          <span class="tab on">claude <span class="x">×</span></span><span class="tab">pwsh</span>
+          <span class="tools"><span>⇥</span><span>⇩</span><span>⋯</span></span></div>
+        <div class="ribbon">
+          <div class="line">
+            <canvas class="mini" data-session="run" width="32" height="28" aria-hidden="true"></canvas>
+            <span class="chat" title="Fix PTY resize race">Fix PTY resize race</span>
+            <span>opus 5.5 <span class="muted">· high</span></span>
+            <span class="mode">accept edits</span>
+            <span class="folder muted">~/code/hsos</span>
+            <span class="repo">owner/hsos <span class="muted">main</span></span>
+            <span class="ctx"><span class="cells" data-v="61" data-n="8"></span><span class="y" style="color:var(--yellow)">61%</span></span>
+            <span class="agents">2 agents</span>
+          </div>
+          <div class="subs">
+            <div class="sub"><canvas class="mini" data-sub="1" width="16" height="16"></canvas><span class="type">Explore</span><span class="model muted">haiku 5.5</span><span class="desc">Find every caller of pty.resize</span><span class="tool">Grep</span><span class="time">0:42</span></div>
+            <div class="sub"><canvas class="mini" data-sub="2" width="16" height="16"></canvas><span class="type">general</span><span class="model muted">sonnet 5.5</span><span class="desc">Run the term suite on the fix</span><span class="tool">Bash</span><span class="time">0:18</span></div>
+            <div class="sub done"><canvas class="mini" data-sub="0" width="16" height="16"></canvas><span class="type">Explore</span><span class="model">haiku 5.5</span><span class="desc">Read the TERM-75 spec</span><span class="tool">done</span><span class="time">1:05</span></div>
+          </div>
+        </div>
+        <div class="out" id="out1"></div>
+      </section>
+
+      <!-- terminal 2: Claude needs the owner, ribbon collapsed -->
+      <section class="term need" id="t2" aria-label="Terminal 2">
+        <i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>
+        <div class="tabbar"><span class="term-title"><span data-icon-inline="term"></span>Terminal</span>
+          <span class="tab on">claude <span class="x">×</span></span>
+          <span class="tools"><span>⇥</span><span>⋯</span></span></div>
+        <div class="ribbon">
+          <div class="line">
+            <canvas class="mini" data-session="need" width="32" height="28" aria-hidden="true"></canvas>
+            <span class="chat" title="Ship the hero copy">Ship the hero copy</span>
+            <span>sonnet 5.5</span>
+            <span class="mode">plan</span>
+            <span class="folder muted">~/code/site</span>
+            <span class="ctx"><span class="cells" data-v="34" data-n="8"></span><span style="color:var(--yellow)">34%</span></span>
+          </div>
+        </div>
+        <div class="out" id="out2"></div>
+      </section>
+
+      <aside class="hud" aria-label="HUD">
+        <section class="mascot">
+          <canvas id="berry" aria-label="Strawberry mascot"></canvas>
+          <div class="word">Working</div>
+          <div class="doing">editing pty.ts</div>
+        </section>
+        <section class="w" data-icon="battery" data-led="yel">
+          <h2>Usage <span class="aside">plan</span></h2>
+          <div class="usage">
+            <div><div class="lab"><span class="num">90%</span><span class="muted">5 h · 2:14</span></div><div class="cells" data-v="90"></div></div>
+            <div><div class="lab"><span class="num">18%</span><span class="muted">7 d · Fri</span></div><div class="cells" data-v="18"></div></div>
+          </div>
+        </section>
+        <section class="w ses" data-icon="stack" data-led="red">
+          <h2>Sessions <span class="aside">1 needs you</span></h2>
+          <div class="rows">
+            <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash</div><div class="sub">pnpm build · 3 min</div></div><button class="open">Open</button></div>
+            <div class="row here"><span class="state" data-s="run"></span><div><div class="title">hsos · PTY resize</div><div class="sub">2 agents · editing</div></div><span class="when">12:41</span></div>
+            <div class="row"><span class="state" data-s="run"></span><div><div class="title">notes-sync · Backlinks</div><div class="sub">Running tests</div></div><span class="when">06:02</span></div>
+            <div class="row"><span class="state" data-s="done"></span><div><div class="title">hsos · Card 014 tests</div><div class="sub">Finished, 3 files</div></div><span class="when">11:20</span></div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="statusbar">
+      <span class="terra">main ↑1 ↓0</span><span class="t2">3 changes</span><span class="t2">pty.ts · Ln 88</span><span class="grow"></span>
+      <span>5h 90%</span><span>7d 18%</span><span class="live">■ 2 running</span><span class="need">▲ 1 needs you</span>
+    </footer>
+  </div>
+  <div class="crt" aria-hidden="true"><div class="scan"></div><div class="vig"></div><div class="glass"></div></div>
+</div>
+
+<script>
+const q = new URLSearchParams(location.search), screen = document.getElementById('screen');
+const LAYOUT = ['a','b','c'].includes(q.get('layout')) ? q.get('layout') : 'a';
+screen.dataset.layout = LAYOUT;
+screen.dataset.still = q.get('still') === '1' ? '1' : '0';
+const tok = n => getComputedStyle(screen).getPropertyValue(n).trim();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, still = screen.dataset.still === '1', animate = !reduce && !still;
+const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+/* terminal output: Claude Code as it would print, coloured by role */
+const OUT1 = [
+  ['u', '> Run the card 014 tests and update PROGRESS.md.'],
+  [''],
+  ['c', '● ', 't', 'Bash(pnpm vitest card-014 --run)'], ['m', '  ⎿  ', 'c', '✓ 12 passed ', 'm', '(1.8s)'],
+  ['c', '● ', 't', 'Update(PROGRESS.md)'], ['m', '  ⎿  Updated PROGRESS.md with 1 addition'],
+  ['c', '● ', 'u', 'All 12 pass. Card 014 is marked done.'],
+  [''],
+  ['u', '> Fix the PTY resize race: cols reach the pty before xterm fits.'],
+  [''],
+  ['c', '● ', 't', 'Read(src/term/pty.ts)'], ['m', '  ⎿  Read 212 lines'],
+  ['c', '● ', 't', 'Bash(pnpm vitest term --run)'],
+  ['m', '  ⎿  ', 'r', '✗ TERM-75 resizes once per frame'], ['m', '        expected 1 call, got 3'],
+  ['c', '● ', 'u', 'The fit runs on every ResizeObserver tick.'], ['u', '  I will debounce it to one animation frame.'],
+  ['c', '● ', 't', 'Update(src/term/pty.ts)'],
+  ['m', '  ⎿  Updated pty.ts with 3 additions and 1 removal'],
+  ['m', '     86  ', 't', 'const fit = () => {'],
+  ['del', '     87 -  pty.resize(cols, rows)              '],
+  ['add', '     87 +  cancelAnimationFrame(raf)           '],
+  ['add', '     88 +  raf = requestAnimationFrame(() =>   '],
+  ['add', '     89 +    pty.resize(cols, rows))           '],
+  ['m', '     90  ', 't', '}'],
+  ['c', '● ', 't', 'Task(Explore) ', 'm', 'Find every caller of pty.resize'],
+  ['c', '● ', 't', 'Task(general) ', 'm', 'Run the term suite on the fix'],
+  [''],
+  ['spin', '✻ ', 'o', 'Debouncing… ', 'm', '(1m 12s · ↓ 3.4k tokens · esc to interrupt)'],
+];
+const OUT2 = [
+  ['u', '> Fetch main and start the dev server.'],
+  [''],
+  ['c', '● ', 't', 'Bash(pnpm install)'], ['m', '  ⎿  Done in 4.2s'],
+  ['c', '● ', 't', 'Bash(pnpm dev)'], ['m', '  ⎿  ', 'c', 'ready ', 'm', 'on localhost:3000'],
+  [''],
+  ['u', '> Read the brief in docs/hero.md and draft the copy.'],
+  [''],
+  ['c', '● ', 't', 'Read(docs/hero.md)'], ['m', '  ⎿  Read 48 lines'],
+  ['c', '● ', 'u', 'Three headline drafts:'],
+  ['u', '  1. A terminal that remembers.'],
+  ['u', '  2. Claude, in the room.'],
+  ['u', '  3. Every session in view.'],
+  ['c', '● ', 'u', 'I suggest 3. It says what the app does.'],
+  [''],
+  ['u', '> Ship the hero copy and build the site.'],
+  [''],
+  ['c', '● ', 't', 'Update(app/page.tsx)'], ['m', '  ⎿  Updated page.tsx with 4 additions'],
+  ['c', '● ', 'u', 'Copy is in. Building to check the page.'],
+  [''],
+];
+const trimOut = () => document.querySelectorAll('.out').forEach(o => { const b = o.firstElementChild, room = o.clientHeight - 10; while (b && b.offsetHeight > room && b.children.length > 4) b.firstElementChild.remove(); });
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const line = parts => { let h = ''; for (let i = 0; i < parts.length; i += 2) h += parts[i] ? `<span class="${parts[i]}">${esc(parts[i + 1] || '')}</span>` : esc(parts[i + 1] || ' '); return h || ' '; };
+const render = (el, rows, tail) => { el.innerHTML = '<div class="buf">' + rows.map(r => `<div>${r.length === 1 && r[0] === '' ? ' ' : line(r.length % 2 ? ['', ...r] : r)}</div>`).join('') + tail + '</div>'; };
+render(document.getElementById('out1'), OUT1,
+  `<div class="box"><span class="y">&gt;</span> <span class="caret"></span></div><div class="foot"><span class="mode">⏵⏵ accept edits on</span><span>shift+tab to cycle</span><span style="margin-left:auto">61% context</span></div>`);
+render(document.getElementById('out2'), OUT2,
+  `<div class="box need"><div class="r">Bash command</div><div class="u">  pnpm build</div><div class="m">  Runs next build in ~/code/site</div><div class="u">Do you want to proceed?</div><div><span class="sel">❯ 1. Yes</span></div><div class="t">  2. Yes, and do not ask again for pnpm build</div><div class="t">  3. No, and tell Claude what to do</div></div><div class="foot"><span class="mode">⏸ plan mode on</span><span style="margin-left:auto">esc to cancel</span></div>`);
+// when a terminal is short, keep the newest lines: the output is bottom-anchored, so drop from the top
+trimOut();
+
+/* pixel bars: cyan below 60, yellow from 60, red from 85 */
+document.querySelectorAll('.cells').forEach(el => {
+  const v = +el.dataset.v, n = +(el.dataset.n || 20), f = Math.round(v / 100 * n);
+  if (v >= 85) el.classList.add('danger'); else if (v >= 60) el.classList.add('warn');
+  el.innerHTML = Array.from({length: n}, (_, i) => `<i class="${i < f ? 'f' : ''}"></i>`).join('');
+});
+const G = {
+  need: c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 13 13H1Z" fill="${c}"/></svg>`,
+  run:  c => `<svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="2" fill="none" stroke="${c}" stroke-width="2"/><rect x="5" y="5" width="4" height="4" fill="${c}"/></svg>`,
+  done: c => `<svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 7 6 11 12 3" fill="none" stroke="${c}" stroke-width="2.2"/></svg>`,
+};
+document.querySelectorAll('.state[data-s]').forEach(el => { const s = el.dataset.s; el.innerHTML = G[s](el.closest('.need') ? '#12030A' : s === 'run' ? tok('--cyan') : tok('--muted')); });
+
+/* 8 by 8 pixel icons */
+const ICONS = {
+  term:   ["########", "#......#", "#.#....#", "#..#...#", "#.#.##.#", "#......#", "########", "........"],
+  stack:  ["#####...", "#...#...", "#####...", "..#####.", "..#...#.", "..#####.", "....###.", "........"],
+  battery:["........", "#######.", "#.#.#.##", "#.#.#.##", "#.#.#.##", "#######.", "........", "........"],
+  files:  ["####....", "#..###..", "#....#..", "######..", "#....##.", "#.....#.", "#######.", "........"],
+  branch: [".#...#..", ".#...#..", ".#..#...", ".#.#....", ".##.....", ".#......", ".#......", "........"],
+  graph:  ["#.....#.", ".#...#..", "..###...", "..#.#...", "..###...", ".#...#..", "#.....#.", "........"],
+  pulse:  ["........", "...#....", "...##...", "#.#.#..#", ".#..#.#.", "....##..", ".....#..", "........"],
+  box:    ["..####..", ".#....#.", "########", "#..##..#", "#......#", "#......#", "########", "........"],
+  gear:   ["..#..#..", ".######.", "##....##", ".#.##.#.", ".#.##.#.", "##....##", ".######.", "..#..#.."],
+};
+const svg = (rows, c) => `<svg class="ico" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rows.map((r, y) => [...r].map((ch, x) => ch === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>` : '').join('')).join('')}</svg>`;
+document.querySelectorAll('[data-i]').forEach(b => b.insertAdjacentHTML('afterbegin', svg(ICONS[b.dataset.i], b.getAttribute('aria-pressed') === 'true' ? '#0B0A09' : tok('--terra'))));
+document.querySelectorAll('[data-icon-inline]').forEach(s => s.outerHTML = svg(ICONS[s.dataset.iconInline], tok('--terra')));
+(() => {
+  const tex = document.createElement('canvas'); tex.width = tex.height = 4; const tg = tex.getContext('2d'); tg.fillStyle = 'rgba(255,122,61,.07)'; tg.fillRect(0, 0, 1, 1); tg.fillRect(2, 2, 1, 1);
+  const st = document.createElement('canvas'); st.width = 160; st.height = 3; const sg = st.getContext('2d'); sg.fillStyle = 'rgba(255,122,61,.55)';
+  for (let y = 0; y < 3; y++) for (let x = 0; x < 160; x++) if (1 - x / 160 > (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16) sg.fillRect(x, y, 1, 1);
+  const texURL = tex.toDataURL(), stURL = st.toDataURL();
+  document.querySelectorAll('.w[data-icon]').forEach(w => {
+    w.style.backgroundImage = `url(${texURL})`;
+    w.insertAdjacentHTML('afterbegin', '<i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i>');
+    const h2 = w.querySelector('h2');
+    h2.insertAdjacentHTML('afterbegin', svg(ICONS[w.dataset.icon], tok('--terra')));
+    h2.insertAdjacentHTML('beforeend', `<i class="led ${w.dataset.led}"></i>`);
+    h2.insertAdjacentHTML('afterend', '<div class="strip"></div>'); w.querySelector('.strip').style.backgroundImage = `url(${stURL})`;
+  });
+})();
+document.querySelectorAll('.pages button, .hint, .winctl span, .rail button, .side .tabs button, .tree li, .rows .row, .row .open, .tabbar .tab, .tabbar .tools span, .ribbon .agents').forEach(b => {
+  b.classList.add('btn3d');
+  b.addEventListener('pointermove', e => {
+    const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5, wide = r.width > 160 ? .45 : 1;
+    b.style.setProperty('--ry', (x * 18 * wide).toFixed(1) + 'deg'); b.style.setProperty('--rx', (-y * 24).toFixed(1) + 'deg');
+  });
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--rx', '0deg'); b.style.setProperty('--ry', '0deg'); });
+});
+
+/* the strawberry sprite, shared by the HUD mascot and the ribbon minis */
+const BODY = [
+  "................", ".......c........", "....cc.c.cc.....", "...kccccccck....", "..krrcccccrrk...", ".krrrrrrrrrrrk..", ".krhrrrrrrrrrk..",
+  ".krrrrrrrrrrrk..", ".krrrrrrrrrrrk..", ".krrrrrrrrrrrk..", "..krryrrrrrryk..", "...krrrrrrrrk...", "....krryrrrk....", ".....krrrrk.....", "......kkkk......"];
+const BP = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', y:'#F5FF3B', c:'#00F0FF' };
+// ribbon minis: the session mascot dances while working, waves while it needs you; subagent minis dance (HUD-92)
+const DANCE = [[0,0],[1,-1],[0,-2],[-1,-1],[0,0],[0,1]];
+function drawMini(cv, t, kind, idx) {
+  const g = cv.getContext('2d'), px = cv.width >= 32 ? 2 : 1, fr = Math.floor(t / 125 + idx * 2) % 6;
+  let [dx, dy] = kind === 'done' || !animate ? [0, 0] : DANCE[fr];
+  if (kind === 'need') { dx = 0; dy = Math.floor(t / 250) % 2 ? -1 : 0; }
+  g.clearRect(0, 0, cv.width, cv.height);
+  const top = px === 2 ? -2 : 0;
+  BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return;
+    g.fillStyle = kind === 'done' ? (ch === 'r' ? '#6E5A50' : ch === 'c' ? '#A08F84' : '#2A2420') : BP[ch];
+    g.fillRect((x + dx) * px, (y + dy) * px + top, px, px); }));
+  if (kind !== 'done') { g.fillStyle = '#140406'; [4, 10].forEach(ex => g.fillRect((ex + dx) * px, (7 + dy) * px + top, 2 * px, 2 * px)); }
+  if (kind === 'need' && px === 2) { g.fillStyle = BP.y; const up = Math.floor(t / 250) % 2; g.fillRect(14 * px, (up ? 3 : 5) * px + top, px * 2, px * 2); }
+}
+const MINIS = [...document.querySelectorAll('canvas.mini')].map((cv, i) => ({ cv, kind: cv.dataset.session || (cv.dataset.sub === '0' ? 'done' : 'run'), i }));
+
+/* HUD mascot: turns its face to the pointer, blinks, holds a laptop while the session works */
+const berry = document.getElementById('berry'), bx = berry.getContext('2d');
+const PX = LAYOUT === 'c' ? 10 : LAYOUT === 'b' ? 8 : 8, OX = 18, OY = 26;
+berry.width = 16 * PX + OX * 2; berry.height = 15 * PX + OY + 12;
+const LAPTOP = ["cccccccccc", "gggggggggg", "ggggoggggg", "gggggggggg", "bbbbbbbbbb"], LAPC = { c:'#00F0FF', g:'#2A2420', o:'#FF7A3D', b:'#6E5A50' };
+const mouse = { x: -1e4, y: -1e4, last: performance.now() };
+addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.last = performance.now(); });
+const B = { blinkAt: performance.now() + 2200, blinkEnd: 0, hover: false, dy: 0, lx: 0, ly: 0 };
+berry.addEventListener('pointerenter', () => { B.hover = true; B.blinkEnd = performance.now() + 160; });
+berry.addEventListener('pointerleave', () => B.hover = false);
+const box = (x, y, w, h, c) => { bx.fillStyle = c; bx.fillRect(Math.round(OX + x * PX), Math.round(OY + y * PX + B.dy), Math.round(w * PX), Math.round(h * PX)); };
+function drawBerry(t) {
+  if (animate && t > B.blinkAt) { B.blinkEnd = t + 140; B.blinkAt = t + 2500 + Math.random() * 3000; }
+  const blinking = t < B.blinkEnd;
+  B.dy = animate ? Math.round(Math.sin(t / 650) * 2) : 0;
+  let lx = 0, ly = .8;
+  if (mouse.x > -1e3 && B.hover) { const r = berry.getBoundingClientRect(), dx = mouse.x - (r.left + r.width / 2), dy = mouse.y - (r.top + r.height / 2), d = Math.hypot(dx, dy) || 1; lx = dx / d; ly = dy / d; }
+  else if (mouse.x > -1e3) { const r = berry.getBoundingClientRect(), dx = mouse.x - (r.left + r.width / 2), d = Math.abs(dx) || 1; lx = dx / Math.max(d, 240) * .7; }
+  B.lx += (lx - B.lx) * .2; B.ly += (ly - B.ly) * .2;
+  const bodyDx = Math.round(B.lx * 4), leafDx = -Math.round(B.lx * 3), ox = Math.round(B.lx * 2) / 2 + bodyDx / PX, oy = Math.round(B.ly * 2) / 4;
+  bx.clearRect(0, 0, berry.width, berry.height);
+  const ez = B.lx > 0 ? -1 : 1;
+  for (let z = 3; z >= 1; z--) BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return;
+    bx.fillStyle = z === 3 ? 'rgba(0,0,0,.6)' : '#7A001D'; bx.fillRect(OX + x * PX + bodyDx + z * (Math.abs(B.lx) > .3 ? ez : 1), OY + y * PX + B.dy + z, PX, PX); }));
+  BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { bx.fillStyle = BP[ch]; bx.fillRect(Math.round(OX + x * PX + (ch === 'c' ? leafDx : bodyDx)), Math.round(OY + y * PX + B.dy), PX, PX); } }));
+  if (B.hover) { box(3 + ox, 9 + oy, 1, 1, '#C77DFF'); box(11 + ox, 9 + oy, 1, 1, '#C77DFF'); }
+  [4, 10].forEach(ex => { if (blinking) { box(ex + ox, 8 + oy, 2, .5, '#140406'); return; } box(ex + ox, 6 + oy, 2, 3, '#140406'); box(ex + ox + .5, 6.5 + oy, .5, .5, '#FF8A9E'); });
+  box(6.5 + ox, 10 + oy, 3, .5, BP.k);
+  // working: a laptop with a cyan screen, its light on the face
+  bx.fillStyle = 'rgba(0,240,255,.12)'; bx.fillRect(OX + 2 * PX, OY + 5 * PX + B.dy, 11 * PX, 5 * PX);
+  bx.shadowColor = '#00F0FF'; bx.shadowBlur = 10;
+  LAPTOP.forEach((row, y) => [...row].forEach((ch, x) => { if (y > 0 && bx.shadowBlur) bx.shadowBlur = 0; box(3 + x, 10 + y, 1, 1, LAPC[ch]); }));
+  bx.shadowBlur = 0;
+}
+
+/* barrel map */
+(() => {
+  const mw = 288, mh = 180, m = document.createElement('canvas'); m.width = mw; m.height = mh;
+  const g = m.getContext('2d'), img = g.createImageData(mw, mh);
+  for (let y = 0; y < mh; y++) for (let x = 0; x < mw; x++) {
+    const nx = x / mw * 2 - 1, ny = y / mh * 2 - 1, r2 = nx * nx + ny * ny, i = (y * mw + x) * 4;
+    img.data[i] = 128 + 127 * nx * r2 * .5; img.data[i + 1] = 128 + 127 * ny * r2 * .5; img.data[i + 2] = 128; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); document.getElementById('barrelMap').setAttribute('href', m.toDataURL());
+})();
+
+/* HSOS shimmer and the clock */
+const brand = document.querySelector('.brand');
+const shimmer = () => { brand.classList.remove('shimmer'); void brand.offsetWidth; brand.classList.add('shimmer'); };
+brand.addEventListener('pointerenter', shimmer);
+if (animate) (function auto() { setTimeout(() => { shimmer(); auto(); }, 6000 + Math.random() * 9000); })();
+const clock = document.querySelector('.clock'), p2 = n => String(n).padStart(2, '0');
+const tick = () => { const d = new Date(); clock.querySelector('.hh').textContent = p2(d.getHours()); clock.querySelector('.mm').textContent = p2(d.getMinutes()); };
+if (!still) { tick(); setInterval(tick, 1000); }
+
+/* dust and steam, as on the Dashboard. On this page the steam sources are the sessions:
+   each live ribbon breathes cyan steam, the one that needs you breathes red, the focused terminal a little yellow. */
+const BG = (() => {
+  const W = 120, H = 75, SUB = 6, S = W * H, CELL = 1440 / W, RW = W * SUB;
+  const cv = document.getElementById('bg'); cv.width = W * SUB; cv.height = H * SUB;
+  const g = cv.getContext('2d'), img = g.createImageData(W * SUB, H * SUB), px = new Uint32Array(img.data.buffer);
+  const vx = new Float32Array(S), vy = new Float32Array(S);
+  let ir = new Float32Array(S), ig = new Float32Array(S), ib = new Float32Array(S), tr = new Float32Array(S), tg = new Float32Array(S), tb = new Float32Array(S);
+  const glyph = rows => { const o = []; rows.forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') o.push(y * RW + x); })); return o; };
+  const GL = {
+    dot: glyph([".....", ".....", "..#..", ".....", "....."]), colon: glyph([".....", "..#..", ".....", "..#..", "....."]), tick: glyph(["..#..", "..#..", ".....", ".....", "....."]),
+    plus: glyph(["..#..", "..#..", "#####", "..#..", "..#.."]), x: glyph(["#...#", ".#.#.", "..#..", ".#.#.", "#...#"]), slash: glyph(["....#", "...#.", "..#..", ".#...", "#...."]),
+    back: glyph(["#....", ".#...", "..#..", "...#.", "....#"]), pipe: glyph(["..#..", "..#..", "..#..", "..#..", "..#.."]), dash: glyph([".....", ".....", "#####", ".....", "....."]),
+    eq: glyph([".....", "#####", ".....", "#####", "....."]), rbr: glyph([".##..", "..#..", "..#..", "..#..", ".##.."]), lbr: glyph(["..##.", "..#..", "..#..", "..#..", "..##."]),
+    hash: glyph([".#.#.", "#####", ".#.#.", "#####", ".#.#."]), star: glyph(["..#..", "#.#.#", ".###.", "#.#.#", "..#.."]),
+  };
+  const BASE_SET = ['dot','dot','dot','dot','colon','tick','plus','x','eq','rbr','lbr','slash','back','pipe','dash'];
+  const baseG = new Array(S), baseA = new Float32Array(S), rr = new Uint8Array(S), rgc = new Uint8Array(S), rb = new Uint8Array(S), thr = new Float32Array(S);
+  const ramp = [[255,122,61],[255,0,60],[255,0,255],[199,125,255],[0,240,255]], RING = [...ramp, ramp[0]];
+  const pick = () => BASE_SET[(Math.random() * BASE_SET.length) | 0];
+  for (let i = 0; i < S; i++) { const x = i % W, y = (i / W) | 0; thr[i] = (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16; baseG[i] = pick(); }
+  const computeBase = T => {
+    const ou = T * .0009, ov = -T * .0006, oc = T * .0015;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, u = x / W, v = y / H, su = u + ou, sv = v + ov;
+      let n = .5 + .22 * Math.sin(su * 9 + Math.sin(sv * 5) * 2) + .18 * Math.sin(sv * 13 - su * 4 + T * .004) + .12 * Math.sin((su + sv) * 23);
+      n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
+      baseA[i] = n > thr[i] ? .32 : 0;
+      const t = (((u * .6 + v * .4 + oc) % 1) + 1) % 1 * (RING.length - 1), k = t | 0, f = t - k, A = RING[k], Bc = RING[k + 1];
+      rr[i] = A[0] + (Bc[0] - A[0]) * f; rgc[i] = A[1] + (Bc[1] - A[1]) * f; rb[i] = A[2] + (Bc[2] - A[2]) * f;
+    }
+  };
+  computeBase(0);
+  const DUST = Array.from({ length: 420 }, () => { const r = Math.random();
+    return { x: Math.random() * W, y: Math.random() * H, vx: 0, vy: 0, a: .25 + Math.random() * .4, g: r < .55 ? 'dot' : r < .8 ? 'tick' : r < .95 ? 'plus' : 'star',
+      c: Math.random() < .7 ? [205,191,179] : [[255,122,61],[0,240,255],[199,125,255]][(Math.random() * 3) | 0] }; });
+  const near = (cx, cy, rad, fn) => {
+    const x0 = Math.max(1, Math.floor(cx - rad)), x1 = Math.min(W - 2, Math.ceil(cx + rad)), y0 = Math.max(1, Math.floor(cy - rad)), y1 = Math.min(H - 2, Math.ceil(cy + rad));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x - cx, y - cy) / rad; if (d < 1) fn(y * W + x, 1 - d); }
+  };
+  const put = (p0, offs, r, gg, b, a) => { const c = 0xFF000000 | (((9 + (b - 9) * a) | 0) << 16) | (((10 + (gg - 10) * a) | 0) << 8) | ((11 + (r - 11) * a) | 0); for (let k = 0; k < offs.length; k++) px[p0 + offs[k]] = c; };
+  let T = 0;
+  return { CELL,
+    push(cx, cy, dx, dy, rad = 5) { near(cx, cy, rad, (i, f) => { vx[i] += dx * f; vy[i] += dy * f; });
+      for (const p of DUST) { const d = Math.hypot(p.x - cx, p.y - cy); if (d < rad) { const f = 1 - d / rad; p.vx += dx * .12 * f; p.vy += dy * .12 * f; } } },
+    puff(cx, cy) { for (const p of DUST) { const dx = p.x - cx, dy = p.y - cy, d = Math.hypot(dx, dy) || 1; if (d < 9) { const f = (1 - d / 9) * .9; p.vx += dx / d * f; p.vy += dy / d * f - .1; } }
+      near(cx, cy, 6, (i, f) => { ir[i] += 225 * f; ig[i] += 215 * f; ib[i] += 255 * f; vy[i] -= .3 * f; }); },
+    ink(cx, cy, col, rad, amt) { near(cx, cy, rad, (i, f) => { const a = amt * f; ir[i] += col[0] * a; ig[i] += col[1] * a; ib[i] += col[2] * a; }); },
+    step() {
+      T++; if (T % 2 === 0) computeBase(T);
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x;
+        const tx = Math.sin(y * .21 + T * .011) * .5 + Math.sin((x * .9 + y) * .05 - T * .007) * .5, ty = Math.cos(x * .17 - T * .009) * .5 + Math.cos((x - y * .8) * .06 + T * .006) * .5;
+        vx[i] = vx[i] * .92 + tx * .01; vy[i] = vy[i] * .92 + ty * .01 - .004;
+        let sx = Math.max(0, Math.min(W - 1.001, x - vx[i] * 1.2)), sy = Math.max(0, Math.min(H - 1.001, y - vy[i] * 1.2 + .18));
+        const x0 = sx | 0, y0 = sy | 0, fx = sx - x0, fy = sy - y0, j = y0 * W + x0, w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+        tr[i] = (ir[j] * w00 + ir[j + 1] * w10 + ir[j + W] * w01 + ir[j + W + 1] * w11) * .935;
+        tg[i] = (ig[j] * w00 + ig[j + 1] * w10 + ig[j + W] * w01 + ig[j + W + 1] * w11) * .935;
+        tb[i] = (ib[j] * w00 + ib[j + 1] * w10 + ib[j + W] * w01 + ib[j + W + 1] * w11) * .935;
+      }
+      [ir, tr] = [tr, ir]; [ig, tg] = [tg, ig]; [ib, tb] = [tb, ib];
+      for (let k = 0; k < 40; k++) baseG[(Math.random() * S) | 0] = pick();
+      for (const p of DUST) { const i = Math.min(S - 1, Math.max(0, (p.y | 0) * W + (p.x | 0)));
+        p.vx = p.vx * .94 + vx[i] * .06 + (Math.random() - .5) * .006; p.vy = p.vy * .94 + vy[i] * .06 + (Math.random() - .5) * .006 - .0012;
+        p.x += p.vx; p.y += p.vy; if (p.x < 0) p.x += W; if (p.x >= W) p.x -= W; if (p.y < 0) p.y += H; if (p.y >= H) p.y -= H; }
+    },
+    draw() {
+      px.fill(0xFF090A0B);
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x, p0 = y * SUB * RW + x * SUB, m = Math.max(ir[i], ig[i], ib[i]), lum = m / 255;
+        if (lum > thr[i] * .6) {
+          const sp = Math.hypot(vx[i], vy[i]); let gname;
+          if (sp > .22) { const an = Math.atan2(vy[i], vx[i]), qd = ((Math.round(an / (Math.PI / 4)) % 4) + 4) % 4; gname = ['dash', 'back', 'pipe', 'slash'][qd]; }
+          else gname = lum < .3 ? 'dot' : lum < .5 ? (x + y) % 2 ? 'plus' : 'colon' : lum < .8 ? (x + y) % 2 ? 'x' : 'eq' : 'hash';
+          const k = Math.min(1, .4 + lum) / (m || 1); put(p0, GL[gname], ir[i] * k * 255, ig[i] * k * 255, ib[i] * k * 255, 1);
+        } else if (baseA[i] > 0) put(p0, GL[baseG[i]], rr[i], rgc[i], rb[i], baseA[i]);
+      }
+      for (const p of DUST) { const p0 = ((p.y * SUB) | 0) * RW + ((p.x * SUB) | 0); if (p0 >= 0 && p0 < px.length - RW * 5 - 5) put(p0, GL[p.g], p.c[0], p.c[1], p.c[2], p.a); }
+      g.putImageData(img, 0, 0);
+    } };
+})();
+// steam sources: the ribbon of each session and the HUD mascot
+const SOURCES = [
+  { el: document.querySelector('#t1 .ribbon'), col: [0,240,255], amt: .05 },
+  { el: document.querySelector('#t2 .ribbon'), col: [255,0,60], amt: .06 },
+  { el: document.querySelector('#t1'), col: [245,255,59], amt: .025, edge: 'bottom' },
+  { el: berry, col: [255,0,60], amt: .035 },
+];
+function pourSteam() {
+  const sr = screen.getBoundingClientRect(), k = 1440 / sr.width;
+  SOURCES.forEach(s => {
+    const r = s.el.getBoundingClientRect(); if (!r.width) return;
+    const y = ((s.edge === 'bottom' ? r.bottom : r.top) - sr.top) * k / BG.CELL;
+    for (let i = 0; i < 3; i++) BG.ink(((r.left - sr.left) * k + Math.random() * r.width * k) / BG.CELL, y, s.col, 3.2, s.amt);
+  });
+}
+let lastPX = -1, lastPY = -1;
+addEventListener('pointermove', e => { if (!animate) return; const cx = e.clientX / BG.CELL, cy = e.clientY / BG.CELL; if (lastPX >= 0) BG.push(cx, cy, (cx - lastPX) * .35, (cy - lastPY) * .35, 5); lastPX = cx; lastPY = cy; });
+addEventListener('pointerdown', e => { if (!animate || e.target.closest('.w, .term, button, #berry, .titlebar, .rail')) return; BG.puff(e.clientX / BG.CELL, e.clientY / BG.CELL); });
+
+/* the working spinner glyph cycles; the subagent clocks tick */
+const SPIN = ['✻', '✶', '✷', '✸', '✹', '✺'];
+const spinEl = document.querySelector('.out .spin'), times = [...document.querySelectorAll('.subs .sub:not(.done) .time')];
+let lastTick = 0;
+let last = 0;
+function frame(t) {
+  requestAnimationFrame(frame);
+  if (document.hidden || t - last < 33) return; last = t;
+  pourSteam(); BG.step(); BG.draw(); drawBerry(t); MINIS.forEach(m => drawMini(m.cv, t, m.kind, m.i));
+  if (spinEl) spinEl.textContent = SPIN[Math.floor(t / 120) % SPIN.length] + ' ';
+  if (t - lastTick > 1000) { lastTick = t; times.forEach(el => { const [mm, ss] = el.textContent.split(':').map(Number), s = mm * 60 + ss + 1; el.textContent = `${Math.floor(s / 60)}:${p2(s % 60)}`; }); }
+}
+document.fonts.ready.then(() => {
+  trimOut();
+  if (animate) requestAnimationFrame(frame);
+  else { for (let i = 0; i < 70; i++) { pourSteam(); BG.step(); } BG.draw(); drawBerry(performance.now()); MINIS.forEach(m => drawMini(m.cv, 0, m.kind, m.i)); }
+  document.title = 'ready';
+});
+</script>
+</body>
+</html>

@@ -75,3 +75,14 @@ Owner: boxes and background looked alike; add more pixel-art components; the bac
 - Boxes: corner brackets, an 8 by 8 pixel icon per box (terminal, stack, battery, chip), a status light (cyan blinking for live, red blinking for needs you, yellow for values), a dithered strip under the title, a double inner frame and a faint pixel texture.
 - Buttons (page switcher, quick bar, edit toolbar, palette hint, window controls): on hover they lift 2 to 3 px, tilt toward the pointer (up to 9 and 12 degrees), brighten and grow a stepped pixel edge below; on press they sink 1 px, shrink to 0.97, lose the edge and flash brighter. Yellow buttons get a yellow edge and glow. Only `transform` and `filter` animate; reduced motion keeps the brightness and drops the movement.
 - Session rows: each row in the Sessions box is a button with the same lift, tilt, brighten and press; wide rows tilt about half as much. The needs-you row gets a red edge and red glow; its `Open` is a real small button that inverts on hover.
+
+## Code page, round 1 (2026-11-18): three layouts
+
+Owner approved the Phosphor Dashboard and asked to carry on with the Code page. The Dashboard's look is kept; its layout is not binding, so the Code page is shown as three layouts in one live mockup, `design-round/code/phosphor-code.html?layout=a|b|c`; open `design-round/code/compare.html`.
+
+All three show the same moment: the left terminal is focused (yellow frame) with a working session, two running subagents and one finished, and its ribbon expanded (HUD-82); the right terminal's session needs you for a Bash approval (red frame, red ribbon, collapsed). The background is the Dashboard's dust and steam, but the steam sources are the sessions: each live ribbon breathes cyan steam, the one that needs you breathes red, and the focused terminal a little yellow. Ribbon minis dance while working and hop while they need you (HUD-90, HUD-92).
+
+- A, classic dock: rail, Files, two terminals side by side, HUD panel. Terminals are about 400 px wide, so the ribbon drops folder, repo and mode (HUD-81) and the chat name is cut.
+- B, stage: the focused terminal at about 860 px with the full ribbon; the second terminal beside it at the top; a compact HUD under it. Files folds into the rail.
+- C, open air: Files and the HUD float without boxes, the strawberry top right as on the Dashboard; terminals stacked full width, framed by corner brackets only, at 0.74 opacity.
+- Open points for the spec: the ribbon is drawn 32 px high so the 16 by 16 mascot sits at 2x (HUD-80 says 28 px and HUD-81 a 20 px mascot); a terminal under 0.8 opacity (layout C) needs `surface.text.minAlpha` set at or below it (UI-31); layout C has no activity rail, its side views move to a tab row above Files (layout.md, Areas).
