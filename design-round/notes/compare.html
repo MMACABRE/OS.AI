@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes Page Layouts</title>
+<style>
+  :root { color-scheme: dark; --bg: #0E0D0C; --ink: #ECE8E1; --muted: #A39C92; --line: #2B2926; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 'Segoe UI', sans-serif; }
+  main { padding: 24px 16px 64px; max-width: 1500px; margin: 0 auto; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 28px; max-width: 75ch; }
+  section { margin-bottom: 48px; }
+  h2 { font-size: 20px; margin: 0 0 4px; }
+  section > p { color: var(--muted); margin: 0 0 12px; max-width: 85ch; }
+  figure { margin: 0; }
+  figure img { width: 100%; display: block; border: 1px solid var(--line); }
+  a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Notes page layouts, Phosphor</h1>
+  <p class="lead">Three ways to lay out the Notes page with the Code page's title bar and the small strawberry, here reading. Every option shows the same moment: <code>hud.md</code> is open, <code>motion.md</code> is selected in the graph, the pointer rests on <code>layout.md</code>, and the agent view is on. Click a still to open it live; scroll on the graph to zoom, drag to pan.</p>
+
+  <section>
+    <h2>A. Map and page</h2>
+    <p>The graph floats free on the left, as on the Dashboard, with its toolbar and the agent view line above it, the details card for the selected note in its lower corner and the hover preview beside the pointer. The open note is a framed sheet on the right with its backlinks at the foot.</p>
+    <figure><a href="phosphor-notes.html?layout=a"><img src="shots/notes-a.png" alt="Layout A: graph on the left, note sheet on the right"></a></figure>
+  </section>
+
+  <section>
+    <h2>B. Reader</h2>
+    <p>Reading first. A notes list on the left, the note as a wide centre column, and on the right the local graph around the open note (depth 2) with the backlinks under it. The full graph is one press away.</p>
+    <figure><a href="phosphor-notes.html?layout=b"><img src="shots/notes-b.png" alt="Layout B: notes list, note in the centre, local graph and backlinks on the right"></a></figure>
+  </section>
+
+  <section>
+    <h2>C. Open air</h2>
+    <p>Matches the Code page you chose. The graph fills the whole page and runs on behind the note, which floats on the right framed only by corner brackets and see-through, so the graph's light shows behind the text. The toolbar, details card and hover preview float over the graph.</p>
+    <figure><a href="phosphor-notes.html?layout=c"><img src="shots/notes-c.png" alt="Layout C: the graph fills the page, the note floats over it"></a></figure>
+  </section>
+</main>
+</body>
+</html>

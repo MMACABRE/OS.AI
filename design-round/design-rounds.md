@@ -97,3 +97,14 @@ Owner liked layout C best and asked for a smaller strawberry, more room for tool
 - Open points for the spec: the repo button in the title bar is new (layout.md says the title bar holds the project switcher and the branch); `Ctrl+K` as the key for `hud.searchSkills` is new and clashes with the `Ctrl+K Ctrl+T` chord, so the spec author picks a free key.
 
 - Owner approved layout C with these changes (2026-11-18). It is the Code page for the spec author; layouts A and B stay in the mockup for history.
+
+## Notes page, round 1 (2026-11-18): three layouts
+
+Owner asked for the next part after approving the Code page. One live mockup, `design-round/notes/phosphor-notes.html?layout=a|b|c`; open `design-round/notes/compare.html`. The title bar matches the Code page (repo button included); the strawberry is small and reads a book; the graph's nodes are the steam sources, as on the Dashboard.
+
+Every option shows the same moment: `hud.md` open in the notes dock (WS-43) as a Preview with wiki links in lavender and an unresolved one dotted (GRAPH-32); `motion.md` selected with a yellow pixel bracket and its details card (GRAPH-24); the pointer on `layout.md` with its links lit cyan and the hover preview card (GRAPH-44); the agent view on, CLAUDE.md ringed as a start file and the summary line (GRAPH-42, GRAPH-43); the toolbar of GRAPH-26.
+
+- A, map and page: the graph free on the left, the note in a yellow-framed sheet on the right with its backlinks at the foot.
+- B, reader: notes list on the left, the note as a wide centre column, the local graph (GRAPH-30, depth 2, not expanded through CLAUDE.md) and backlinks on the right.
+- C, open air: matches Code page C. The graph fills the page and runs on behind the see-through note (0.78 opacity, corner brackets).
+- Open points for the spec: in C, graph labels under the note show through its text; the graph should fade labels behind the sheet or the sheet needs a higher opacity. The notes list in B is not a spec'd panel (Files covers it on the Code page). The selection bracket colour (yellow, the focus colour) is new to GRAPH-24.
