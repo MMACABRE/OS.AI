@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import type { Bus } from '@hsos/contracts/bus';
+import { shellChannels } from '@hsos/contracts/channels/shell';
 import type { ServiceId } from '@hsos/contracts/ids';
 import { loadModules } from '../modules/shell/loader/load-modules';
 import { createUiContext, createUiRegistry } from '../modules/shell/loader/ui-context';
@@ -77,7 +78,11 @@ if (root !== null) {
   if (new URLSearchParams(window.location.search).get('e2e') !== '1')
     checkPorts((text) => view.render(<p>{text}</p>));
   const bus = preload === null ? null : createRendererBus(preload, systemClock, log);
-  if (bus !== null) loadUiModules(bus);
+  if (bus !== null) {
+    loadUiModules(bus);
+    // SHELL-5: the window shows now; the workspace restore (WS cards) will move this after it.
+    void bus.call(shellChannels.uiReady, {});
+  }
   if (bus !== null && new URLSearchParams(window.location.search).get('e2e') === '1') {
     const pingAll = async () => {
       const replies = await Promise.all(PING_TARGETS.map((service) => bus.call(pingChannel(service), {})));

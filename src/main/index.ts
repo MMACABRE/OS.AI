@@ -1,6 +1,6 @@
 import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, MessageChannelMain, shell } from 'electron';
+import { app, clipboard, dialog, ipcMain, MessageChannelMain, Notification, shell } from 'electron';
+import type { BrowserWindow } from 'electron';
 import type { EpochMs } from '@hsos/contracts/ids';
 import type { Unsubscribe } from '@hsos/contracts/bus';
 import { diagnosticsChannels } from '@hsos/contracts/channels/diagnostics';
@@ -26,6 +26,8 @@ import type { ProcessMetric } from './module-list';
 import { utilityProcessLauncher } from './supervisor/service-process';
 import type { ServiceName, ServiceProcess } from './supervisor/service-process';
 import { createSupervisor } from './supervisor/supervisor';
+import { registerSystemChannels } from './system/system-channels';
+import { createMainWindow, loadRenderer } from './window/main-window';
 
 const SERVICES: readonly ServiceName[] = ['pty-host', 'workspace-service', 'link-service'];
 const RENDERER_LOSS_WINDOW_MS = 60_000;
@@ -91,27 +93,6 @@ function loadMainModules(): void {
     const failure = await shell.openPath(paths.logsDir);
     return failure === '' ? ok({}) : err('INTERNAL', 'The log folder could not be opened.', failure);
   });
-}
-
-/** Opens the one 1280 by 800 window that loads the renderer. */
-function createWindow(): BrowserWindow {
-  const created = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    webPreferences: {
-      preload: join(import.meta.dirname, '../preload/index.cjs'),
-      sandbox: true,
-      additionalArguments: [
-        `--hsos-version=${app.getVersion()}`,
-        `--hsos-packaged=${app.isPackaged ? '1' : '0'}`,
-      ],
-    },
-  });
-  const search = process.env['HSOS_E2E'] === '1' ? '?e2e=1' : '';
-  const devUrl = process.env['ELECTRON_RENDERER_URL'];
-  if (devUrl !== undefined) void created.loadURL(`${devUrl}${search}`);
-  else void created.loadFile(join(import.meta.dirname, '../renderer/index.html'), { search });
-  return created;
 }
 
 /** Gives the renderer and a service the two ends of a fresh message channel (§2.2, SHELL-11). */
@@ -200,17 +181,49 @@ function watchRenderer(target: BrowserWindow): void {
   contents.on('responsive', () => cancelUnresponsive());
 }
 
+/** Electron's pieces for the system channels (card 015). */
+function registerSystem(): void {
+  registerSystemChannels({
+    bus,
+    log,
+    shell,
+    window: () => window,
+    pickFolder: async (title) => {
+      const options = { title, properties: ['openDirectory' as const, 'createDirectory' as const] };
+      const result =
+        window === null ? await dialog.showOpenDialog(options) : await dialog.showOpenDialog(window, options);
+      return result.canceled ? null : (result.filePaths[0] ?? null);
+    },
+    writeClipboard: (text) => clipboard.writeText(text),
+    showNotification: (title, body, onClick) => {
+      const notification = new Notification({ title, body });
+      notification.on('click', onClick);
+      notification.show();
+    },
+  });
+}
+
+// SHELL-1: one instance; a second launch focuses the first window and exits.
+if (!app.requestSingleInstanceLock()) app.exit(0);
+app.on('second-instance', () => {
+  if (window === null) return;
+  if (window.isMinimized()) window.restore();
+  window.focus();
+});
+
 // Start order of architecture §6: diagnostics and main's modules, the services, then the window.
-void app.whenReady().then(() => {
+void app.whenReady().then(async () => {
   loadMainModules();
+  registerSystem();
   supervisor.start();
-  const created = createWindow();
+  const created = await createMainWindow({ appStateFile: paths.appStateFile, bus, clock: systemClock, log });
   window = created;
   ipcMain.on('hsos-bus', (event, message: unknown) => {
     if (event.sender === created.webContents && isEnvelope(message)) broker.receive(message, 'ui');
   });
   broker.connect('ui', { send: (envelope) => created.webContents.send('hsos-bus', envelope) });
   watchRenderer(created);
+  loadRenderer(created);
 });
 
 // Stop the services before quitting (SHELL-7, architecture §7 step 4).

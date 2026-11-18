@@ -77,3 +77,27 @@ Code: `src/modules/shell/loader/load-modules.ts` (`loadModules`, `ModuleEntry`),
 | extension point | a contribution store                                         | two modules contribute `'a'` then `'b'` to one point | `contributions(point)` returns `['a', 'b']`                                                                             |
 
 Also worth a test: `createUiRegistry` throws on a second panel, command or status item with the same id; `createDataPaths('C:\cfg', 'C:\loc').workspaceFile(id)` is `C:\cfg\workspaces\<id>.json`; `registerSettings` returns the section defaults until card 016.
+
+## 015 Window
+
+Code: `src/main/window/bounds.ts` (`restorePlacement`, `centredDefault`, `readPlacement`, `writePlacement`), `src/main/window/main-window.ts` (`createMainWindow`, `loadRenderer`), `src/main/system/system-channels.ts` (`registerSystemChannels`, `OPENABLE_EXTENSIONS`, `createLaunchToken`), `src/main/index.ts` (single-instance lock). Feature F-005.
+
+`tests/shell/bounds.test.ts`:
+
+| Rule    | Given                             | When                    | Then                                                                  |
+| ------- | --------------------------------- | ----------------------- | --------------------------------------------------------------------- |
+| SHELL-6 | saved bounds outside all displays | `restorePlacement` runs | the result is 1280 by 800, centred on the primary display's work area |
+
+Also: saved bounds on a second display are kept; `writePlacement` keeps other keys of `app.json`, writes `app.json.bak`, and refuses a file whose `version` is higher than 1.
+
+`tests/shell/system-channels.test.ts` (a `FakeBus` or a real bus on a loopback transport, fakes for `ShellApi` and `WindowApi`):
+
+| Rule     | Given                           | When                                                               | Then                                                                                            |
+| -------- | ------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| SHELL-21 | the fake shell                  | `openExternal` with `http://x.test` and with `file:///C:/x`        | both return `BAD_REQUEST`; `https://x.test` calls the fake's `openExternal`                     |
+| SHELL-26 | a token passed as `launchToken` | `getLaunchToken` called with `meta.from` `ui`, then `link-service` | `ui` gets `BAD_REQUEST`; `link-service` gets the token; the token never appears in a log record |
+| SHELL-27 | the fake shell                  | `openPath` with `C:\a\run.exe`, `C:\a\x.ps1`, `C:\a\doc.PDF`       | the first two return `BAD_REQUEST` and the fake is not called; the PDF opens                    |
+
+Also: SHELL-22 a failing `trashItem` returns `FILE_WRITE_FAILED`; SHELL-23 `notify` does nothing while the window is focused and, when clicked, focuses and emits `workspace.focusPanelRequested`; SHELL-30 `openFolder` refuses a file.
+
+`tests/e2e/window.e2e.ts`: SHELL-1 (a second launch exits and the first window gets focus; one window exists), SHELL-24 (`window.location.href = 'https://x.test'` and `window.open(...)` from the page leave the URL unchanged and open no window). F-005 also needs: move the window, restart, it reopens in the same place.
