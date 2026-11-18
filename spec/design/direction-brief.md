@@ -9,7 +9,7 @@ These are preferences to explore, not rules. No direction overrides another unti
 - Cyberpunk mixed with pixel art. Minimal, not busy.
 - A home screen like Samsung One UI: widgets that resize and snap to a grid, pages to swipe between.
 - A lot of motion in widgets, buttons and page changes, with seamless transitions between the Dashboard, the Code page and the Notes page (motion is a hard rule; see `motion.md`).
-- An animated background that runs everywhere, terminal included, seen through glass surfaces whose transparency differs from part to part.
+- An animated background behind everything. Surfaces sit in front of it as glass, each with its own transparency. The terminal is one of them: slightly see-through instead of plain black, with the animation visible behind it, never in front of its text.
 - A small orange pixel-art character that dances and reacts to what Claude is doing.
 - The current Graphite direction (`visual-direction.md`) stays a candidate. It is not replaced unless the owner picks another.
 

@@ -157,6 +157,6 @@ A service that misses its `ready` deadline is restarted once. If it fails again 
 | Background scene (UI-32) | under 3 % of one CPU core, at most 30 frames per second, 0 frames while minimised |
 | Page transition (MOT-5) | 60 frames per second with 4 terminals open, no frame over 33 ms |
 | Key press to terminal echo during a page transition | 33 ms median |
-| Terminal output throughput over the background with glass | 5 MB per second, as without it |
+| Terminal output throughput with a see-through terminal and the background running behind it | 5 MB per second, as with an opaque terminal |
 
 The budgets are measured by tests in stage 6. They are targets the implementer reports against, and a miss is recorded in `PROGRESS.md`.

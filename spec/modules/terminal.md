@@ -111,7 +111,7 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
 ### View
 
 - **TERM-75.** A terminal panel has a header slot above its rows, filled through the extension point `terminalHeader`. A contribution's `render(terminalId)` returns content or null; the first non-null one is drawn. The header's height comes from the content; when it changes, the terminal is resized (TERM-31 path) so the header never covers a row. The terminal module knows nothing about what the header shows.
-- **TERM-76.** The terminal's background is `color.term.background` at the opacity of `surface.terminal.alpha` (UI-31), drawn by xterm with `allowTransparency`, so the background layer shows through. Text, cursor and selection colours stay fully opaque, and terminal text never animates (MOT-10).
+- **TERM-76.** The terminal itself is slightly see-through instead of plain black: its background is `color.term.background` at the opacity of `surface.terminal.alpha` (UI-31), drawn by xterm with `allowTransparency`, and the animated background (UI-30) runs on the layer behind it and shows through that tint. Nothing is ever drawn in front of the terminal's text. Text, cursor and selection colours stay fully opaque, and terminal text never animates (MOT-10).
 
 - **TERM-50.** On each workspace save and at stop, the panel serialises its scrollback with the serialize addon and sends `storeScrollback`. `pty-host` writes it to `terminalRestoreFile` atomically.
 - **TERM-51.** xterm is created with the font, cursor and scrollback settings and a colour theme built from the `color.term.*` tokens. A settings or theme change is applied to open terminals at once, without restarting shells.
