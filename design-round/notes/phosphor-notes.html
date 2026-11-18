@@ -235,6 +235,15 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 [data-still="1"] .brand { animation: none; filter: drop-shadow(0 0 8px rgba(255,0,60,.75)); }
 [data-still="1"] .led, [data-still="1"] .clock .colon { animation: none; }
 @media (prefers-reduced-motion: reduce) { .brand { animation: none; } .led, .clock .colon { animation: none; } .btn3d, .btn3d:hover, .btn3d:active { transform: none; } }
+
+/* modes for the motion page */
+[data-mode="content"] #bg, [data-mode="content"] .crt, [data-mode="chrome"] #bg, [data-mode="chrome"] .crt { display: none; }
+[data-mode="content"], [data-mode="chrome"] { background: transparent !important; }
+[data-mode="content"] .titlebar, [data-mode="content"] .statusbar { visibility: hidden; }
+[data-mode="chrome"] .app > main, [data-mode="chrome"] #graph, [data-mode="chrome"] .hover-card { visibility: hidden; }
+[data-mode="bg"] .app, [data-mode="bg"] #graph, [data-mode="bg"] .crt, [data-mode="bg"] .dim, [data-mode="bg"] .dialog { display: none; }
+.pmark { position: absolute; z-index: 0; border-radius: 6px; background: #F5FF3B; box-shadow: 2px 3px 0 #8A2E0E, 0 0 8px rgba(245,255,59,.45); pointer-events: none; }
+.pages { position: relative; } .pages button { position: relative; z-index: 1; }
 </style>
 </head>
 <body>
@@ -390,6 +399,25 @@ background runs behind all three…</div>
 </div>
 
 <script>
+/* modes for the motion page */
+const MODE = new URLSearchParams(location.search).get('mode');
+if (MODE) { document.getElementById('screen').dataset.mode = MODE; }
+if (MODE === 'content' || MODE === 'chrome') { document.documentElement.style.background = 'transparent'; document.body.style.background = 'transparent'; }
+if (MODE === 'chrome') addEventListener('message', e => {
+  const to = e.data && e.data.page; if (to == null) return;
+  const btns = [...document.querySelectorAll('.pages button')], from = btns.findIndex(b => b.hasAttribute('aria-current'));
+  if (from === to) return;
+  const nav = document.querySelector('.pages'), nr = nav.getBoundingClientRect(), a = btns[from].getBoundingClientRect(), b = btns[to].getBoundingClientRect();
+  const m = document.createElement('div'); m.className = 'pmark';
+  Object.assign(m.style, { left: (a.left - nr.left) + 'px', top: (a.top - nr.top) + 'px', width: a.width + 'px', height: a.height + 'px' });
+  nav.prepend(m); btns[from].removeAttribute('aria-current'); btns[from].style.color = '#0B0A09';
+  const dur = e.data.reduced ? 0 : (e.data.ms || 420);
+  m.animate([{ transform: 'translateX(0) scaleX(1)', transformOrigin: 'left' },
+             { transform: `translateX(${b.left - a.left}px) scaleX(${b.width / a.width})`, transformOrigin: 'left' }],
+            { duration: dur, easing: 'cubic-bezier(0.2, 0, 0, 1)', fill: 'forwards' }).onfinish = () => { btns[to].setAttribute('aria-current', 'page'); btns[to].style.color = ''; m.remove(); };
+  setTimeout(() => { btns[from].style.color = ''; }, dur * .4);
+});
+
 const q = new URLSearchParams(location.search), screen = document.getElementById('screen');
 const LAYOUT = ['a','b','c'].includes(q.get('layout')) ? q.get('layout') : 'a';
 const STATE = ['empty','loading','error'].includes(q.get('state')) ? q.get('state') : null;
@@ -613,6 +641,7 @@ const BG = (() => {
       for (const p of DUST) { const p0 = ((p.y * SUB) | 0) * RW + ((p.x * SUB) | 0); if (p0 >= 0 && p0 < px.length - RW * 5 - 5) put(p0, GL[p.g], p.c[0], p.c[1], p.c[2], p.a); }
       g.putImageData(img, 0, 0); } };
 })();
+if (MODE === 'content' || MODE === 'chrome') { BG.step = BG.draw = () => {}; }
 let lastPX = -1, lastPY = -1;
 addEventListener('pointermove', e => { if (!animate) return; const cx = e.clientX / BG.CELL, cy = e.clientY / BG.CELL; if (lastPX >= 0) BG.push(cx, cy, (cx - lastPX) * .35, (cy - lastPY) * .35, 5); lastPX = cx; lastPY = cy; });
 

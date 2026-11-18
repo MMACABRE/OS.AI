@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phosphor Motion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jersey+10&family=VT323&display=block" rel="stylesheet">
+<style>
+/* Motion previews for the Phosphor direction (spec/design/motion.md). Throwaway design page.
+   The page stage stacks the real mockups: one background that never moves (MOT-7), three page contents
+   that slide (MOT-5), and the bars, whose page switcher marker slides to the new page (MOT-6). */
+:root { color-scheme: dark;
+  --bg:#0B0A09; --panel:#121010; --raised:#1C1816; --frame:#B4512A; --line:#3A2A22;
+  --terra:#FF7A3D; --terra-deep:#8A2E0E; --yellow:#F5FF3B; --red:#FF003C; --cyan:#00F0FF; --lav:#C77DFF;
+  --text:#F2E8DE; --text-2:#CDBFB3; --muted:#A08F84;
+  --instant:80ms; --quick:120ms; --normal:180ms; --slow:260ms; --page:420ms;
+  --ease-out:cubic-bezier(0.2,0,0,1); --ease-in:cubic-bezier(0.4,0,1,1); --spring:cubic-bezier(0.34,1.4,0.64,1);
+  --g-yel:0 0 8px rgba(245,255,59,.45); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font: 19px/1.3 'VT323', monospace; }
+main { max-width: 1480px; margin: 0 auto; padding: 22px 16px 64px; display: grid; gap: 26px; }
+h1 { font: 400 56px/1 'Jersey 10', sans-serif; color: var(--red); text-shadow: 3px 0 0 #7A001D, -2px 0 0 rgba(0,240,255,.5), 0 0 12px rgba(255,0,60,.6); }
+h2 { font-weight: 400; font-size: 20px; color: var(--terra); letter-spacing: .05em; text-transform: uppercase; text-shadow: 0 0 6px rgba(255,122,61,.55); }
+p { color: var(--text-2); max-width: 90ch; }
+code { color: var(--cyan); font-family: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctl button, .demo button.b { padding: 0 12px; height: 34px; font-size: 20px; border: 2px solid var(--frame); border-radius: 6px; background: rgba(18,16,16,.9); box-shadow: 2px 3px 0 #2A1A14; }
+.ctl button[aria-pressed="true"], .ctl button.on { background: var(--yellow); color: #0B0A09; border-color: var(--yellow); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.ctl .sep { width: 2px; height: 26px; background: var(--line); margin: 0 6px; }
+.ctl .hint { color: var(--muted); font-size: 17px; }
+
+/* the page stage: 1440 by 900, scaled to fit */
+.stage-wrap { position: relative; width: 100%; aspect-ratio: 1440 / 900; overflow: hidden; border-radius: 14px; background: #000; }
+.stage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+.stage iframe { position: absolute; inset: 0; width: 1440px; height: 900px; border: 0; background: transparent; }
+.stage iframe.page { visibility: hidden; }
+.stage iframe.page.on { visibility: visible; }
+.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
+.crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,.55) 100%); }
+.crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,240,230,.06); }
+
+/* small demos */
+.demos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.demo { position: relative; background: var(--panel); border: 2px solid var(--frame); border-radius: 10px; padding: 14px 16px 16px; display: grid; gap: 10px; align-content: start; min-height: 330px; overflow: hidden; }
+.demo .sub { color: var(--muted); font-size: 16px; }
+.field { position: relative; background: #0E0C0B; border: 2px solid var(--line); border-radius: 8px; height: 250px; overflow: hidden;
+  background-image: radial-gradient(circle, #2A1E18 1.4px, transparent 1.6px); background-size: 24px 24px; }
+
+/* widget resize (MOT-1: a size change is shown with transform; the final layout is applied at once) */
+.wgrid { position: absolute; inset: 14px; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 14px; }
+.wid { position: relative; border: 2px solid var(--frame); border-radius: 10px; background: rgba(18,16,16,.92); padding: 10px 12px; transform-origin: 0 0; display: grid; align-content: start; gap: 6px; }
+.wid h3 { font-weight: 400; font-size: 17px; color: var(--terra); letter-spacing: .05em; }
+.wid .num { font-size: 32px; color: var(--yellow); text-shadow: var(--g-yel); line-height: 1; }
+.wid.sel { outline: 2px dashed var(--terra); outline-offset: 4px; }
+.wid .hdl { position: absolute; right: -8px; bottom: -8px; width: 10px; height: 10px; background: var(--cyan); border: 2px solid var(--bg); border-radius: 2px; box-shadow: 0 0 6px rgba(0,240,255,.7); }
+.cells { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; height: 12px; }
+.cells i { background: var(--raised); border-radius: 1px; } .cells i.f { background: var(--red); box-shadow: 0 0 6px rgba(255,0,60,.7); }
+
+/* button press (MOT-2) */
+.btnrow { position: absolute; inset: 0; display: flex; gap: 22px; align-items: center; justify-content: center; }
+.press { padding: 6px 22px; font-size: 26px; border: 2px solid var(--frame); border-radius: 6px; background: rgba(18,16,16,.9); box-shadow: 2px 3px 0 #2A1A14;
+  transition: transform var(--quick) var(--spring), filter var(--instant) ease-out; }
+.press.pri { background: var(--yellow); color: #0B0A09; border-color: var(--yellow); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.press.down, .press:active { transform: translate(1px, 1px) scale(.96); filter: brightness(1.6) drop-shadow(0 0 12px rgba(245,255,59,.7)); transition: transform var(--instant) var(--ease-out), filter var(--instant) ease-out; }
+.press.hov { transform: translate(-2px, -3px); filter: brightness(1.25) drop-shadow(0 0 6px rgba(255,122,61,.5)); }
+
+/* menu (MOT-4, MOT-3) */
+.mbtn { position: absolute; left: 24px; top: 20px; }
+.menu { position: absolute; left: 24px; top: 62px; width: 260px; padding: 6px; background: rgba(34,29,26,.97); border: 2px solid var(--frame); border-radius: 8px; box-shadow: 4px 5px 0 #120C0A;
+  transform-origin: 0 0; opacity: 0; transform: scale(.96); pointer-events: none; transition: opacity var(--quick) var(--ease-in), transform var(--quick) var(--ease-in); }
+.menu.open { opacity: 1; transform: scale(1); pointer-events: auto; transition: opacity var(--quick) var(--ease-out), transform var(--quick) var(--ease-out); }
+.menu .it { display: flex; justify-content: space-between; padding: 1px 10px; border-radius: 4px; font-size: 19px; opacity: 0; transform: translateY(-4px); }
+.menu.open .it { opacity: 1; transform: none; transition: opacity var(--normal) var(--ease-out), transform var(--normal) var(--ease-out); }
+.menu .it.chk { color: var(--yellow); } .menu .it .k { color: var(--muted); }
+.menu .it.hl { background: var(--yellow); color: #0B0A09; }
+.menu hr { border: 0; border-top: 2px dashed var(--line); margin: 4px 6px; }
+
+/* dialog (MOT-4) */
+.dim { position: absolute; inset: 0; background: rgba(5,4,4,.62); opacity: 0; transition: opacity var(--quick) var(--ease-in); }
+.dlg { position: absolute; left: 50%; top: 50%; width: 330px; margin: -84px 0 0 -165px; padding: 14px 16px; display: grid; gap: 10px;
+  background: rgba(34,29,26,.97); border: 2px solid var(--yellow); border-radius: 12px; box-shadow: 0 0 22px rgba(245,255,59,.22), 6px 8px 0 #120C0A;
+  opacity: 0; transform: scale(.94); transition: opacity var(--quick) var(--ease-in), transform var(--quick) var(--ease-in); }
+.dlg .t { font: 400 28px/1 'Jersey 10', sans-serif; color: var(--terra); }
+.dlg .a { display: flex; justify-content: flex-end; gap: 8px; }
+.dlg .a span { padding: 0 12px; border: 2px solid var(--frame); border-radius: 6px; } .dlg .a span.p { background: var(--yellow); color: #0B0A09; border-color: var(--yellow); }
+.field.dopen .dim { opacity: 1; transition: opacity var(--slow) var(--ease-out); }
+.field.dopen .dlg { opacity: 1; transform: scale(1); transition: opacity var(--slow) var(--ease-out), transform var(--slow) var(--ease-out); }
+.mock { position: absolute; inset: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mock div { border: 2px solid var(--line); border-radius: 8px; background: rgba(18,16,16,.9); }
+
+/* slow motion and reduced motion for inspection */
+body.slow { --instant:320ms; --quick:480ms; --normal:720ms; --slow:1040ms; --page:1680ms; }
+body.reduced .menu, body.reduced .menu.open, body.reduced .dlg, body.reduced .field.dopen .dlg { transform: none !important; }
+body.reduced .press.down, body.reduced .press.hov { transform: none; }
+@media (max-width: 1000px) { .demos { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Phosphor motion</h1>
+  <p>Live previews of the motion rules in <code>spec/design/motion.md</code>, in the Phosphor look. The stage below stacks the real mockups: the background is one layer that keeps running and never moves (MOT-7), the page contents slide and fade toward the side of the switcher they leave to (MOT-5), and the title and status bars stay put while the switcher's yellow marker slides to the new page (MOT-6). Use the buttons or <code>Ctrl+1</code>, <code>Ctrl+2</code>, <code>Ctrl+3</code>.</p>
+
+  <div class="ctl">
+    <button data-go="0">Dashboard</button><button data-go="1">Code</button><button data-go="2">Notes</button>
+    <span class="sep"></span>
+    <button id="auto" aria-pressed="true">Autoplay</button><button id="slow" aria-pressed="false">Slow motion ×4</button><button id="red" aria-pressed="false">Reduced motion</button>
+    <span class="hint">Page change: 420 ms, slide 96 px with a fade, ease out.</span>
+  </div>
+
+  <div class="stage-wrap" id="wrap">
+    <div class="stage" id="stage">
+      <iframe id="bgf" src="../code/phosphor-code.html?layout=c&amp;mode=bg" title="Background" tabindex="-1"></iframe>
+      <iframe class="page on" src="../dashboard/phosphor.html?mode=content" title="Dashboard"></iframe>
+      <iframe class="page" src="../code/phosphor-code.html?layout=c&amp;mode=content" title="Code page"></iframe>
+      <iframe class="page" src="../notes/phosphor-notes.html?layout=c&amp;mode=content" title="Notes page"></iframe>
+      <iframe id="chrome" src="../code/phosphor-code.html?layout=c&amp;mode=chrome" title="Title and status bars" style="pointer-events:none"></iframe>
+      <div class="crt" aria-hidden="true"><div class="scan"></div><div class="vig"></div><div class="glass"></div></div>
+    </div>
+  </div>
+
+  <h2>Controls</h2>
+  <div class="demos">
+    <section class="demo">
+      <h2>Widget resize</h2>
+      <div class="sub">MOT-1: the new layout is applied at once and the change is shown with <code>transform</code>; the widget settles with the spring over <code>motion.slow</code>, its neighbour slides out of the way. Click the Usage widget.</div>
+      <div class="field"><div class="wgrid" id="wgrid">
+        <div class="wid sel" id="wUsage" style="grid-area: 1 / 1 / span 2 / span 2"><h3>USAGE</h3><span class="num">90%</span><div class="cells" data-v="90"></div><i class="hdl"></i></div>
+        <div class="wid" id="wCtx" style="grid-area: 1 / 3 / span 1 / span 2"><h3>CONTEXT</h3><span class="num" style="font-size:26px">61%</span></div>
+        <div class="wid" id="wSes" style="grid-area: 2 / 3 / span 1 / span 2"><h3>SESSIONS</h3><span style="color:var(--cyan)">2 running</span></div>
+      </div></div>
+    </section>
+
+    <section class="demo">
+      <h2>Button press</h2>
+      <div class="sub">MOT-2: hover lifts 2 to 3 px and brightens over <code>motion.instant</code>; press sinks and scales to 0.96 with a flash; release springs back over <code>motion.quick</code>. Try them.</div>
+      <div class="field"><div class="btnrow"><button class="press pri" id="p1">New session</button><button class="press" id="p2">Compact</button></div></div>
+    </section>
+
+    <section class="demo">
+      <h2>Menu opening</h2>
+      <div class="sub">MOT-4: the model menu scales from 0.96 at its button with a fade over <code>motion.quick</code>; its rows follow 20 ms apart (MOT-3); it closes faster than it opens.</div>
+      <div class="field" id="menuField">
+        <button class="b mbtn" id="mbtn">opus 5.5 · high ▾</button>
+        <div class="menu" id="menu">
+          <div class="it chk">opus 5.5 <span class="k">✓</span></div><div class="it hl">sonnet 5.5</div><div class="it">haiku 5.5</div><div class="it">fable 5.2</div>
+          <hr><div class="it">low</div><div class="it">medium</div><div class="it chk">high <span class="k">✓</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo">
+      <h2>Dialog open and close</h2>
+      <div class="sub">MOT-4: the dialog scales from 0.94 and fades over <code>motion.slow</code> while the page behind dims; it leaves over <code>motion.quick</code> with the ease-in curve.</div>
+      <div class="field" id="dlgField">
+        <div class="mock"><div></div><div></div></div>
+        <div class="dim"></div>
+        <div class="dlg"><div class="t">Run in background</div><div style="color:var(--text-2);font-size:17px">hsuiux on sonnet 5.5 uses your plan's usage.</div><div class="a"><span>Cancel</span><span class="p">Run</span></div></div>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const ms = name => parseFloat(getComputedStyle(document.body).getPropertyValue('--' + name));
+const sysReduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let reduced = sysReduce; if (reduced) { document.body.classList.add('reduced'); $('#red').setAttribute('aria-pressed', 'true'); }
+
+/* fit the 1440 by 900 stage to the column */
+const fit = () => { const w = $('#wrap').clientWidth; $('#stage').style.transform = `scale(${w / 1440})`; };
+fit(); addEventListener('resize', fit);
+
+/* page transitions (MOT-5, MOT-11) */
+const pages = $$('.stage iframe.page'), chrome = $('#chrome');
+let cur = 0, running = [];
+function go(j) {
+  if (j === cur) return;
+  running.forEach(a => a.finish()); running = [];               // a second change skips the first to its end
+  const dir = j > cur ? 1 : -1, from = pages[cur], to = pages[j], dur = reduced ? ms('quick') : ms('page');
+  to.classList.add('on');
+  const ease = 'cubic-bezier(0.2, 0, 0, 1)';
+  const out = reduced ? [{ opacity: 1 }, { opacity: 0 }] : [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-dir * 96}px)` }];
+  const inn = reduced ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: `translateX(${dir * 96}px)` }, { opacity: 1, transform: 'translateX(0)' }];
+  const a = from.animate(out, { duration: dur, easing: ease, fill: 'forwards' });
+  const b = to.animate(inn, { duration: dur, easing: ease, fill: 'forwards' });
+  a.onfinish = () => { from.classList.remove('on'); a.cancel(); };   // hidden but still mounted (WS-41)
+  b.onfinish = () => b.cancel();
+  running = [a, b];
+  chrome.contentWindow.postMessage({ page: j, ms: dur, reduced }, '*');
+  cur = j; $$('[data-go]').forEach(x => x.classList.toggle('on', +x.dataset.go === j));
+}
+chrome.addEventListener('load', () => setTimeout(() => chrome.contentWindow.postMessage({ page: 0, ms: 1 }, '*'), 300));
+$$('[data-go]').forEach(b => b.addEventListener('click', () => { stopAuto(); go(+b.dataset.go); }));
+$('[data-go="0"]').classList.add('on');
+addEventListener('keydown', e => {
+  if (e.ctrlKey && !e.altKey && ['1','2','3'].includes(e.key)) { e.preventDefault(); stopAuto(); go(+e.key - 1); }
+  if (e.ctrlKey && e.altKey && e.key === 'ArrowRight') { stopAuto(); go(Math.min(2, cur + 1)); }
+  if (e.ctrlKey && e.altKey && e.key === 'ArrowLeft') { stopAuto(); go(Math.max(0, cur - 1)); }
+});
+
+/* autoplay walks Dashboard, Code, Notes, Code, Dashboard; every demo loops while it is on */
+const ORDER = [1, 2, 1, 0]; let step = 0, autoT = null, demoT = [];
+function startAuto() {
+  $('#auto').setAttribute('aria-pressed', 'true');
+  const pageLoop = () => { go(ORDER[step++ % ORDER.length]); autoT = setTimeout(pageLoop, 2600 + ms('page')); };
+  autoT = setTimeout(pageLoop, 1800);
+  demoT = [setInterval(resize, 2200), setInterval(pressLoop, 1500), setInterval(menuLoop, 2400), setInterval(dlgLoop, 2600)];
+}
+function stopAuto() { $('#auto').setAttribute('aria-pressed', 'false'); clearTimeout(autoT); demoT.forEach(clearInterval); demoT = []; }
+$('#auto').addEventListener('click', () => $('#auto').getAttribute('aria-pressed') === 'true' ? stopAuto() : startAuto());
+$('#slow').addEventListener('click', e => { const on = document.body.classList.toggle('slow'); e.currentTarget.setAttribute('aria-pressed', on); });
+$('#red').addEventListener('click', e => { reduced = !reduced; document.body.classList.toggle('reduced', reduced); e.currentTarget.setAttribute('aria-pressed', reduced); });
+
+/* widget resize with FLIP: apply the layout, then animate from the old box with transform */
+$$('.cells').forEach(el => { const f = Math.round(+el.dataset.v / 5); el.innerHTML = Array.from({ length: 20 }, (_, i) => `<i class="${i < f ? 'f' : ''}"></i>`).join(''); });
+let wide = false;
+function resize() {
+  const ws = ['#wUsage', '#wCtx', '#wSes'].map($), first = ws.map(w => w.getBoundingClientRect());
+  wide = !wide;
+  $('#wUsage').style.gridArea = wide ? '1 / 1 / span 2 / span 3' : '1 / 1 / span 2 / span 2';
+  $('#wCtx').style.gridArea = wide ? '1 / 4 / span 1 / span 1' : '1 / 3 / span 1 / span 2';
+  $('#wSes').style.gridArea = wide ? '2 / 4 / span 1 / span 1' : '2 / 3 / span 1 / span 2';
+  ws.forEach((w, i) => {
+    const last = w.getBoundingClientRect(), f = first[i];
+    const kf = [{ transform: `translate(${f.left - last.left}px, ${f.top - last.top}px) scale(${f.width / last.width}, ${f.height / last.height})` }, { transform: 'none' }];
+    w.animate(reduced ? [{ opacity: .4 }, { opacity: 1 }] : kf, { duration: reduced ? ms('quick') : ms('slow'), easing: i === 0 ? 'cubic-bezier(0.34, 1.4, 0.64, 1)' : 'cubic-bezier(0.2, 0, 0, 1)' });
+  });
+}
+$('#wUsage').addEventListener('click', () => { stopAuto(); resize(); });
+
+/* button press loop: hover, press, release */
+function pressLoop() {
+  const b = $('#p1'); b.classList.add('hov');
+  setTimeout(() => { b.classList.remove('hov'); b.classList.add('down'); }, 380);
+  setTimeout(() => { b.classList.remove('down'); }, 380 + ms('instant') + 120);
+}
+/* menu loop */
+const menu = $('#menu');
+function menuLoop() { if (menu.classList.contains('open')) closeMenu(); else openMenu(); }
+function openMenu() { $$('#menu .it').forEach((it, i) => it.style.transitionDelay = Math.min(i, 7) * 20 + 'ms'); menu.classList.add('open'); }
+function closeMenu() { $$('#menu .it').forEach(it => it.style.transitionDelay = '0ms'); menu.classList.remove('open'); }
+$('#mbtn').addEventListener('click', () => { stopAuto(); menuLoop(); });
+/* dialog loop */
+const dlgF = $('#dlgField');
+function dlgLoop() { dlgF.classList.toggle('dopen'); }
+dlgF.addEventListener('click', () => { stopAuto(); dlgLoop(); });
+
+if (new URLSearchParams(location.search).get('still') !== '1') startAuto();
+</script>
+</body>
+</html>

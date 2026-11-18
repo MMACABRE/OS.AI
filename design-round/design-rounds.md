@@ -118,3 +118,17 @@ Owner chose layout C and asked for a small notes list in it.
 - Open point for the spec: the notes list is a new side view for the Notes page (a filtered Files view: markdown notes only, with link counts from the graph index).
 
 - Owner approved Notes page layout C with the notes list (2026-11-18). It is the Notes page for the spec author; layouts A and B stay in the mockup for history.
+
+## Finishing round (2026-11-18): every item of the brief
+
+Owner asked to finish the UI. Everything the brief lists for the chosen direction now exists; open `design-round/index.html`.
+
+- Dashboard: the calmer node drift of the Notes page (amplitude about 30 percent lower, speed about 20 percent lower) and the repo button, so all three title bars match.
+- Panel states (brief item 3), on the Notes graph: `?state=empty` ("No notes yet", New note, Set vault folder; the strawberry rests without its book), `?state=loading` ("Indexing notes", a cyan pixel bar, the file being read; the graph fills in as notes are read) and `?state=error` (red frame, the error text, Retry, Open log, Settings).
+- Dialog (brief item 3): "Run in background" of HUD-32 on Code page C, `?dialog=run` or a skill's ▶. It scales from 0.94 and fades over 260 ms while the page dims (MOT-4); it leaves over 120 ms with the ease-in curve.
+- Mascot (brief item 5): `design-round/mascot/sheet.html`, eight states in 16 by 16 cells (dancing, waving, cheering, resting, sleeping, the 3-frame turn of HUD-91, reading, working), at 2x, 4x and live at 8x; exported as `mascot.png` (96 by 128) and `mascot.json`. Arms are two red pixels; the waving arm is yellow (`color.accent`, HUD-90).
+- Motion (brief item 6): `design-round/motion/index.html`. The stage stacks the real mockups: one background that never moves (MOT-7), three page contents that slide 96 px and fade over 420 ms (MOT-5), and fixed bars whose switcher marker slides (MOT-6). Below: widget resize by FLIP with the spring (MOT-1), button press (MOT-2), the model menu with 20 ms row stagger (MOT-3, MOT-4), dialog open and close (MOT-4). Switches for slow motion ×4 and reduced motion (MOT-12). Each mockup gained `?mode=bg|content|chrome` for this.
+- Theme file and glass map (brief items 2 and 7): `design-round/theme/phosphor.json` sets all 81 contract tokens plus 18 new ones; `glass-map.md` gives each surface role its opacity and blur (0 everywhere, because of the barrel filter) and why.
+- Background (brief item 4): the live pages are the preview (dust and steam, described in Dashboard round 6).
+- Not covered: the motion stage does not show the Dashboard mini graph turning into the Notes graph (the shared element of MOT-6), and in the stack the graph's steam goes to each page's own background, which is off, so the shared background shows none. In the app the graph inks the one shared background.
+- Open points for the spec author, beyond those of earlier rounds: `surface.text.minAlpha` 0.74 against P-45's 0.85; VT323 in xterm and its fallback for box-drawing characters; the barrel filter's cost against UI-32 (all in `glass-map.md`); the empty state's buttons "New note" and "Set vault folder" are new to the graph module.
