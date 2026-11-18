@@ -101,3 +101,9 @@ Also: saved bounds on a second display are kept; `writePlacement` keeps other ke
 Also: SHELL-22 a failing `trashItem` returns `FILE_WRITE_FAILED`; SHELL-23 `notify` does nothing while the window is focused and, when clicked, focuses and emits `workspace.focusPanelRequested`; SHELL-30 `openFolder` refuses a file.
 
 `tests/e2e/window.e2e.ts`: SHELL-1 (a second launch exits and the first window gets focus; one window exists), SHELL-24 (`window.location.href = 'https://x.test'` and `window.open(...)` from the page leave the URL unchanged and open no window). F-005 also needs: move the window, restart, it reopens in the same place.
+
+## 016 Settings files
+
+Code: `src/modules/settings/service/atomic-json.ts` (`readJson`, `writeJsonAtomic`), `src/modules/settings/service/settings-store.ts` (`createSettingsStore`), `src/modules/settings/register.service.ts` (channels, `CONTRACT_SECTIONS`, `settingsStorePoint`), `registerSettings` in `service-context.ts`, main's start in `src/main/index.ts`.
+
+`tests/settings/settings-store.test.ts` (temp folder for the settings file, `createFakeClock`): every row SET-2 to SET-7 of the spec's test table (SET-2 merge over defaults; SET-3 bad `fontSize` gives the default and one problem at `values.terminal.fontSize`; SET-4 unknown key kept on disk after `setValue` plus one "Unknown setting"; SET-5 `{ not json` leaves bytes unchanged with one problem, and `setValue` then writes `settings.json.invalid-*` and a valid file; SET-6 a value over max returns `SET_INVALID` and the file is unchanged; SET-7 `settings.json.bak` holds the old content and the reader's listener fired once). Also: a missing file is created as `{ "version": 1, "values": {} }`; a value equal to the default is removed from the file; `version: 2` is not loaded.

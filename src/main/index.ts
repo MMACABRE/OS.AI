@@ -17,10 +17,12 @@ import {
 import { systemClock } from '../modules/shell/system-clock';
 import { buildOwnerIndex, createBroker } from './bus/broker';
 import {
+  createMainSettings,
   createProcessLogger,
   mainModules,
   processDeathReporters,
   processMetricsSources,
+  settingsStorePoint,
 } from './module-list';
 import type { ProcessMetric } from './module-list';
 import { utilityProcessLauncher } from './supervisor/service-process';
@@ -72,8 +74,14 @@ function toEpoch(ms: number): EpochMs {
   return ms as EpochMs;
 }
 
-/** main's own modules (SHELL-20) and the extension points main fills or reads (cards 013, 014). */
-function loadMainModules(): void {
+/**
+ * main's own modules (SHELL-20) and the extension points main fills or reads (cards 013, 014, 016).
+ * Settings load before any module registers (architecture §6 step 2); a bad file falls back to defaults (P-32).
+ */
+async function loadMainModules(): Promise<void> {
+  const settings = createMainSettings(paths, systemClock, log.forModule('settings'));
+  await settings.load();
+  store.contribute(settingsStorePoint, settings);
   store.contribute(processMetricsSources, processMetrics);
   loadModules(
     mainModules,
@@ -85,6 +93,7 @@ function loadMainModules(): void {
         store,
         logFor: (module) => log.forModule(module),
         onStop: (handler) => void stopHandlers.push(handler),
+        registerSettings: (section) => settings.register(section),
       }),
     log,
   );
@@ -213,7 +222,7 @@ app.on('second-instance', () => {
 
 // Start order of architecture §6: diagnostics and main's modules, the services, then the window.
 void app.whenReady().then(async () => {
-  loadMainModules();
+  await loadMainModules();
   registerSystem();
   supervisor.start();
   const created = await createMainWindow({ appStateFile: paths.appStateFile, bus, clock: systemClock, log });

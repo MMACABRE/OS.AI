@@ -88,6 +88,8 @@ export type ServiceContextDeps = {
   /** The process logger for one module. */
   logFor(moduleId: ModuleId): Logger;
   onStop(handler: () => Promise<void>): void;
+  /** Where sections are read: main's settings store (card 016) or the bus in a service (card 017). Defaults otherwise. */
+  registerSettings?<T>(section: SettingsSection<T>): SettingsReader<T>;
 };
 
 /** The `ServiceContext` one module registers with (architecture §4, card 014). */
@@ -98,7 +100,7 @@ export function createServiceContext(moduleId: ModuleId, deps: ServiceContextDep
     log: deps.logFor(moduleId),
     clock: deps.clock,
     paths: deps.paths,
-    registerSettings: defaultSettingsReader,
+    registerSettings: (section) => deps.registerSettings?.(section) ?? defaultSettingsReader(section),
     contribute: (point, contribution) => deps.store.contribute(point, contribution),
     contributions: (point) => deps.store.contributions(point),
     onStop: (handler) => deps.onStop(handler),

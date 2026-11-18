@@ -128,3 +128,11 @@ Did: `restorePlacement` keeps a saved placement that overlaps a display and othe
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. `src/ui/index.html` now carries the SEC-1 policy exactly (it lacked `unsafe-inline` styles, `img-src` and `connect-src 'none'`), and `src/ui/index.tsx` sends `uiReady`; both outside the card's list. `openFolder` is handled too (SHELL-30), though the card's step 3 does not name it. `speak` and `listVoices` are left to their own card (stage 7).
 Next: 016
+
+## 016 Settings files
+Status: done (untested)
+Date: 2026-11-18
+Did: `readJson` and `writeJsonAtomic` (`write-file-atomic` plus a `.bak` copy, P-3). `createSettingsStore` resolves each section over its defaults key by key, records a problem for each invalid or unknown key (SET-2 to SET-4), refuses a non-JSON or too-new file without touching it and copies it to `settings.json.invalid-<time>` on the first `setValue` (SET-5), validates `setValue` (SET-6), writes atomically and stores only non-default values (SET-7), and notifies only sections whose value changed (SET-9). main creates and loads the store before any module, so every `registerSettings` reads it; the settings module registers every section declared in the contracts and serves `getSection`, `setValue`, `getProblems`, `sectionChanged` and `problemsChanged`.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. main validates every contract section, since a zod schema cannot cross the bus to main for sections registered in utility processes (SET-10). The store reaches the module through the extension point `settings.store`, filled by main through its module list. `settings.openFolder` is left to the settings screen card. Files outside the list: `src/main/index.ts`.
+Next: 017
