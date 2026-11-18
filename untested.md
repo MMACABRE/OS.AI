@@ -144,3 +144,24 @@ Also: `save` of "My Theme 2" writes `my-theme-2.json`; `load` copies `phosphor.j
 | SET-15 | `reduceMotion: 'on'`; then `'off'` with the system preference on | `applyMotion` | the root has `data-motion="reduced"`; then `data-motion="full"`           |
 
 F-007 (e2e, card 025 covers it): copy `test-light.json` into `themesDir`, set `theme`, `--color-bg-app` changes without a reload.
+
+## 019 Key bindings
+
+Code: `src/modules/ui-kit/keys/parse-key.ts` (`keyFromEvent`, `normalizeKeyPart`, `normalizeBinding`), `src/modules/ui-kit/keys/key-dispatcher.ts` (`resolveBindings`, `createKeyDispatcher`, `CHORD_WAIT_MS`, `TERMINAL_ATTRIBUTE`), `src/modules/settings/service/keybindings-store.ts` (`createKeybindingsStore`, `isKeyString`), channels in `src/modules/settings/register.service.ts`, `startKeys` in `src/ui/index.tsx`.
+
+`tests/settings/keybindings.test.ts`:
+
+| Rule   | Given                                                       | When              | Then                                                                 |
+| ------ | ----------------------------------------------------------- | ----------------- | -------------------------------------------------------------------- |
+| SET-18 | a command with default `Ctrl+B`; overrides map it to `null` | `resolveBindings` | the command has no key (`byCommand` is null, `byKey` lacks `Ctrl+B`) |
+| SET-20 | two commands on `Ctrl+B`                                    | `resolveBindings` | the later one holds the key; one conflict names both                 |
+
+Also: `keyFromEvent` gives `Ctrl+Shift+P` for code `KeyP` with Ctrl and Shift, `Ctrl+,` for `Comma`, null for a lone Shift; `normalizeBinding('ctrl+shift+p')` is `Ctrl+Shift+P`, `ctrl+k ctrl+t` is `Ctrl+K Ctrl+T`; the store reports a malformed key as a problem and `set` refuses one with `SET_INVALID`.
+
+`tests/ui-kit/key-dispatcher.ui.test.tsx` (jsdom, `createFakeClock`):
+
+| Rule  | Given                                                                                         | When                                        | Then                                                                           |
+| ----- | --------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| UI-21 | focus inside an element with `data-hsos-terminal`; `Ctrl+B` not global, `Ctrl+Shift+P` global | both keys are pressed                       | only the palette command runs                                                  |
+| UI-22 | focus in an `<input>`; bindings `F2` and `Ctrl+S`                                             | both are pressed                            | only `Ctrl+S` runs                                                             |
+| UI-23 | binding `Ctrl+K Ctrl+T`, fake clock                                                           | `Ctrl+K`, then 2 000 ms pass, then `Ctrl+T` | the command does not run (and it does run when `Ctrl+T` comes within 1 500 ms) |

@@ -16,6 +16,7 @@ import type { ExtensionPoint, ServiceContext, SettingsSection } from '@hsos/cont
 import { err, ok } from '@hsos/contracts/result';
 import type { SettingsStore } from './service/settings-store';
 import type { ThemeStore } from './service/theme-store';
+import { createKeybindingsStore } from './service/keybindings-store';
 import { watchSettingsFiles } from './service/settings-watcher';
 import type { SettingsFileKind } from './service/settings-watcher';
 
@@ -61,7 +62,12 @@ export function register(ctx: ServiceContext): void {
   const appearance = store.register(appearanceSection);
   for (const section of CONTRACT_SECTIONS) store.register(section);
 
-  const allProblems = () => [...store.getProblems(), ...themes.problems(appearance.get().theme)];
+  const keys = createKeybindingsStore({ file: ctx.paths.keybindingsFile, log: ctx.log });
+  const allProblems = () => [
+    ...store.getProblems(),
+    ...keys.problems(),
+    ...themes.problems(appearance.get().theme),
+  ];
   let lastProblems = JSON.stringify(allProblems());
   const publishProblems = () => {
     const problems = allProblems();
@@ -95,6 +101,16 @@ export function register(ctx: ServiceContext): void {
   store.onProblemsChanged(publishProblems);
   appearance.onChange(publishTheme);
 
+  // Key bindings (SET-18 to SET-20, card 019). The renderer resolves them, since only it knows each default.
+  void keys.load().then(publishProblems);
+  ctx.bus.handle(settingsChannels.getKeybindings, () => ok(keys.get()));
+  ctx.bus.handle(settingsChannels.setKeybinding, async ({ commandId, key }) => {
+    const result = await keys.set(commandId, key);
+    publishProblems();
+    return result;
+  });
+  keys.onChange((bindings) => ctx.bus.emit(settingsChannels.keybindingsChanged, bindings));
+
   ctx.bus.handle(settingsChannels.listThemes, () => ok(themes.list()));
   ctx.bus.handle(settingsChannels.getActiveTheme, () => ok(themes.active(appearance.get().theme)));
   ctx.bus.handle(settingsChannels.saveTheme, async ({ theme }) => {
@@ -106,7 +122,7 @@ export function register(ctx: ServiceContext): void {
   // SET-8: edits on disk apply within a second; the files are re-read, never the event data (P-16).
   const reload: Record<SettingsFileKind, () => Promise<void>> = {
     settings: () => store.load(),
-    keybindings: () => Promise.resolve(),
+    keybindings: () => keys.load().then(publishProblems),
     themes: () => themes.load().then(publishTheme),
   };
   const stopWatching = watchSettingsFiles({

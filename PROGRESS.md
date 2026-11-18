@@ -152,3 +152,11 @@ Did: `resources/themes/phosphor.json` copied from the spec; VT323 and Jersey 10 
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok (fonts bundled), e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. Fonts downloaded from the google/fonts repository. Files outside the list: `src/main/index.ts`, `src/main/module-list.ts`, `src/modules/settings/register.service.ts`, `src/ui/index.tsx` (imports fonts.css), `src/ui/module-list.ts`, `src/ui/vite-env.d.ts` (Vite's types for CSS imports). The packaged app reads built-in themes from `<resources>\themes`; card 025's builder config must copy `resources/themes` there.
 Next: 019
+
+## 019 Key bindings
+Status: done (untested)
+Date: 2026-11-18
+Did: `keyFromEvent` turns a key press into the SET-19 format (physical keys by `code`, so Shift keeps a comma a comma) and `normalizeBinding` canonicalises typed bindings. `resolveBindings` gives each command its file override or default (SET-18) and lets the later command win a shared key, naming both in a conflict (SET-20). `createKeyDispatcher` is the one window listener (UI-20) with the terminal (UI-21), text-input (UI-22) and chord (UI-23, 1 500 ms) rules. `createKeybindingsStore` reads, validates and writes keybindings.json atomically; the settings module serves `getKeybindings`, `setKeybinding` and `keybindingsChanged`, reloads on a file change and merges its problems. The renderer resolves bindings over its registered commands and follows changes.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. Effective bindings and SET-20 conflicts are resolved in the renderer, because command defaults are registered there; conflicts are logged at `warn` and the settings screen (card 024) shows them; they are not in `getProblems`, which main answers. Focus inside an element with `data-hsos-terminal` counts as inside a terminal; the terminal card must set it. The pending chord part is passed to `onPending` for the status bar (card 028). Files outside the list: `src/ui/index.tsx`.
+Next: 020
