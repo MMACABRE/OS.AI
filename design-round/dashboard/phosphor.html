@@ -169,7 +169,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .clock.flicker { opacity: .72; }
 #bg { transform: none; }
 #berry { cursor: pointer; }
-.graph canvas { flex: 1; min-height: 0; width: 100%; display: block; }
+/* the graph draws on a full-window layer between the background and the widgets; its home is the centre area */
+#graph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.graph-area { flex: 1; min-height: 0; }
+.app { pointer-events: none; }
+.titlebar, .statusbar, .w, .quick button, .mascot, .edit-bar, .legend { pointer-events: auto; }
 [data-still="1"] .clock .colon { animation: none; }
 @media (prefers-reduced-motion: reduce) { .clock .colon { animation: none; } .brand.shimmer::after { animation: none; } }
 
@@ -192,6 +196,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 <div class="screen" id="screen">
   <canvas id="bg" width="1440" height="900" aria-hidden="true"></canvas>
+  <canvas id="graph" aria-label="Note graph, CLAUDE.md in the centre"></canvas>
   <div class="app">
     <header class="titlebar">
       <div class="brand" data-text="HSOS">HSOS</div>
@@ -239,7 +244,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
         </section>
 
         <section class="free graph" style="grid-area: 1 / 3 / span 5 / span 4">
-          <canvas id="graph" aria-label="Local graph around dashboard.md"></canvas>
+          <div class="graph-area"></div>
           <div class="cap legend"><b>GRAPH</b><span class="count muted"></span>
             <span><i style="background:var(--terra)"></i>CLAUDE.md</span><span><i style="background:var(--yellow)"></i>open</span>
             <span><i style="background:var(--text-2)"></i>note</span>
@@ -501,8 +506,10 @@ function makeHalo(n) {
   return c;
 }
 function sizeGraph() {
-  gc.width = gc.offsetWidth; gc.height = gc.offsetHeight;
-  gs = Math.min(gc.width / 320, gc.height / 250); gox = (gc.width - 320 * gs) / 2; goy = (gc.height - 250 * gs) / 2;
+  const sr = screen.getBoundingClientRect(), k = 1440 / sr.width, ar = document.querySelector('.graph-area').getBoundingClientRect();
+  gc.width = 1440; gc.height = 900;
+  const rx = (ar.left - sr.left) * k, ry = (ar.top - sr.top) * k, rw = ar.width * k, rh = ar.height * k;
+  gs = Math.min(rw / 320, rh / 250); gox = rx + (rw - 320 * gs) / 2; goy = ry + (rh - 250 * gs) / 2;
 }
 // canvas pixel to graph units and back
 const toWorld = (px, py) => [cam.x + ((px - gox) / gs - 160) / cam.z, cam.y + ((py - goy) / gs - 125) / cam.z];
@@ -515,9 +522,9 @@ gc.addEventListener('wheel', e => {
   cam.x = wx - ((px - gox) / gs - 160) / cam.z; cam.y = wy - ((py - goy) / gs - 125) / cam.z;
   if (!animate) drawGraph();
 }, { passive: false });
-gc.addEventListener('pointerdown', e => { if (hover) return; drag.on = true; [drag.x, drag.y] = canvasPoint(e); gc.setPointerCapture(e.pointerId); });
+gc.addEventListener('pointerdown', e => { if (hover) return; drag.on = true; [drag.x, drag.y] = canvasPoint(e); drag.sx = drag.x; drag.sy = drag.y; gc.setPointerCapture(e.pointerId); });
 gc.addEventListener('pointermove', e => { if (!drag.on) return; const [px, py] = canvasPoint(e); cam.x -= (px - drag.x) / gs / cam.z; cam.y -= (py - drag.y) / gs / cam.z; drag.x = px; drag.y = py; });
-gc.addEventListener('pointerup', () => { drag.on = false; });
+gc.addEventListener('pointerup', e => { if (drag.on && animate && Math.hypot(drag.x - drag.sx, drag.y - drag.sy) < 4) BG.splash(e.clientX / BG.CELL, e.clientY / BG.CELL, 14, 3); drag.on = false; });
 gc.addEventListener('dblclick', () => { cam.x = 160; cam.y = 125; cam.z = 1; });
 function stepGraph(t) {
   const r = gc.getBoundingClientRect(), k = gc.width / r.width;
@@ -658,7 +665,7 @@ addEventListener('pointermove', e => {
   lastPX = cx; lastPY = cy;
 });
 addEventListener('pointerdown', e => {
-  if (!animate || e.target.closest('.w, button, #berry, .hint, .titlebar')) return;
+  if (!animate || e.target.closest('.w, button, #berry, .hint, .titlebar, #graph')) return;
   BG.splash(e.clientX / BG.CELL, e.clientY / BG.CELL, 14, 3);
 });
 /* one loop, at most 30 frames a second, paused while the window is hidden */
