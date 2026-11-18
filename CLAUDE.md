@@ -33,6 +33,8 @@ The pre-commit hook `scripts/guard.mjs` enforces the file rules. It guards again
 
 You are the spec author. Log every decision in `docs/JOURNAL.md` and push after each step. Commit spec changes with the hook off: `git -c core.hooksPath= commit`. Keep `spec/contracts/` compiling: copy it with `spec/reference/` into a scratch folder with `zod@4.6.7`, `typescript@7.0.2`, `@types/node` and `@types/react`, run `tsc` under the settings in `spec/03-stack.md`. Test PowerShell in Windows PowerShell 5.1 too: this device has no `pwsh` and the default `Restricted` policy, so scripts are loaded as script blocks (TERM-7).
 
+Gotchas: working copies are CRLF (`core.autocrlf true`), so strip `\r` before scripted find-and-replace; `.sh` files stay LF (`.gitattributes`). Check Claude Code facts by searching the binary (`grep -a` on `~/.local/bin/claude.exe`), never by running `claude` with a prompt.
+
 ## Where things are
 
 - `spec/README.md`: reading order
