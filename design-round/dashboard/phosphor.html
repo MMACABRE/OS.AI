@@ -211,6 +211,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   filter: brightness(1.7) drop-shadow(0 0 12px rgba(255,122,61,.8)); box-shadow: none; transition-duration: 60ms; }
 .btn3d.primary:active, .pages .btn3d[aria-current]:active { filter: brightness(1.3) drop-shadow(0 0 14px rgba(245,255,59,.9)); }
 .winctl .btn3d { cursor: default; border-radius: var(--radius-c); }
+.rows .row.btn3d { cursor: pointer; }
+.row .open { padding: 0 8px; border: 2px solid #12030A; border-radius: 4px; color: #12030A; font-size: 16px; line-height: 1.2; }
+@media (hover: hover) and (pointer: fine) {
+  .rows .row.need.btn3d:hover { filter: brightness(1.2) drop-shadow(0 0 10px rgba(255,0,60,.75));
+    box-shadow: 1px 1px 0 #D10032, 2px 2px 0 #A30027, 3px 3px 0 #75001C, 4px 5px 0 #4A0011; }
+  .row .open.btn3d:hover { background: #12030A; color: var(--red); }
+}
+.rows .row.need.btn3d:active { filter: brightness(1.45) drop-shadow(0 0 14px rgba(255,0,60,.95)); }
 @media (prefers-reduced-motion: reduce) { .btn3d, .btn3d:hover, .btn3d:active { transform: none; } }
 
 /* CRT */
@@ -272,7 +280,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
         <section class="w" data-icon="stack" data-led="red" style="grid-area: 4 / 1 / span 3 / span 2">
           <h2>Sessions <span class="aside">1 needs you</span></h2>
           <div class="rows">
-            <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash</div><div class="sub">pnpm build · 3 min</div></div><span class="when">Open</span></div>
+            <div class="row need"><span class="state" data-s="need"></span><div><div class="title">site · Approve Bash</div><div class="sub">pnpm build · 3 min</div></div><button class="open">Open</button></div>
             <div class="row"><span class="state" data-s="run"></span><div><div class="title">hsos · PTY resize</div><div class="sub">Editing pty.ts</div></div><span class="when">12:41</span></div>
             <div class="row"><span class="state" data-s="run"></span><div><div class="title">notes-sync · Backlinks</div><div class="sub">Running tests</div></div><span class="when">06:02</span></div>
             <div class="row"><span class="state" data-s="done"></span><div><div class="title">hsos · Card 014 tests</div><div class="sub">Finished, 3 files</div></div><span class="when">11:20</span></div>
@@ -382,11 +390,12 @@ document.querySelectorAll('.grid > section').forEach(w => w.insertAdjacentHTML('
   });
 })();
 /* every button tilts toward the pointer */
-document.querySelectorAll('.pages button, .quick button, .edit-bar button, .hint, .winctl span').forEach(b => {
+document.querySelectorAll('.pages button, .quick button, .edit-bar button, .hint, .winctl span, .rows .row, .row .open').forEach(b => {
   b.classList.add('btn3d');
   b.addEventListener('pointermove', e => {
     const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
-    b.style.setProperty('--ry', (x * 18).toFixed(1) + 'deg'); b.style.setProperty('--rx', (-y * 24).toFixed(1) + 'deg');
+    const wide = r.width > 200 ? .45 : 1; // long rows tilt less
+    b.style.setProperty('--ry', (x * 18 * wide).toFixed(1) + 'deg'); b.style.setProperty('--rx', (-y * 24).toFixed(1) + 'deg');
   });
   b.addEventListener('pointerleave', () => { b.style.setProperty('--rx', '0deg'); b.style.setProperty('--ry', '0deg'); });
 });
