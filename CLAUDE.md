@@ -46,3 +46,7 @@ Gotchas: working copies are CRLF (`core.autocrlf true`), so strip `\r` before sc
 - branch `research/round-1`, `docs/research/`: first research round; newer findings in `docs/research/` on `main`
 - `docs/drafts/`: design drafts; `session-recovery.md` is done and kept for history
 - `design-round/`: throwaway HTML mockups of the design round, outside `src/`; `index.html` links every deliverable. Pages take `?layout=`, `?state=`, `?dialog=`, `?mode=`. Render stills with headless Edge and `?still=1` (headless runs only one animation frame; a resize clears canvases, so redraw on resize).
+
+## /hsdevloop amendments
+
+- 2026-11-18, before round 1: the owner asked for an hsdevloop run over cards 001 to 037 in one session, stopping at the 037 gate. This replaces "one card, then stop" for that run only. Each card still gets its own commit and `PROGRESS.md` entry. Why: owner's instruction.
