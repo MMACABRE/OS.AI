@@ -2,19 +2,19 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete. Latest additions: terminal input (JOURNAL step 33), stage 7 extras (step 34), Claude session recovery as module `sessions` with cards 056 to 059 (step 35).
+**Status (2026-11-18):** spec complete: 19 modules, 98 cards (001 to 098, stages 0 to 7). Latest: terminal input, stage 7 extras, session recovery (`sessions`, cards 056 to 059). See JOURNAL steps 33 to 35.
 
 **Next:** implementation. Start with task card 001 in `tasks/stage-0.md`.
 
 ## Before any work
 
-The owner edits this repo from more than one device. At the start of every session, run `git fetch --prune` and `git status -sb`, then `git pull --ff-only` if behind and the tree is clean. If it has diverged or has local changes, report that instead of merging. Push finished work.
+The owner edits this repo from more than one device. At the start of every session, run `git fetch --prune` and `git status -sb`, then `git pull --ff-only` if behind and the tree is clean. If it has diverged or has local changes, report that instead of merging. Push finished work. If git has no identity on the device, commit with `-c user.name=... -c user.email=...` taken from `git log -1 --format='%an <%ae>'`; do not change the git config.
 
 ## If you are the implementer
 
 You build HSOS from the spec. You do not design it.
 
-1. Run `pwsh scripts/init.ps1` (skip until task 001 has created it).
+1. Run `pwsh scripts/init.ps1` (skip until task 001 has created it). Without PowerShell 7 use `powershell -ExecutionPolicy Bypass -File scripts/init.ps1` (verify).
 2. Read `spec/04-implementer-protocol.md` once per session. It is the loop you run.
 3. Do the lowest-numbered card in `tasks/` that `PROGRESS.md` does not list as done. One card, then stop.
 
@@ -25,13 +25,13 @@ Rules:
 - Tests first, from the module spec's test table. Each test name starts with its rule id.
 - Change only the files the card lists. Report anything else in `PROGRESS.md` under `Deviations`.
 - Spec silent or contradictory: stop, write a `blocked` entry in `PROGRESS.md`. Do not choose.
-- No test may run the real `claude` command with a prompt. It spends the owner's usage.
+- No test may run the real `claude` command with a prompt. It spends the owner's usage. Before a test calls `claude`, check that `Get-Command claude -CommandType Application` resolves to the stub: Git Bash can reorder `PATH`.
 
 The pre-commit hook `scripts/guard.mjs` enforces the file rules. It guards against mistakes. Never bypass it.
 
 ## If you are changing the spec
 
-You are the spec author. Log every decision in `docs/JOURNAL.md` and push after each step. Commit spec changes with the hook off: `git -c core.hooksPath= commit`. Keep `spec/contracts/` compiling: copy it with `spec/reference/` into a scratch folder with `zod@4.6.7` and `typescript@7.0.2`, run `tsc` under the settings in `spec/03-stack.md`.
+You are the spec author. Log every decision in `docs/JOURNAL.md` and push after each step. Commit spec changes with the hook off: `git -c core.hooksPath= commit`. Keep `spec/contracts/` compiling: copy it with `spec/reference/` into a scratch folder with `zod@4.6.7`, `typescript@7.0.2`, `@types/node` and `@types/react`, run `tsc` under the settings in `spec/03-stack.md`. Test PowerShell in Windows PowerShell 5.1 too: this device has no `pwsh` and the default `Restricted` policy, so scripts are loaded as script blocks (TERM-7).
 
 ## Where things are
 
@@ -39,4 +39,5 @@ You are the spec author. Log every decision in `docs/JOURNAL.md` and push after 
 - `GLOSSARY.md`: terms
 - `features.json`: features and pass flags
 - `docs/JOURNAL.md`: how the spec was made
-- branch `research/round-1`, `docs/research/`: research findings. Newer findings are in `docs/research/` on `main`.
+- branch `research/round-1`, `docs/research/`: first research round; newer findings in `docs/research/` on `main`
+- `docs/drafts/`: design drafts; `session-recovery.md` is done and kept for history
