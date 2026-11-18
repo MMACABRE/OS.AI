@@ -154,8 +154,26 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 [data-edit="1"] .edit-bar button { padding: 0 14px; border-radius: var(--radius-c); background: var(--bg-overlay); border: 2px solid var(--frame); box-shadow: 2px 3px 0 #2A1A14; }
 [data-edit="1"] .edit-bar .done { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
-/* CRT */
-.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+/* ---------- motion and interaction ---------- */
+.brand { position: relative; cursor: default; }
+.brand::after { content: attr(data-text); position: absolute; left: 0; top: 0; color: #FFE3EA; text-shadow: 0 0 6px #fff, 0 0 16px rgba(255,0,60,.95);
+  clip-path: polygon(-40% 0, -18% 0, -32% 100%, -54% 100%); pointer-events: none; }
+.brand.shimmer::after { animation: shimmer 950ms cubic-bezier(.2,0,0,1); }
+@keyframes shimmer { from { clip-path: polygon(-40% 0, -18% 0, -32% 100%, -54% 100%); } to { clip-path: polygon(118% 0, 140% 0, 126% 100%, 104% 100%); } }
+.clock { cursor: default; transition: filter 160ms ease-out; }
+.clock .colon { animation: colon 1s steps(1) infinite; }
+@keyframes colon { 50% { opacity: .25; } }
+.clock .ss { display: none; font-size: 24px; opacity: .8; }
+.clock:hover .ss { display: inline; }
+.clock:hover { filter: brightness(1.35) drop-shadow(0 0 6px rgba(0,240,255,.8)); }
+.clock.flicker { opacity: .72; }
+#bg { transform: scale(1.02); }
+#berry { cursor: pointer; }
+.graph canvas { flex: 1; min-height: 0; width: 100%; display: block; }
+[data-still="1"] .clock .colon { animation: none; }
+@media (prefers-reduced-motion: reduce) { .clock .colon { animation: none; } .brand.shimmer::after { animation: none; } }
+
+/* CRT */.crt { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
 .crt .scan { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px); }
 .crt .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 62%, rgba(0,0,0,.55) 100%); }
 .crt .glass { position: absolute; inset: 0; border-radius: 26px / 22px; box-shadow: 0 0 0 40px #050504, inset 0 0 24px rgba(0,0,0,.7), inset 0 0 2px 1px rgba(255,240,230,.06); }
@@ -176,8 +194,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   <canvas id="bg" width="1440" height="900" aria-hidden="true"></canvas>
   <div class="app">
     <header class="titlebar">
-      <div class="brand">HSOS</div>
-      <div class="clock">16:42</div>
+      <div class="brand" data-text="HSOS">HSOS</div>
+      <div class="clock"><span class="hh">16</span><span class="colon">:</span><span class="mm">42</span><span class="ss">:07</span></div>
       <div class="proj">hsos <span>▾</span></div>
       <nav class="pages" aria-label="Pages"><button aria-current="page">Dashboard</button><button>Code</button><button>Notes</button></nav>
       <div class="grow"></div>
@@ -221,13 +239,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
         </section>
 
         <section class="free graph" style="grid-area: 1 / 3 / span 5 / span 4">
-          <svg id="graph" viewBox="0 0 320 250" aria-label="Local graph around dashboard.md"></svg>
-          <div class="cap legend"><b>GRAPH</b>
-            <span><i style="background:var(--yellow)"></i>open</span>
+          <canvas id="graph" aria-label="Local graph around dashboard.md"></canvas>
+          <div class="cap legend"><b>GRAPH</b><span class="count muted"></span>
+            <span><i style="background:var(--terra)"></i>CLAUDE.md</span><span><i style="background:var(--yellow)"></i>open</span>
             <span><i style="background:var(--text-2)"></i>note</span>
             <span><i style="background:var(--lav)"></i>skill</span>
-            <span><i style="background:var(--terra)"></i>CLAUDE.md</span>
-            <span><i style="background:var(--mag)"></i>memory</span>
+            <span><i style="background:var(--mag)"></i>memory</span><span class="muted">scroll to zoom</span>
           </div>
         </section>
 
@@ -241,7 +258,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
         </section>
 
         <section class="free mascot" style="grid-area: 1 / 7 / span 3 / span 2">
-          <canvas class="sprite" data-px="10" width="170" height="170"></canvas>
+          <canvas id="berry" width="220" height="210" aria-label="Strawberry mascot"></canvas>
           <div class="word">Thinking</div>
           <div class="doing">reading pty.ts</div>
         </section>
@@ -309,8 +326,8 @@ const SPR = [
   ".krhrrrrrrrrrk..",
   ".krreerrrreerk..",
   ".krreerrrreerk..",
-  ".krlrrrrrrrlrk..",
-  "..krryrrmmrryk..",
+  ".krlrrkrrkrlrk..",
+  "..krryrkkrrryk..",
   "...krrrrrrrrk...",
   "....krryrrrk....",
   ".....krrrrk.....",
@@ -327,39 +344,24 @@ document.querySelectorAll('canvas.sprite').forEach(cv => {
   SPR.forEach((row, y) => { const k = row.lastIndexOf('k'); if (k > 0 && row[k - 1] === 'r') g.fillRect((k - 1) * px, y * px, px, px); });
 });
 
-/* graph: every node has a dithered halo in its kind's colour, the open note the largest */
-(() => {
-  const N = [
-    [160,122,9,'o','dashboard.md'],
-    [74,56,5,'n','layout.md'],[248,52,5,'n','motion.md'],[60,186,4,'n','dock.md'],[256,192,5,'n','HUD-90'],
-    [160,26,4,'n','visual-direction'],[160,222,4,'n',''],[210,150,3,'n',''],
-    [104,112,4,'s','hsuiux'],[218,100,4,'s','impeccable'],
-    [30,120,4,'m','palette'],[292,122,4,'s','cook'],
-    [108,204,5,'a','CLAUDE.md'],
-    [18,30,3,'u',''],[302,24,3,'u',''],[304,232,3,'u',''],[18,236,3,'u','']];
-  const E = [[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,12],[1,10],[1,13],[2,14],[4,15],[3,16],[2,9],[4,11],[1,8],[6,12],[7,4]];
-  const col = { o:tok('--yellow'), n:tok('--text-2'), a:tok('--terra'), s:tok('--lav'), m:tok('--mag'), u:'#4A3A33' };
-  const halo = { o:tok('--terra'), n:tok('--cyan'), a:tok('--red'), s:tok('--lav'), m:tok('--mag') };
-  const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
-  let s = '';
-  N.forEach(([cx, cy, r, k]) => {
-    if (k === 'u') return;
-    const R = k === 'o' ? 78 : 14 + r * 4, op = k === 'o' ? .24 : .16;
-    for (let y = Math.floor((cy - R) / 4) * 4; y < cy + R; y += 4) for (let x = Math.floor((cx - R) / 4) * 4; x < cx + R; x += 4) {
-      const d = Math.hypot(x - cx, y - cy) / R; if (d > 1) continue;
-      const bi = ((((y / 4) % 4) + 4) % 4) * 4 + ((((x / 4) % 4) + 4) % 4);
-      if (1 - d > (bayer[bi] + .5) / 16) s += `<rect x="${x}" y="${y}" width="3" height="3" fill="${halo[k]}" opacity="${op}"/>`;
-    }
-  });
-  s += E.map(([a, b]) => `<line x1="${N[a][0]}" y1="${N[a][1]}" x2="${N[b][0]}" y2="${N[b][1]}" stroke="${N[a][3]==='u'||N[b][3]==='u' ? '#3A2C26' : '#6E4A3E'}" stroke-width="1.2"/>`).join('');
-  N.forEach(([x, y, r, k, label]) => {
-    s += `<rect x="${x - r + 2}" y="${y - r + 2}" width="${r * 2}" height="${r * 2}" rx="1" fill="#000" opacity=".6"/>`;
-    s += `<rect x="${x - r}" y="${y - r}" width="${r * 2}" height="${r * 2}" rx="1" fill="${col[k]}"/>`;
-    if (label) s += `<text x="${x + r + 4}" y="${y + 3}" fill="${k === 'o' ? tok('--text') : tok('--text-2')}" font-size="${k === 'o' ? 12 : 9}" font-family="VT323">${label}</text>`;
-  });
-  document.getElementById('graph').innerHTML = s;
-})();
-
+/* graph data: CLAUDE.md is always the centre; the open note glows brightest */
+let seedG = 5; const rg = () => (seedG = (seedG * 16807) % 2147483647) / 2147483647;
+const N = [
+  [160,125,9,'a','CLAUDE.md'],
+  [232,92,6,'o','dashboard.md'],
+  [74,56,5,'n','layout.md'],[248,40,5,'n','motion.md'],[62,190,4,'n','dock.md'],[262,196,5,'n','HUD-90.md'],
+  [150,30,4,'n','visual-direction.md'],[160,226,4,'n','terminal.md'],
+  [100,112,4,'s','hsuiux'],[214,150,4,'s','impeccable'],
+  [28,122,4,'m','palette'],[296,124,4,'s','cook']];
+const E = [[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[0,8],[0,9],[0,10],[0,11],[1,3],[1,9],[2,8],[5,11],[4,7]];
+// a crowded vault: more notes on rings round the hubs
+const WORDS = ['spec','notes','todo','ideas','journal','api','theme','ribbon','hud','pty','git','graph','motion','glass','sessions','skills','memory','usage','widgets','dock','palette','layout','tests','agents','prompts','research','drafts','design','stage-0','stage-u','cards','bugs','plan','tokens','fonts','mascot','clock','search','sync','backup','keys','shell','hooks','guard','init'];
+WORDS.forEach((w, i) => {
+  const hub = 1 + Math.floor(rg() * 7), ang = rg() * 6.283, dist = 26 + rg() * 40;
+  const x = Math.max(6, Math.min(314, N[hub][0] + Math.cos(ang) * dist)), y = Math.max(6, Math.min(244, N[hub][1] + Math.sin(ang) * dist));
+  N.push([x, y, 2 + Math.round(rg()), rg() < .12 ? 'u' : 'n', w + '.md']);
+  E.push([hub, N.length - 1]); if (rg() < .3) E.push([N.length - 1, N.length - 2]);
+});
 /* background: dithered dots whose colour walks the palette along the diagonal, so the colour has an order */
 (() => {
   const b = document.getElementById('bg').getContext('2d'), c = 6, W = 240, H = 150;
@@ -386,6 +388,209 @@ document.querySelectorAll('canvas.sprite').forEach(cv => {
   }
   g.putImageData(img, 0, 0); document.getElementById('barrelMap').setAttribute('href', m.toDataURL());
 })();
+/* ---------- motion layer ---------- */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, still = screen.dataset.still === '1', animate = !reduce && !still;
+const mouse = { x: -1e4, y: -1e4, speed: 0, last: performance.now() };
+addEventListener('pointermove', e => {
+  const d = mouse.x < -1e3 ? 0 : Math.hypot(e.clientX - mouse.x, e.clientY - mouse.y);
+  mouse.speed = Math.min(40, mouse.speed * .6 + d); mouse.x = e.clientX; mouse.y = e.clientY; mouse.last = performance.now();
+});
+document.addEventListener('pointerleave', () => { mouse.x = mouse.y = -1e4; });
+const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+
+/* HSOS shimmer: on touch and now and then by itself */
+const brand = document.querySelector('.brand');
+const shimmer = () => { brand.classList.remove('shimmer'); void brand.offsetWidth; brand.classList.add('shimmer'); };
+brand.addEventListener('pointerenter', shimmer); brand.addEventListener('click', shimmer);
+if (animate) (function auto() { setTimeout(() => { shimmer(); auto(); }, 6000 + Math.random() * 9000); })();
+
+/* clock: real time, blinking colon, a phosphor flicker now and then, seconds on hover */
+const clock = document.querySelector('.clock'), p2 = n => String(n).padStart(2, '0');
+const tick = () => { const d = new Date(); clock.querySelector('.hh').textContent = p2(d.getHours()); clock.querySelector('.mm').textContent = p2(d.getMinutes()); clock.querySelector('.ss').textContent = ':' + p2(d.getSeconds()); };
+if (!still) { tick(); setInterval(tick, 1000); }
+if (animate) (function flick() { setTimeout(() => { clock.classList.add('flicker'); setTimeout(() => clock.classList.remove('flicker'), 70 + Math.random() * 90); flick(); }, 2500 + Math.random() * 6000); })();
+
+/* strawberry: blinks, follows the mouse with its eyes, sleeps, reads, works */
+const BODY = [
+  "................",
+  ".......c........",
+  "....cc.c.cc.....",
+  "...kccccccck....",
+  "..krrcccccrrk...",
+  ".krrrrrrrrrrrk..",
+  ".krhrrrrrrrrrk..",
+  ".krrrrrrrrrrrk..",
+  ".krrrrrrrrrrrk..",
+  ".krlrrrrrrrlrk..",
+  "..krryrrrrrryk..",
+  "...krrrrrrrrk...",
+  "....krryrrrk....",
+  ".....krrrrk.....",
+  "......kkkk......"];
+const BP = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', l:'#C77DFF', y:'#F5FF3B', c:'#00F0FF' };
+const BOOK = ["oPPPPooPPPPo", "oPLPPooPLLPo", "oPPLPooPPPPo", ".oooooooooo."], BOOKC = { o:'#FF7A3D', P:'#F2E8DE', L:'#A08F84' };
+const LAPTOP = ["cccccccccc", "gggggggggg", "ggggoggggg", "gggggggggg", "bbbbbbbbbb"], LAPC = { c:'#00F0FF', g:'#2A2420', o:'#FF7A3D', b:'#6E5A50' };
+const berry = document.getElementById('berry'), bx = berry.getContext('2d'), PX = 10, OX = 30, OY = 40;
+const word = document.querySelector('.mascot .word'), doing = document.querySelector('.mascot .doing');
+const LABEL = { awake: ['Thinking', 'reading pty.ts'], reading: ['Reading', 'the motion spec'], working: ['Working', 'typing a fix'], sleep: ['Sleeping', 'zzz'] };
+const B = { mode: 'awake', until: 0, nextAct: performance.now() + 9000, blinkAt: performance.now() + 2200, blinkEnd: 0, hover: false, hop: -1e4, dy: 0 };
+const setMode = m => { if (B.mode === m) return; B.mode = m; word.textContent = LABEL[m][0]; doing.textContent = LABEL[m][1]; };
+berry.addEventListener('pointerenter', () => B.hover = true);
+berry.addEventListener('pointerleave', () => B.hover = false);
+berry.addEventListener('click', () => { B.hop = performance.now(); setMode('awake'); B.nextAct = performance.now() + 9000; });
+const cell = (x, y, c) => { bx.fillStyle = c; bx.fillRect(OX + x * PX, OY + y * PX + B.dy, PX, PX); };
+const sprite = (rows, pal, x0, y0) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') cell(x0 + x, y0 + y, pal[ch]); }));
+function drawBerry(t) {
+  const idle = t - mouse.last;
+  if (animate) {
+    if (idle > 12000 && B.mode !== 'sleep') setMode('sleep');
+    else if (B.mode === 'sleep' && idle < 300) { setMode('awake'); B.nextAct = t + 8000; }
+    if (B.mode === 'awake' && t > B.nextAct) { setMode(Math.random() < .5 ? 'reading' : 'working'); B.until = t + 5000 + Math.random() * 3000; }
+    if ((B.mode === 'reading' || B.mode === 'working') && t > B.until) { setMode('awake'); B.nextAct = t + 12000 + Math.random() * 10000; }
+    if (t > B.blinkAt) { B.blinkEnd = t + 130; B.blinkAt = t + 2500 + Math.random() * 3000; }
+  }
+  const sleeping = B.mode === 'sleep', busy = B.mode === 'reading' || B.mode === 'working', blinking = t < B.blinkEnd;
+  const hp = (t - B.hop) / 420, hop = hp >= 0 && hp < 1 ? Math.sin(hp * Math.PI) * 18 : 0;
+  B.dy = animate ? Math.round((sleeping ? Math.sin(t / 900) * 3 : Math.sin(t / 650) * 2) - hop) : 0;
+  bx.clearRect(0, 0, berry.width, berry.height);
+  for (let z = 3; z >= 1; z--) BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return;
+    bx.fillStyle = z === 3 ? 'rgba(0,0,0,.6)' : '#7A001D'; bx.fillRect(OX + x * PX + z, OY + y * PX + B.dy + z, PX, PX); }));
+  sprite(BODY, BP, 0, 0);
+  bx.fillStyle = 'rgba(122,0,29,.5)';
+  BODY.forEach((row, y) => { const k = row.lastIndexOf('k'); if (k > 0 && row[k - 1] === 'r') bx.fillRect(OX + (k - 1) * PX, OY + y * PX + B.dy, PX, PX); });
+  if (B.hover) { cell(3, 9, '#E2B0FF'); cell(11, 9, '#E2B0FF'); }
+  const r = berry.getBoundingClientRect(), sc = r.width / berry.width;
+  [[4, 7], [10, 7]].forEach(([ex, ey]) => {
+    if (sleeping || blinking) { cell(ex, ey + 1, BP.k); cell(ex + 1, ey + 1, BP.k); return; }
+    for (const [i, j] of [[0,0],[1,0],[0,1],[1,1]]) cell(ex + i, ey + j, '#FFE9EC');
+    let lx = 0, ly = 0;
+    if (busy) ly = 1;
+    else if (mouse.x > -1e3) {
+      const cx = r.left + (OX + (ex + 1) * PX) * sc, cy = r.top + (OY + (ey + 1) * PX + B.dy) * sc;
+      const dx = mouse.x - cx, dy = mouse.y - cy, d = Math.hypot(dx, dy) || 1, m = Math.min(1, d / 120);
+      lx = dx / d * m; ly = dy / d * m;
+    }
+    bx.fillStyle = '#140406';
+    bx.fillRect(OX + ex * PX + Math.round((lx * .5 + .5) * 2) / 2 * PX, OY + ey * PX + B.dy + Math.round((ly * .5 + .5) * 2) / 2 * PX, PX, PX);
+  });
+  // a small smile
+  if (!sleeping) { cell(6, 9, BP.k); cell(9, 9, BP.k); }
+  cell(7, 10, BP.k); cell(8, 10, BP.k);
+  if (B.mode === 'reading') sprite(BOOK, BOOKC, 2, 11);
+  if (B.mode === 'working') {
+    bx.fillStyle = 'rgba(0,240,255,.12)'; bx.fillRect(OX + 2 * PX, OY + 5 * PX + B.dy, 11 * PX, 5 * PX);
+    bx.shadowColor = '#00F0FF'; bx.shadowBlur = 10; sprite(LAPTOP.slice(0, 1), LAPC, 3, 10); bx.shadowBlur = 0;
+    sprite(LAPTOP.slice(1), LAPC, 3, 11);
+  }
+  if (sleeping) for (let i = 0; i < 2; i++) {
+    const ph = ((t / 1800) + i * .5) % 1, zx = OX + 13 * PX + ph * 22, zy = OY + 3 * PX - ph * 44, c = 5;
+    bx.globalAlpha = 1 - ph; bx.fillStyle = '#C77DFF';
+    ["###", ".#.", "###"].forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') bx.fillRect(zx + x * c, zy + y * c, c, c); }));
+    bx.globalAlpha = 1;
+  }
+}
+
+/* graph: nodes float like they are in space; the mouse pushes them; scroll zooms at the cursor, drag pans, double click resets */
+const gc = document.getElementById('graph'), gx = gc.getContext('2d');
+const COL = { o: tok('--yellow'), n: tok('--text-2'), a: tok('--terra'), s: tok('--lav'), m: tok('--mag'), u: '#4A3A33' };
+const HALO = { a: tok('--terra'), o: tok('--yellow'), n: tok('--cyan'), s: tok('--lav'), m: tok('--mag') };
+const NODES = N.map(([x, y, r, k, label], i) => ({ hx: x, hy: y, x, y, vx: 0, vy: 0, r, k, label, pinned: i === 0,
+  ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 3 : 5 + Math.random() * 7, sp: .6 + Math.random() * .8 }));
+document.querySelector('.graph .count').textContent = NODES.length + ' notes';
+let gs = 1, gox = 0, goy = 0, hover = null;
+const cam = { x: 160, y: 125, z: 1 }, drag = { on: false, x: 0, y: 0 };
+function makeHalo(n) {
+  const R = (n.k === 'a' ? 80 : n.k === 'o' ? 44 : n.r > 3 ? 14 + n.r * 4 : 12) * gs, cs = Math.max(4, Math.round(4 * gs)), cells = Math.ceil(R * 2 / cs), size = cells * cs;
+  const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d');
+  g.fillStyle = HALO[n.k]; g.globalAlpha = n.k === 'a' ? .26 : n.k === 'o' ? .4 : n.r > 3 ? .18 : .1;
+  for (let j = 0; j < cells; j++) for (let i = 0; i < cells; i++) {
+    const d = Math.hypot(i * cs + cs / 2 - size / 2, j * cs + cs / 2 - size / 2) / R;
+    if (d <= 1 && 1 - d > (bayer[(j % 4) * 4 + (i % 4)] + .5) / 16) g.fillRect(i * cs, j * cs, cs - 2, cs - 2);
+  }
+  return c;
+}
+function sizeGraph() {
+  gc.width = gc.offsetWidth; gc.height = gc.offsetHeight;
+  gs = Math.min(gc.width / 320, gc.height / 250); gox = (gc.width - 320 * gs) / 2; goy = (gc.height - 250 * gs) / 2;
+  NODES.forEach(n => { n.halo = n.k === 'u' ? null : makeHalo(n); });
+}
+// canvas pixel to graph units and back
+const toWorld = (px, py) => [cam.x + ((px - gox) / gs - 160) / cam.z, cam.y + ((py - goy) / gs - 125) / cam.z];
+const toScreen = (x, y) => [Math.round(gox + ((x - cam.x) * cam.z + 160) * gs), Math.round(goy + ((y - cam.y) * cam.z + 125) * gs)];
+const canvasPoint = e => { const r = gc.getBoundingClientRect(), k = gc.width / r.width; return [(e.clientX - r.left) * k, (e.clientY - r.top) * k]; };
+gc.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [px, py] = canvasPoint(e), [wx, wy] = toWorld(px, py);
+  cam.z = Math.max(.7, Math.min(5, cam.z * Math.exp(-e.deltaY * .0015)));
+  cam.x = wx - ((px - gox) / gs - 160) / cam.z; cam.y = wy - ((py - goy) / gs - 125) / cam.z;
+  if (!animate) drawGraph();
+}, { passive: false });
+gc.addEventListener('pointerdown', e => { if (hover) return; drag.on = true; [drag.x, drag.y] = canvasPoint(e); gc.setPointerCapture(e.pointerId); });
+gc.addEventListener('pointermove', e => { if (!drag.on) return; const [px, py] = canvasPoint(e); cam.x -= (px - drag.x) / gs / cam.z; cam.y -= (py - drag.y) / gs / cam.z; drag.x = px; drag.y = py; });
+gc.addEventListener('pointerup', () => { drag.on = false; });
+gc.addEventListener('dblclick', () => { cam.x = 160; cam.y = 125; cam.z = 1; });
+function stepGraph(t) {
+  const r = gc.getBoundingClientRect(), k = gc.width / r.width;
+  const [mx, my] = toWorld((mouse.x - r.left) * k, (mouse.y - r.top) * k);
+  let best = null, bd = 10 / cam.z;
+  NODES.forEach(n => {
+    const dx = n.x - mx, dy = n.y - my, d = Math.hypot(dx, dy) || 1;
+    if (d < bd && n.k !== 'u') { bd = d; best = n; }
+    if (n.pinned) return;
+    const tx = n.hx + n.amp * Math.sin(t * .00045 * n.sp + n.ph1), ty = n.hy + n.amp * Math.cos(t * .00038 * n.sp + n.ph2);
+    let ax = (tx - n.x) * .03, ay = (ty - n.y) * .03;
+    const R0 = 64 / cam.z;
+    if (!drag.on && d < R0) { const f = Math.pow(1 - d / R0, 2) * (.8 + mouse.speed * .12) / cam.z; ax += dx / d * f; ay += dy / d * f; }
+    n.vx = (n.vx + ax) * .86; n.vy = (n.vy + ay) * .86; n.x += n.vx; n.y += n.vy;
+  });
+  hover = best; gc.style.cursor = drag.on ? 'grabbing' : best ? 'pointer' : 'grab';
+}
+function drawGraph() {
+  gx.clearRect(0, 0, gc.width, gc.height); gx.imageSmoothingEnabled = false;
+  const z = cam.z, P = n => toScreen(n.x, n.y);
+  NODES.forEach(n => { if (!n.halo) return; const [x, y] = P(n), w = Math.round(n.halo.width * Math.sqrt(z)); gx.drawImage(n.halo, x - (w >> 1), y - (w >> 1), w, w); });
+  gx.lineWidth = Math.max(1, gs * .7);
+  E.forEach(([a, b]) => {
+    const A = NODES[a], Bn = NODES[b], lit = hover && (A === hover || Bn === hover);
+    gx.strokeStyle = lit ? tok('--cyan') : (A.k === 'u' || Bn.k === 'u') ? '#33261F' : (A.k === 'a' || Bn.k === 'a' ? '#7A4A38' : '#4E3A30');
+    if (lit) { gx.shadowColor = tok('--cyan'); gx.shadowBlur = 8; }
+    const [x1, y1] = P(A), [x2, y2] = P(Bn); gx.beginPath(); gx.moveTo(x1, y1); gx.lineTo(x2, y2); gx.stroke(); gx.shadowBlur = 0;
+  });
+  const order = [...NODES].sort((p, q) => (p.k === 'o') - (q.k === 'o'));
+  order.forEach(n => {
+    const [x, y] = P(n), s = Math.max(2, Math.round(n.r * gs * Math.sqrt(z) * (n === hover ? 1.45 : 1)));
+    gx.fillStyle = 'rgba(0,0,0,.6)'; gx.fillRect(x - s + 3, y - s + 3, s * 2, s * 2);
+    // the open note glows far brighter than the rest
+    if (n.k === 'o') { gx.shadowColor = tok('--yellow'); gx.shadowBlur = 34; gx.fillStyle = tok('--yellow'); gx.fillRect(x - s, y - s, s * 2, s * 2); gx.shadowBlur = 18; gx.fillRect(x - s, y - s, s * 2, s * 2); gx.fillStyle = '#FFFFE0'; gx.fillRect(x - s + 3, y - s + 3, s * 2 - 6, s * 2 - 6); gx.shadowBlur = 0; }
+    else { gx.shadowColor = COL[n.k]; gx.shadowBlur = n.k === 'a' ? 14 : (n.k === 's' || n.k === 'm' || n === hover) ? 6 : 0; gx.fillStyle = COL[n.k]; gx.fillRect(x - s, y - s, s * 2, s * 2); gx.shadowBlur = 0; }
+    const big = n.k === 'a' || n.k === 'o', showLabel = n.label && (big || n === hover || n.r > 3 || z > 1.8);
+    if (showLabel) {
+      gx.font = `${Math.round((big ? 13 : 9) * gs * Math.min(1.6, Math.sqrt(z)))}px VT323`;
+      gx.fillStyle = big || n === hover ? tok('--text') : tok('--text-2');
+      gx.fillText(n.label, x + s + Math.round(4 * gs), y + Math.round(3 * gs));
+    }
+  });
+}
+/* background: a small parallax against the mouse gives the dot field depth */
+const bgEl = document.getElementById('bg'); let pxv = 0, pyv = 0;
+function parallax() {
+  const tx = mouse.x > -1e3 ? -(mouse.x / 1440 * 2 - 1) * 10 : 0, ty = mouse.y > -1e3 ? -(mouse.y / 900 * 2 - 1) * 7 : 0;
+  pxv += (tx - pxv) * .08; pyv += (ty - pyv) * .08;
+  bgEl.style.transform = `translate(${pxv.toFixed(1)}px, ${pyv.toFixed(1)}px) scale(1.02)`;
+}
+
+/* one loop, at most 30 frames a second, paused while the window is hidden */
+let last = 0;
+function frame(t) {
+  requestAnimationFrame(frame);
+  if (document.hidden || t - last < 33) return;
+  last = t; mouse.speed *= .88;
+  drawBerry(t); stepGraph(t); drawGraph(); parallax();
+}
+document.fonts.ready.then(() => {
+  sizeGraph(); addEventListener('resize', () => { sizeGraph(); if (!animate) drawGraph(); });
+  if (animate) requestAnimationFrame(frame); else { drawBerry(performance.now()); drawGraph(); }
+});
 document.fonts.ready.then(() => { document.title = 'ready'; });
 </script>
 </body>

@@ -44,3 +44,15 @@ Owner: colours felt placed without order; HSOS horizontal top left in neon red w
 - Layout: session and sessions boxes on the left edge, usage and context boxes bottom right, mascot free top right, graph free in the centre (4x5), quick bar free below it with the screen dots. The git widget is gone; its data is in the status bar. Grid gap 22 by 40 px, page edge 18 px.
 - Breathing: `transform` scale 1 to 1.035 and `filter` drop-shadow plus hue-rotate toward magenta, 7 s loop, off under reduced motion. Only allowed properties animate.
 - Open points for the spec: title bar grows from 36 to 56 px to hold the brand and clock; a widget can be frameless (`free`).
+
+## Round 4 (2026-11-18): motion and interaction
+
+Owner loved round 3 and asked for HSOS, the clock, the strawberry and the graph to react to the mouse and move; CLAUDE.md always in the centre; an open note glowing far brighter; a crowded graph that zooms with the scroll wheel.
+
+- Strawberry (canvas, 16 by 16 cells): eyes follow the pointer, blink every 2.5 to 5.5 s, a slight smile, sleeps after 12 s without pointer movement (lavender Z, slower bob) and wakes on movement, now and then reads an orange book or types on a laptop with a cyan glow, hops on click, cheeks light on hover. The label under it follows the mode.
+- Clock: real time, blinking colon, a short phosphor flicker every few seconds, seconds and a brighter glow on hover.
+- HSOS: a light band sweeps across it (`clip-path`) on hover, click, and every 6 to 15 s; it keeps breathing.
+- Graph (canvas): CLAUDE.md pinned in the centre with the large orange halo; the open note glows far brighter than the rest; 57 notes; every node drifts slowly; the pointer pushes nodes away, harder when it moves fast, and they spring back; hover enlarges a node and lights its links in cyan; scroll zooms at the pointer (0.7 to 5x), drag pans, double click resets; small labels appear from 1.8x.
+- Background: a 10 px parallax against the pointer.
+- One animation loop capped at 30 frames a second, paused when the window is hidden; reduced motion turns all of it off.
+- Open points for the spec: the graph widget needs zoom and pan (GRAPH module); the mascot needs reading and working states in HUD-90.
