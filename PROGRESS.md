@@ -55,3 +55,11 @@ Did: In jsdom, a dockview with two groups and three panels goes through `toJSON`
 Checks: typecheck ok, lint ok, deps ok, test 5 passed, e2e 1 passed, 1 skipped
 Deviations: jsdom has no `ResizeObserver`; the test defines an inert one, since dockview only needs it to exist.
 Next: 008
+
+## 008 Contract helpers
+Status: done
+Date: 2026-11-18
+Did: Pinned ok, err (with and without details), newId (length, alphabet, injected random), toAbsPath, toRelPath and tokenToCssVariable.
+Checks: typecheck ok, lint ok, deps ok, test 14 passed, e2e 1 passed, 1 skipped
+Deviations: none
+Next: 009
