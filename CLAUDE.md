@@ -2,9 +2,11 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete: 20 modules, 118 cards (001 to 118). Build order is look first: stage 0, Stage U (every screen on demo data, ending at the owner's approval in card 037), then stages 1 to 9. Latest: dashboard, pages, session ribbon and mascot, motion as a hard rule, background and glass. See JOURNAL steps 36 and 37.
+**Status (2026-11-18):** spec complete: 20 modules, 118 cards (001 to 118). Build order is look first: stage 0, Stage U (every screen on demo data, ending at the owner's approval in card 037), then stages 1 to 9. See JOURNAL steps 36 and 37.
 
-**Next:** the design round (`spec/design/direction-brief.md`): a designer agent shows the owner several directions, the owner picks one, the spec author writes it into `spec/design/`. Then implementation starts with card 001 in `tasks/stage-0.md`.
+**Design round (`spec/design/direction-brief.md`):** the owner chose the **Phosphor** direction and approved its Dashboard: `design-round/dashboard/phosphor.html` (live, animated mockup; round log and every owner decision in `design-round/design-rounds.md`). Short form: CRT pixel art; one colour per job (neon orange `#FF7A3D` structure, phosphor yellow `#F5FF3B` values and focus, neon red `#FF003C` attention and brand, cyan `#00F0FF` live, lavender `#C77DFF` knowledge, magenta `#FF00FF` memory); breathing HSOS and cyan clock top left; corner boxes; a floating, zoomable graph with CLAUDE.md pinned in the centre; a strawberry mascot; a dust-and-steam glyph background; every button lifts in 3D. Graphite stays in the spec until the spec author rewrites it.
+
+**Next:** Code and Notes pages in Phosphor (open questions in the round log), then the spec author writes Phosphor into `spec/design/` (visual-direction, theme file, mascot sheet, motion, the open spec points in the log) and logs it in the JOURNAL. Then implementation starts with card 001 in `tasks/stage-0.md`.
 
 ## Before any work
 
@@ -43,3 +45,4 @@ Gotchas: working copies are CRLF (`core.autocrlf true`), so strip `\r` before sc
 - `docs/JOURNAL.md`: how the spec was made
 - branch `research/round-1`, `docs/research/`: first research round; newer findings in `docs/research/` on `main`
 - `docs/drafts/`: design drafts; `session-recovery.md` is done and kept for history
+- `design-round/`: throwaway HTML mockups of the design round, outside `src/`; `dashboard/compare.html` shows every round. Render stills with headless Edge and `?still=1` (headless runs only one animation frame).
