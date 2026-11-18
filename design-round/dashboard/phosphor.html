@@ -167,7 +167,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .clock:hover .ss { display: inline; }
 .clock:hover { filter: brightness(1.35) drop-shadow(0 0 6px rgba(0,240,255,.8)); }
 .clock.flicker { opacity: .72; }
-#bg { transform: none; }
+#bg { transform: none; opacity: .8; }
 #berry { cursor: pointer; }
 /* the graph draws on a full-window layer between the background and the widgets; its home is the centre area */
 #graph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -468,9 +468,9 @@ const word = document.querySelector('.mascot .word'), doing = document.querySele
 const LABEL = { awake: ['Thinking', 'reading pty.ts'], reading: ['Reading', 'the motion spec'], working: ['Working', 'typing a fix'], sleep: ['Sleeping', 'zzz'] };
 const B = { mode: 'awake', until: 0, nextAct: performance.now() + 9000, blinkAt: performance.now() + 2200, blinkEnd: 0, hover: false, hop: -1e4, dy: 0, lx: 0, ly: 0 };
 const setMode = m => { if (B.mode === m) return; B.mode = m; word.textContent = LABEL[m][0]; doing.textContent = LABEL[m][1]; };
-berry.addEventListener('pointerenter', () => B.hover = true);
+berry.addEventListener('pointerenter', () => { B.hover = true; B.blinkEnd = performance.now() + 160; });
 berry.addEventListener('pointerleave', () => B.hover = false);
-berry.addEventListener('click', () => { B.hop = performance.now(); setMode('awake'); B.nextAct = performance.now() + 9000; });
+berry.addEventListener('click', () => { B.blinkEnd = performance.now() + 160; setMode('awake'); B.nextAct = performance.now() + 9000; });
 const cell = (x, y, c, dx = 0) => { bx.fillStyle = c; bx.fillRect(Math.round(OX + x * PX + dx), Math.round(OY + y * PX + B.dy), PX, PX); };
 const box = (x, y, w, h, c) => { bx.fillStyle = c; bx.fillRect(Math.round(OX + x * PX), Math.round(OY + y * PX + B.dy), Math.round(w * PX), Math.round(h * PX)); };
 const sprite = (rows, pal, x0, y0, dx = 0) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') cell(x0 + x, y0 + y, pal[ch], dx); }));
