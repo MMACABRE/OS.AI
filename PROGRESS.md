@@ -47,3 +47,11 @@ Did: A `WebContentsView` in session `persist:hsos-browser-spike` loaded `<h1>spi
 Checks: typecheck ok, lint ok, deps ok, test 4 passed, e2e 1 passed, 1 skipped
 Deviations: the view loads the HTML as a `data:` URL directly instead of `about:blank` first.
 Next: 007
+
+## 007 Spike: dock layout round trip
+Status: done
+Date: 2026-11-18
+Did: In jsdom, a dockview with two groups and three panels goes through `toJSON` and a second dockview's `fromJSON`; panel ids and their groups match.
+Checks: typecheck ok, lint ok, deps ok, test 5 passed, e2e 1 passed, 1 skipped
+Deviations: jsdom has no `ResizeObserver`; the test defines an inert one, since dockview only needs it to exist.
+Next: 008
