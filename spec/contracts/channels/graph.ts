@@ -33,13 +33,18 @@ export const GraphNode = z.object({
   degree: z.number().int().nonnegative(),
   /** Community number from Louvain clustering, or null before it is computed. */
   community: z.number().int().nullable(),
+  /** Claude Code loads this file into every session at start (GRAPH-41). */
+  loadsAtStart: z.boolean(),
+  /** Lines in the file; 0 for unresolved nodes. */
+  lineCount: z.number().int().nonnegative(),
 });
 export type GraphNode = z.infer<typeof GraphNode>;
 
 export const GraphEdge = z.object({
   source: z.string(),
   target: z.string(),
-  kind: z.enum(['wikilink', 'markdown', 'embed']),
+  /** `import`: an `@path` import in a CLAUDE.md, AGENTS.md or rule file, loaded with it (GRAPH-40). */
+  kind: z.enum(['wikilink', 'markdown', 'embed', 'import']),
 });
 export type GraphEdge = z.infer<typeof GraphEdge>;
 
@@ -121,4 +126,11 @@ export const graphChannels = {
     z.array(GraphNode),
   ),
   reindex: request('graph.reindex', 'workspace-service', zEmpty, zEmpty, 600_000),
+  /** The first 4 000 characters of a note with its frontmatter removed, for the hover card (GRAPH-44). */
+  preview: request(
+    'graph.preview',
+    'workspace-service',
+    z.object({ path: zAbsPath }),
+    z.object({ text: z.string().max(4_000), truncated: z.boolean() }),
+  ),
 } as const;

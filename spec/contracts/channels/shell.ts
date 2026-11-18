@@ -68,6 +68,25 @@ export const shellChannels = {
    */
   getLaunchToken: request('shell.getLaunchToken', 'main', zEmpty, z.object({ token: z.string().min(32) })),
 
+  /**
+   * Speaks text with the voice built into Windows (SHELL-28). Returns once the text is queued,
+   * not when it has been spoken. Failures are logged, never returned.
+   */
+  speak: request(
+    'shell.speak',
+    'main',
+    z.object({
+      text: z.string().min(1).max(300),
+      /** A name from `listVoices`, or null for the Windows default voice. */
+      voice: z.string().max(200).nullable(),
+      /** -10 (slowest) to 10 (fastest); 0 is normal. */
+      rate: z.number().int().min(-10).max(10),
+    }),
+    zEmpty,
+  ),
+  /** Names of the enabled Windows voices, found once and cached (SHELL-29). */
+  listVoices: request('shell.listVoices', 'main', zEmpty, z.array(z.string()), 10_000),
+
   /** Writes text to the system clipboard. */
   writeClipboard: request('shell.writeClipboard', 'main', z.object({ text: z.string().max(5_000_000) }), zEmpty),
 } as const;

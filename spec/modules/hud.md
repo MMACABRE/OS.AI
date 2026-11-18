@@ -6,7 +6,7 @@ One glance tells the owner: which Claude sessions need them, what each is doing,
 
 ## Interface
 
-No channels of its own. It reads `contracts/channels/claude-link.ts`, `skills.ts` and `terminal.ts`, and calls `shell.notify`.
+No channels of its own. It reads `contracts/channels/claude-link.ts`, `skills.ts` and `terminal.ts`, and calls `shell.notify`, `shell.speak` and `shell.listVoices`. Background: `docs/research/agent-map-setup-voice.md`.
 
 - Runs in: `ui`. Its `register.service.ts` runs in `main` and does one thing: it registers `hudSection` from `contracts/channels/hud.ts`.
 - Third-party packages allowed: `zustand`, `zod`.
@@ -73,6 +73,14 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 - **HUD-10.** When a session changes to `needs-you`, or to `done` after working for at least 30 seconds, and the HSOS window is not focused, `shell.notify` is called with the session title and the reason or "Finished". Its `focusPanel` is the session's terminal panel.
 - **HUD-11.** At most one notification per session per 10 seconds. Settings: `hud.notifyOnNeedsYou` and `hud.notifyOnDone`, both default true.
 - **HUD-12.** Status item `hud.attention` (right): `n need you` in accent when `n` is above zero, hidden otherwise. Pressing it focuses the first `needs-you` session's terminal.
+- **HUD-13.** With `speakAlerts` on, the same two changes as HUD-10 also call `shell.speak` with `speakVoice` (null when empty) and `speakRate`, unless the HSOS window is focused and the session's terminal panel is the focused panel, because then the owner is already looking at it. This holds when the window is focused and the owner is in another panel or another terminal.
+- **HUD-14.** The spoken text:
+  - for `needs-you`: `<title>. Needs you. <reason>.`
+  - for `done`: `<title>. Finished.`, followed, when `speakSummary` is on and `lastMessage` is not empty, by a space and the first sentence of `lastMessage`.
+
+  `<title>` is the session title cut to 60 characters at a word boundary. The first sentence is found after turning the message into plain text: fenced code blocks are removed, line breaks become spaces, backticks, `#`, `*`, `_` and `>` markers are removed, a link `[text](url)` becomes `text`, and bare URLs are removed. It ends at the first `.`, `!` or `?` followed by a space or the end, and is cut to 160 characters at a word boundary. Text from the session is data (P-6).
+- **HUD-15.** At most one spoken alert per session per 10 seconds, counted separately from HUD-11.
+- **HUD-16.** Command `hud.toggleSpokenAlerts` flips `speakAlerts` and shows a toast "Spoken alerts on" or "Spoken alerts off". Command `hud.testVoice` speaks `This is how HSOS alerts sound.` with the current voice and rate. Command `hud.chooseVoice` opens a dialog listing "Windows default" and then the names from `shell.listVoices`, with the current one selected. Choosing one sets `speakVoice` (empty for "Windows default") and speaks the test line with it. An empty list leaves only "Windows default". The settings screen shows `speakVoice` as its normal text field.
 
 ### Session recap
 
@@ -108,6 +116,30 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 
 - **HUD-41.** "Sync" calls `skills.pushToRepo` after a confirmation that lists the folders to be pushed. "Check" calls `checkRepoSync`. Folders only in the repo are listed in the row's tooltip.
 
+### Claude setup view
+
+Dock panel `hud.setup`, single instance, title "Claude Setup". It shows what the owner's Claude Code setup holds so unused parts can be found and removed. It reads `link.getSetup` and `skills.list` and changes nothing (LINK-6).
+
+```
+┌ Claude Setup ─────────────────────────────── Refresh ┐
+│ 3 MCP servers · 9 plugins · 43 skills · 2 subagents  │
+│ 5 hooks · 14 permission rules     Show what loads at start │
+│ [search…]  [ ] Not used in 30 days   Sort: Name ▾    │
+├ MCP SERVERS ─────────────────────────────────────────┤
+│ firecrawl   user     http  api.firecrawl.dev  3 d ago│
+│ old-db      project  stdio node.exe       never seen │
+├ PLUGINS ─────────────────────────────────────────────┤
+│ agent-hud@mmacabre-skills  0.3.1  on      2 h ago   │
+└──────────────────────────────────────────────────────┘
+```
+
+- **HUD-50.** The header line counts each section, then a "Show what loads at start" button that runs the command `graph.agentView` (GRAPH-43), shown only when that command is registered. Sections, each collapsible and each its own error boundary: MCP servers, Plugins, Skills, Subagents, Hooks, Permissions.
+- **HUD-51.** Each row shows its name, scope, the section's own columns (transport and target for MCP servers, version and on/off for plugins, the source for skills, the event and handler count for hooks, the effect for permissions), and "Last used": a relative time such as `3 d ago`, or `never seen` when unknown. Its tooltip names the counter: "Counted by Claude Code" for `source: claude`, "Seen by HSOS, in HSOS terminals only" for `source: hsos`. Hooks and permissions have no "Last used" column.
+- **HUD-52.** A skill's "Last used" comes from `skillUse[name]`, else `never seen`. Skills show the same rows as the skills deck (SKILL-1 to SKILL-4).
+- **HUD-53.** The toolbar has a search field (matches name, target and file, every word, case ignored), the toggle "Not used in 30 days", which keeps rows whose last use is older than 30 days or unknown, in the sections that have "Last used", and a sort select: "Name" (default) or "Least recently used first", unknown first.
+- **HUD-54.** Each row has "Open file", which opens its `file` in a viewer, and "Ask Claude to remove", which writes `Remove the <kind> "<name>" from my Claude Code setup in <file>. Tell me what else depends on it first.` without Enter to the target terminal of HUD-31 and focuses it. `<kind>` is `MCP server`, `plugin`, `skill`, `subagent`, `hook for <event>` or `permission rule`. With no Claude session, the HUD-31 toast shows.
+- **HUD-55.** The view calls `getSetup` with the open project's folder when it opens, when "Refresh" is pressed, and when it gains focus more than 10 seconds after the last read. Each entry of `errors` shows as a line in `color.state.warn` above the sections: "Could not read <file>: <message>", with "Open file".
+
 ## Settings section
 
 | Key | Type | Default |
@@ -117,6 +149,10 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 | `warnAt` | number 1 to 99 | `60` |
 | `dangerAt` | number 1 to 100 | `85` |
 | `showRecap` | boolean | `true` |
+| `speakAlerts` | boolean | `true` |
+| `speakSummary` | boolean | `true` |
+| `speakVoice` | string, a voice name or empty | empty (Windows default) |
+| `speakRate` | number -10 to 10 | `1` |
 
 ## States
 
@@ -129,6 +165,10 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 
 A fault in one section leaves the other three working (P-12): each section is its own error boundary.
 
+| Claude setup view | Loading | Empty | Error |
+|---|---|---|---|
+| Each section | skeleton rows | "None configured." | "Could not read your Claude Code setup." with "Retry" |
+
 ## Commands
 
 | Id | Title | Default key |
@@ -136,6 +176,10 @@ A fault in one section leaves the other three working (P-12): each section is it
 | `hud.show` | Show HUD | `Ctrl+Shift+H` |
 | `hud.focusNextAttention` | Go to Next Session That Needs You | `Ctrl+Shift+U` (global) |
 | `hud.searchSkills` | Search Skills | `Ctrl+Shift+K` |
+| `hud.openSetup` | Show Claude Setup | none |
+| `hud.toggleSpokenAlerts` | Turn Spoken Alerts On or Off | none |
+| `hud.testVoice` | Test Alert Voice | none |
+| `hud.chooseVoice` | Choose Alert Voice | none |
 
 ## Tests
 
@@ -167,3 +211,19 @@ All component tests use a fake bus fed with `ClaudeSession`, `UsageLimits`, `Ski
 | HUD-32 | component | the run dialog | it opens | the usage line names the selected model; "Run" calls `startRun` with the fields |
 | HUD-40 | component | each `RepoSync` state | the row renders | it matches the table |
 | P-12 | component | the skills list request fails | the panel renders | Sessions and Usage still render; Skills shows its error state |
+| HUD-13 | component | the window is focused, the owner is in another terminal | a session becomes `needs-you` | `shell.speak` was called once |
+| HUD-13 | component | the window is focused on the session's own terminal panel | the session becomes `done` after 40 s of work | `shell.speak` was not called |
+| HUD-13 | component | `speakAlerts` off | a session becomes `needs-you` | `shell.speak` was not called |
+| HUD-14 | unit | title `fix login flow`, `lastMessage` "## Done\n\nI fixed the **token** check in `auth.ts`. Then I ran the tests." | the `done` text is built | `fix login flow. Finished. Done I fixed the token check in auth.ts.` |
+| HUD-14 | unit | a `needs-you` session with reason `Permission: Bash` | the text is built | `<title>. Needs you. Permission: Bash.` |
+| HUD-14 | unit | a 300-character first sentence | the text is built | the sentence part is at most 160 characters and ends on a whole word |
+| HUD-15 | component | fake clock | a session alternates `needs-you` and `working` 3 times within 5 s | `shell.speak` was called once |
+| HUD-16 | component | `listVoices` returns `Microsoft Zira Desktop` | `hud.chooseVoice` runs and that voice is chosen | the dialog offered "Windows default" and that voice; `speakVoice` is set to it; `shell.speak` was called with it |
+| HUD-50 | component | `graph.agentView` is not registered | the setup view renders | the "Show what loads at start" button is absent |
+| HUD-51 | component | an MCP server with `lastUse { at: 3 days ago, source: 'hsos' }` | it renders | `3 d ago`, with the tooltip "Seen by HSOS, in HSOS terminals only" |
+| HUD-52 | component | `skills.list` holds `caveman` and `x`; `skillUse` has `caveman` used 2 days ago | the Skills section renders | `caveman` shows `2 d ago`, `x` shows `never seen` |
+| HUD-53 | component | skills used 2 days ago, 40 days ago and never | "Not used in 30 days" is turned on | the last two show |
+| HUD-53 | component | the same skills | "Least recently used first" | order: never, 40 days, 2 days |
+| HUD-54 | component | a focused Claude terminal; MCP server `old-db` from `C:\p\.mcp.json` | "Ask Claude to remove" | `terminal.write` got `Remove the MCP server "old-db" from my Claude Code setup in C:\p\.mcp.json. Tell me what else depends on it first.` with no line break |
+| HUD-55 | component | `getSetup` returns one error | the view renders | the warning line names the file and the sections still render |
+| HUD-13 | manual | HSOS running, a Claude session working in a background tab | the session finishes | the owner hears its title and "Finished" |

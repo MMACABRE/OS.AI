@@ -171,6 +171,28 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 
 - **LINK-61.** The newest 2 000 events per session are kept in memory. They are not written to disk.
 
+### Setup inventory
+
+`getSetup` answers the Claude setup view (HUD-50 to HUD-55). It only reads (LINK-6).
+
+- **LINK-70.** `getSetup({ projectPath })` reads these sources. `~` is `%USERPROFILE%`.
+
+| Section | Source | Scope |
+|---|---|---|
+| MCP servers | `~\.claude.json` key `mcpServers` | `user` |
+| MCP servers | `~\.claude.json` key `projects["<projectPath>"].mcpServers` | `local` |
+| MCP servers | `<projectPath>\.mcp.json` key `mcpServers`; `enabled` is false when `projects["<projectPath>"].disabledMcpjsonServers` names it, true when `enabledMcpjsonServers` names it, else null | `project` |
+| Plugins | `~\.claude\plugins\installed_plugins.json`, `plugins`: each key is an id, the first array entry gives `version`, `scope` and `installedAt`; `enabled` is the value of `enabledPlugins[id]` from the highest settings file that sets it (local, then project, then user), else false | as recorded |
+| Subagents | `~\.claude\agents\*.md` and `<projectPath>\.claude\agents\*.md`; name from the frontmatter `name`, else the file name | `user`, `project` |
+| Hooks | key `hooks` of the three settings files below; one row per event per file, counting its handlers | per file |
+| Permissions | keys `permissions.allow`, `permissions.ask` and `permissions.deny` of the three settings files; one row per rule | per file |
+
+  The settings files are `~\.claude\settings.json` (`user`), `<projectPath>\.claude\settings.json` (`project`) and `<projectPath>\.claude\settings.local.json` (`local`). A missing file is not an error. A file that is not valid JSON, or a key of the wrong shape, adds one entry to `errors` and its rows are left out; every other source is still read. `projectPath` is matched against the keys of `projects` with letter case ignored and `\` and `/` treated alike.
+- **LINK-71.** Nothing secret leaves the service (P-8). For a stdio server, `target` is the file name of `command` only; for an http or sse server, the host of `url` only. Arguments, environment values, headers, URL paths, queries and user info are never read into the result. A server with neither `command` nor `url` has transport `unknown` and target `?`.
+- **LINK-72.** HSOS counts uses it sees. A `PreToolUse` whose `tool_name` starts with `mcp__` records the server name, the text between `mcp__` and the next `__`, with the time. A `SubagentStart` records its `agent_type`. They are kept in memory and written to `linkUsageFile` as `{ "version": 1, "mcp": { "<name>": <ms> }, "agents": { "<name>": <ms> } }` atomically, at most once every 60 seconds and at stop. A file that cannot be read is replaced by an empty one and logged. These uses have `source: 'hsos'` and `count: null`.
+- **LINK-73.** Claude Code's own counters are used when present: `skillUsage` and `pluginUsage` in `~\.claude.json`, each `{ "<name>": { "usageCount": <n>, "lastUsedAt": <ms> } }`. They are not documented, so an entry of any other shape is skipped without an error. They give `source: 'claude'`. Plugins and skills get a last use only from these counters; HSOS does not count them itself.
+- **LINK-74.** `getSetup` reads every file fresh on each call and caches nothing. It answers within the 10 000 ms timeout; a source that is still being read at 8 000 ms is skipped with the error "Timed out".
+
 ## What HSOS cannot know
 
 - Usage limits before any session has answered once. The HUD shows "No data yet".
@@ -206,3 +228,11 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | LINK-42 | integration | a statusline post | the reply is read | it is one line starting with `HSOS · ` |
 | LINK-14 | unit | a prompt containing escape characters and 5 000 characters | it becomes a title | 80 characters, no control characters |
 | REL-5 | fault | `FakeClaude` posting 20 hooks a second | `link-service` is killed | every post fails fast or succeeds; none takes longer than its timeout; sessions reappear within 5 s of restart as new events arrive |
+| LINK-70 | integration | a temp home with `.claude.json` holding user server `a` and local server `b` for `C:\p`, and `C:\p\.mcp.json` holding `c`, listed in `disabledMcpjsonServers` | `getSetup({ projectPath: 'c:/P' })` | three servers with scopes `user`, `local`, `project`; `c` has `enabled: false` |
+| LINK-70 | integration | `installed_plugins.json` with `x@m`; user settings `enabledPlugins { "x@m": true }`, local settings `{ "x@m": false }` | `getSetup` | plugin `x@m` with `enabled: false` |
+| LINK-70 | integration | a project `settings.json` that is not valid JSON, and valid user settings with two allow rules | `getSetup` | one entry in `errors` naming the project file; two permission rows from the user file |
+| LINK-71 | integration | a stdio server `{ command: 'C:\\tools\\node.exe', args: ['--token', 'abc'], env: { KEY: 'secret' } }` and an http server `{ url: 'https://u:p@api.example.com/v1?key=1' }` | `getSetup` | targets `node.exe` and `api.example.com`; the serialised result contains none of `abc`, `secret`, `u:p`, `v1`, `key=1` |
+| LINK-72 | integration | fake clock; `PreToolUse` posts with `tool_name` `mcp__firecrawl__scrape` and `Bash`, and a `SubagentStart` with `agent_type` `Explore` | 60 s pass | `linkUsageFile` has `mcp.firecrawl` and `agents.Explore` and nothing for `Bash` |
+| LINK-73 | integration | `.claude.json` with `skillUsage { caveman: { usageCount: 2, lastUsedAt: 1 }, bad: 3 }` | `getSetup` | `skillUse.caveman` is `{ at: 1, count: 2, source: 'claude' }`; there is no `bad` entry and no error |
+| LINK-74 | integration | fake clock; a file reader whose read of `.mcp.json` never finishes | `getSetup` | it answers after 8 000 ms with an error "Timed out" for `.mcp.json` and the other sections filled |
+| LINK-6 | integration | all `getSetup` tests | they finish | every file under the temp home and project has its original bytes and time |

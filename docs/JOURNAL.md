@@ -360,3 +360,22 @@ Decisions:
 Spec changes: `spec/modules/terminal.md` (TERM-2, TERM-7, TERM-8, TERM-41, TERM-43, TERM-45 to TERM-49, TERM-57, TERM-70 to TERM-73, two commands, tests), `spec/modules/claude-link.md` (LINK-3, LINK-4 test), `spec/contracts/channels/terminal.ts` (`shellIntegration`, `hostInfo`), `spec/contracts/paths.ts` (`terminalInitFile`), `spec/02-architecture.md` (data table), `spec/reference/terminal-init.ps1`, cards 030, 034, 036 and 051, features F-055 and F-056, glossary. 481 rules, 56 features. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.
 
 The owner can fix VS Code today, before HSOS exists, with one keybinding: `{ "key": "shift+insert", "command": "workbench.action.terminal.paste", "when": "terminalFocus" }`.
+
+### Step 34. Spoken alerts, Claude setup view, agent view in the graph
+
+The owner shared a summary of a video about an "AI OS" setup and asked for a judgement, then said to do whatever is most logical. The owner also said they like Obsidian-style linked notes because an agent can start at `CLAUDE.md` and follow links instead of loading everything, and they want a strong UI to see how the files connect. Findings and sources are in `docs/research/agent-map-setup-voice.md`.
+
+Judgement on the video: two ideas taken (a map of the setup to prune unused parts, spoken alerts), the rest left out. Fish Audio was replaced by Windows' built-in voice: no key, offline, nothing leaves the machine. The hourly auto-reply email routine was rejected: email is already outside HSOS, and unreviewed replies in the owner's name are unsafe.
+
+On linked notes: the idea holds, with one trap. Claude Code loads `CLAUDE.md`, its `@path` imports, rules without `paths` and the first 200 lines of `MEMORY.md` at every start. Everything else is read only when Claude follows a link or a search to it. Imports do not save context; links do. The graph module already gave the Obsidian-style view (wiki links, aliases, backlinks, local graph, communities). What was missing was the agent's point of view.
+
+Decisions:
+
+- Spoken alerts (HUD-13 to HUD-16, SHELL-28, SHELL-29). They speak on the same changes as HUD-10, but also when the window is focused and the owner is in another panel. Nothing is spoken when the owner is looking at that session's terminal. The text is the session title with "Finished" plus the first sentence of Claude's last message, or "Needs you" plus the reason. The voice is Windows `System.Speech` through `powershell.exe`, with the text on stdin. Tested on this machine with Zira. On by default, because the owner's problem is missing alerts; one command turns it off.
+- Claude setup view (HUD-50 to HUD-55, LINK-70 to LINK-74). A dock panel lists MCP servers, plugins, skills, subagents, hooks and permission rules, each with its scope, file and last use. Last use comes from HSOS's own hook counts for MCP servers and subagents, and from Claude Code's undocumented `skillUsage` and `pluginUsage` counters for skills and plugins, read only when their shape matches. Read-only: "Ask Claude to remove" types a request into the Claude terminal without Enter. No secrets: only command file names and URL hosts are returned.
+- Agent view in the graph (GRAPH-40 to GRAPH-45). `@path` imports become their own edge kind. Each note knows whether it loads at start and its line count. The view shows the start files with their total lines and warns about files over 200 lines. It colours notes by link hops from the start files, mutes notes no link reaches, and shows the chain of links that reaches each note. A hover card previews a note without opening it. The Claude root now also indexes `rules\**\*.md`.
+- New stage 7 with cards 091 to 094, so no existing card is renumbered. The session recovery work may still renumber everything later.
+- "Usage by skill and connector" moved out of "Later": stage 7 shows last use. Cost per skill stays later.
+- Not taken: reading graphify's output into the graph. Graphify maps code, HSOS maps notes.
+
+Spec changes: `spec/modules/shell.md`, `hud.md`, `claude-link.md`, `graph.md`, `spec/01-capability-map.md`, contracts `shell.ts`, `hud.ts`, `claude-link.ts`, `graph.ts`, `paths.ts`, `tasks/stage-7.md`, features F-057 to F-059, glossary. 504 rules, 59 features, 94 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.

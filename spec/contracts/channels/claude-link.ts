@@ -105,6 +105,64 @@ export const LinkStatus = z.object({
 });
 export type LinkStatus = z.infer<typeof LinkStatus>;
 
+/** Where a piece of Claude Code setup is configured (LINK-70). */
+export const SetupScope = z.enum(['user', 'project', 'local', 'plugin']);
+export type SetupScope = z.infer<typeof SetupScope>;
+
+/** When something was last used, and who counted it. */
+export const LastUse = z.object({
+  at: zEpochMs.nullable(),
+  /** Number of uses when the source counts them, else null. */
+  count: z.number().int().nonnegative().nullable(),
+  /** `claude`: Claude Code's own counters in ~/.claude.json. `hsos`: HSOS hooks, sessions in HSOS terminals only. */
+  source: z.enum(['claude', 'hsos']),
+});
+export type LastUse = z.infer<typeof LastUse>;
+
+/** Read-only inventory of the owner's Claude Code setup (LINK-70 to LINK-74). Never holds secrets (LINK-71). */
+export const ClaudeSetup = z.object({
+  mcpServers: z.array(
+    z.object({
+      name: z.string(),
+      scope: SetupScope,
+      transport: z.enum(['stdio', 'http', 'sse', 'unknown']),
+      /** stdio: the command's file name, such as `npx.cmd`. http and sse: the URL's host. Never arguments, paths after the host, headers or env. */
+      target: z.string(),
+      /** False when the project's `disabledMcpjsonServers` names it; null when Claude Code decides at start. */
+      enabled: z.boolean().nullable(),
+      file: zAbsPath,
+      lastUse: LastUse.nullable(),
+    }),
+  ),
+  plugins: z.array(
+    z.object({
+      /** `<name>@<marketplace>`. */
+      id: z.string(),
+      version: z.string().nullable(),
+      scope: z.string(),
+      enabled: z.boolean(),
+      installedAt: zEpochMs.nullable(),
+      file: zAbsPath,
+      lastUse: LastUse.nullable(),
+    }),
+  ),
+  /** Skill usage from Claude Code's counters, keyed by skill name. Skills themselves come from `skills.list`. */
+  skillUse: z.record(z.string(), LastUse),
+  agents: z.array(
+    z.object({ name: z.string(), scope: SetupScope, file: zAbsPath, lastUse: LastUse.nullable() }),
+  ),
+  hooks: z.array(
+    z.object({ event: z.string(), handlers: z.number().int().positive(), scope: SetupScope, file: zAbsPath }),
+  ),
+  permissions: z.array(
+    z.object({ rule: z.string().max(500), effect: z.enum(['allow', 'ask', 'deny']), scope: SetupScope, file: zAbsPath }),
+  ),
+  /** Files that could not be read or parsed. The other sources are still returned. */
+  errors: z.array(z.object({ file: zAbsPath, message: z.string().max(300) })),
+  readAt: zEpochMs,
+});
+export type ClaudeSetup = z.infer<typeof ClaudeSetup>;
+
 export const ClaudeLinkSettings = z.object({
   enabled: z.boolean().default(true),
   /** First port tried by the receiver. The next 20 are tried when it is taken. */
@@ -148,6 +206,9 @@ export const claudeLinkChannels = {
     z.array(SessionEvent),
   ),
   sessionEvent: event('link.sessionEvent', 'link-service', SessionEvent),
+
+  /** Reads the owner's Claude Code setup for a project folder (LINK-70). Read-only. */
+  getSetup: request('link.getSetup', 'link-service', z.object({ projectPath: zAbsPath }), ClaudeSetup, 10_000),
 
   /** Connection details other local servers in link-service reuse (the MCP server). */
   getLocalEndpoint: request(

@@ -97,3 +97,11 @@
 **Spec author**: The model that writes this spec.
 
 **Implementer**: The model that writes HSOS from this spec.
+
+**Agent view**: The graph mode that marks the files Claude Code loads at every session start and shows how many link hops each other note is from them.
+
+**Loaded at start**: A file Claude Code puts into every session's context before the first prompt: `CLAUDE.md` files, their `@path` imports, rules without `paths`, and the first 200 lines of the memory index. Everything else is read only when needed.
+
+**Claude setup view**: The HUD panel that lists the owner's MCP servers, plugins, skills, subagents, hooks and permission rules with when each was last used.
+
+**Spoken alert**: A sentence HSOS says aloud with the Windows voice when a Claude session finishes or needs the owner.

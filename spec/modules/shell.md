@@ -66,6 +66,21 @@ The frame everything else runs in: starts and supervises processes, owns the win
 
 - **SHELL-27.** `openPath` opens a file in its default program only when its extension is in the list in the contract. Any other extension returns `BAD_REQUEST`, so HSOS can never be made to launch a program or script.
 
+- **SHELL-28.** `speak` queues the text and returns. Utterances play one at a time, in order. While one plays, at most 2 wait; queueing a third drops the oldest waiting one. Each utterance runs `powershell.exe -NoProfile -NonInteractive -Command <script>`, started with an argument array, where the script is:
+
+  ```powershell
+  Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; if ($env:HSOS_SPEAK_VOICE) { try { $s.SelectVoice($env:HSOS_SPEAK_VOICE) } catch {} }; $s.Rate = [int]$env:HSOS_SPEAK_RATE; $s.Speak([Console]::In.ReadToEnd())
+  ```
+
+  The text goes to the process on stdin and the voice and rate in the environment variables `HSOS_SPEAK_VOICE` (empty for the default voice) and `HSOS_SPEAK_RATE`, so no text reaches a command line (P-6). Control characters are removed from the text first. A process still running after 30 seconds is killed. A failure is logged at `warn` and the next utterance plays. An unknown voice name falls back to the default voice inside the script.
+- **SHELL-29.** `listVoices` runs `powershell.exe -NoProfile -NonInteractive -Command <script>` once, with this script, and caches the lines it prints for the life of the process:
+
+  ```powershell
+  Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices() | Where-Object Enabled | ForEach-Object { $_.VoiceInfo.Name }
+  ```
+
+  A failure or a 10 000 ms timeout returns an empty list, which is not cached.
+
 ## Preload API
 
 ```ts
@@ -110,3 +125,6 @@ Nothing else is exposed (SEC-3).
 | SHELL-20 | unit | three modules, the second throws in `register` | the loader runs | the first and third are registered and one error is logged |
 | SHELL-21 | unit | the URL `file:///C:/x` | `openExternal` is called | the result is `BAD_REQUEST` |
 | SHELL-24 | e2e | the app is running | the renderer calls `window.open('https://example.com')` | no new window opens |
+| SHELL-28 | unit | a fake process runner that never exits | `speak` is called 4 times | one process started; after the first is killed at 30 s, the third and fourth play and the second was dropped |
+| SHELL-28 | unit | a fake process runner | `speak({ text: 'a"; calc; "', voice: null, rate: 0 })` | the argument array is exactly `-NoProfile`, `-NonInteractive`, `-Command` and the script; stdin received the text |
+| SHELL-29 | integration | Windows PowerShell on the test machine | `listVoices` twice | the same non-empty list both times and one process started |

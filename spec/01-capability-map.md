@@ -56,11 +56,12 @@ Each stage ends with an app that starts, passes all tests and packages to an `.e
 | 4. Browser | `browser`, `mcp` | Show a browser panel that Claude drives through MCP. |
 | 5. Graph | `graph`, graph tools in `mcp` | Show the link graph of notes, skills and memory files. |
 | 6. Finish | theme editor, fault tests, soak tests, installer | Meet the reliability bar in `05-testing.md`. |
+| 7. Awareness extras | spoken alerts in `hud` and `shell`, Claude setup view in `hud` and `claude-link`, agent view in `graph` | Say when a session finishes or needs the owner. Show the Claude Code setup with last use. Show what Claude loads at start and what links reach. |
 
 ## Later, not in this spec
 
 - Home dashboard with pinned local web apps.
-- Usage by skill and connector.
+- Cost by skill and connector. Stage 7 shows when each was last used, not what it cost.
 - 3D graph view.
 
 ## Left out

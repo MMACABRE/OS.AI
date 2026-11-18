@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Shows how the owner's notes, Claude's instructions, skills and memory connect, so the owner can see their working knowledge as one map and jump to any part of it. It reads files and never writes them.
+Shows how the owner's notes, Claude's instructions, skills and memory connect, so the owner can see their working knowledge as one map and jump to any part of it. Its agent view shows what Claude Code loads at every start and how an agent finds the rest by following links. It reads files and never writes them.
+
+Background for the agent view: `docs/research/agent-map-setup-voice.md`.
 
 ## Interface
 
@@ -17,7 +19,7 @@ Shows how the owner's notes, Claude's instructions, skills and memory connect, s
 |---|---|---|
 | `project` | the open project | all `.md` files |
 | `vault` | the `vaultPath` setting, when set | all `.md` files |
-| `claude` | `%USERPROFILE%\.claude`, when `includeClaudeFolder` | only `CLAUDE.md`, `skills\**\SKILL.md`, `projects\*\memory\*.md`, `agents\*.md`; skill folders reached through junctions are followed |
+| `claude` | `%USERPROFILE%\.claude`, when `includeClaudeFolder` | only `CLAUDE.md`, `rules\**\*.md`, `skills\**\SKILL.md`, `projects\*\memory\*.md`, `agents\*.md`; skill folders reached through junctions are followed |
 
 Folders named in `exclude` are skipped in every root.
 
@@ -79,11 +81,29 @@ Dock panel `graph.view`, single instance, and a compact local graph in the side 
 - **GRAPH-31.** For a file that is not a note, the side view shows "Open a markdown note to see its links."
 - **GRAPH-32.** In the markdown preview, wiki links are resolved with `graph.resolve` (FILE-79). Unresolved ones show in `color.text.muted` with a dotted underline.
 
+### Agent view
+
+Claude Code loads some files into every session and reads the rest only when it follows a link or a search to them. The agent view shows that split, so the owner can keep the start files small and make sure every note can be reached.
+
+- **GRAPH-40.** In a note of kind `claudeMd`, or a note under a `rules` folder of `.claude` or of the Claude root, every `@<path>` that starts a line or follows a space, outside inline code and fenced code blocks, is an import. The path ends at the first space not escaped as `\ `. It resolves relative to the note's folder; a path starting `~/` or `~\` resolves from `%USERPROFILE%`. A resolved import becomes an edge of kind `import`, in any root. An unresolved one follows GRAPH-16.
+- **GRAPH-41.** A note has `loadsAtStart` true when it is one of:
+  - `<project>\CLAUDE.md`, `<project>\.claude\CLAUDE.md`, `<project>\CLAUDE.local.md`, `<project>\AGENTS.md` when the project folder has no `CLAUDE.md`, `%USERPROFILE%\.claude\CLAUDE.md`;
+  - a `.md` file under `<project>\.claude\rules\` or `%USERPROFILE%\.claude\rules\` whose frontmatter has no `paths` key;
+  - the project's memory index `%USERPROFILE%\.claude\projects\<encoded>\memory\MEMORY.md`, where `<encoded>` is the project path with every character other than a letter or digit replaced by `-`;
+  - a file reached from any of those by `import` edges in at most four steps.
+
+  `CLAUDE.md` files in folders above the project are outside the roots and are not shown. `lineCount` is the file's number of lines.
+- **GRAPH-42.** The toolbar has the toggle "Agent view". While it is on, a summary line shows `Loaded at every start: <n> files, <lines> lines`, counting the memory index as at most 200 lines, and `Reached by links: <r> of <t> notes`, where `t` counts notes, not unresolved nodes. A `claudeMd` note over 200 lines, and a memory index over 200 lines, get a badge in `color.state.warn`: "Over 200 lines: Claude follows long files less well" and "Claude loads only the first 200 lines" respectively, on the node's details card and in the summary as a count with a list on press.
+- **GRAPH-43.** In the agent view, the start files are the `loadsAtStart` notes. Hops are counted from them along edges in their direction (a link goes from the note that holds it to its target), over all edge kinds. Drawing: start files in `color.accent` with a ring; reached notes in their kind colour with labels `1`, `2` or `3+` hops in the details card; notes not reached in `color.text.muted` at 40 percent opacity. The filter "Only not reached" keeps the notes no start file reaches. The details card adds "How an agent gets here": the shortest chain of labels from a start file to the note, each one pressable to select it, or "No link reaches this note. An agent finds it only by searching." Command `graph.agentView` opens the graph with the agent view on.
+- **GRAPH-44.** Hovering a node for 400 ms, or a wiki link in a markdown preview, shows a card beside the pointer: label, path, kind, the badges of GRAPH-42 and, in the agent view, the hop count, then `graph.preview` rendered with `MarkdownView`, first 12 lines, ending with `…` when cut. The card never takes focus. It closes when the pointer leaves the node or link and the card, or on Escape.
+- **GRAPH-45.** `preview` reads at most the first 4 000 characters of the note, removes frontmatter, and sets `truncated` when the file was longer. A path outside the indexed roots returns `NOT_FOUND`.
+
 ## Commands
 
 | Id | Title | Default key |
 |---|---|---|
 | `graph.open` | Open Graph | `Ctrl+Shift+M` |
+| `graph.agentView` | Show What Claude Loads at Start | none |
 | `graph.showLocal` | Show Local Graph | none |
 | `graph.reindex` | Rebuild Note Index | none |
 
@@ -116,3 +136,12 @@ Dock panel `graph.view`, single instance, and a compact local graph in the side 
 | GRAPH-29 | component | 6 000 nodes | the view renders | only hovered and matched labels show |
 | GRAPH-30 | component | a viewer on `a.md`, linked from `b.md` line 4 | the local view renders | it lists `b` with that line's text |
 | perf | e2e | a vault of 5 000 generated notes | the graph is open and idle | frame rate measured over 3 s is at least 55 |
+| GRAPH-40 | integration | `CLAUDE.md` holding `@docs/a.md`, `` `@docs/b.md` ``, a fenced block with `@docs/c.md`, `see @Design\ Docs/d.md`, and `mail me@example.com` | the index is built | `import` edges to `docs/a.md` and `Design Docs/d.md` only |
+| GRAPH-41 | integration | project `CLAUDE.md` importing `x.md`, which imports `y.md`; a rule without `paths`; a rule with `paths`; a note linked from `CLAUDE.md` | the index is built | `loadsAtStart` is true for `CLAUDE.md`, `x.md`, `y.md` and the first rule, false for the second rule and the linked note |
+| GRAPH-41 | integration | a chain of five imports from `CLAUDE.md` | the index is built | the first four imported files load at start; the fifth does not |
+| GRAPH-41 | unit | project path `C:\Users\X\my app` | `<encoded>` is computed | `C--Users-X-my-app` |
+| GRAPH-42 | component | start files of 120 and 90 lines and a memory index of 260 lines | the agent view turns on | the summary says `3 files, 410 lines` and the memory badge shows |
+| GRAPH-43 | component | `CLAUDE.md` → `a` → `b`; an unlinked note `c` | the agent view turns on | `a` is 1 hop, `b` 2 hops, `c` muted; `c`'s card says no link reaches it; `b`'s card shows `CLAUDE.md`, `a`, `b` |
+| GRAPH-43 | component | the same graph | "Only not reached" | only `c` is drawn |
+| GRAPH-44 | component | a node | it is hovered for 400 ms | the card shows the preview; focus has not moved; Escape closes it |
+| GRAPH-45 | integration | a 10 000-character note with frontmatter | `preview` | 4 000 characters at most, no frontmatter, `truncated` true |
