@@ -1,9 +1,10 @@
 import { ok } from '@hsos/contracts/result';
 import { pingChannel } from '../../modules/shell/bus/ping-channel';
 import type { MainPortLike } from '../../modules/shell/bus/port-transport';
-import { startServiceRuntime } from '../shared/service-main';
+import { runService } from '../shared/service-main';
+import { createProcessLogger, serviceModules } from './module-list';
 
-const runtime = startServiceRuntime('pty-host');
+const runtime = runService('pty-host', serviceModules, createProcessLogger);
 runtime.bus.handle(pingChannel('pty-host'), () => ok({ reply: 'pong', from: 'pty-host' }));
 runtime.ready();
 

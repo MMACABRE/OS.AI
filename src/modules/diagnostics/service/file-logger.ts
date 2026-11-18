@@ -1,3 +1,4 @@
+import { appendFileSync, mkdirSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rename, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { LogRecord } from '@hsos/contracts/channels/diagnostics';
@@ -29,6 +30,8 @@ export type FileLogger = Logger & {
   flush(): Promise<void>;
   /** Flushes and stops the 500 ms timer; call on process stop (DIAG-3). */
   close(): Promise<void>;
+  /** Writes the buffer at once, blocking. Only for a process about to exit after a crash (DIAG-8). */
+  flushSync(): void;
 };
 
 /** `<logsDir>\<process>.log`, or `<process>.<n>.log` for rotation `n`. */
@@ -106,6 +109,17 @@ export function createFileLogger(options: FileLoggerOptions): FileLogger {
     close: () => {
       stopTimer();
       return flush();
+    },
+    flushSync: () => {
+      const text = buffer.join('');
+      buffer = [];
+      if (text === '') return;
+      try {
+        mkdirSync(options.logsDir, { recursive: true });
+        appendFileSync(logFile(options.logsDir, options.process), text, 'utf8');
+      } catch {
+        // DIAG-3: a failed write is dropped.
+      }
     },
   };
 }

@@ -1,12 +1,28 @@
+import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { app, BrowserWindow, dialog, ipcMain, MessageChannelMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, MessageChannelMain, shell } from 'electron';
 import type { EpochMs } from '@hsos/contracts/ids';
 import type { Unsubscribe } from '@hsos/contracts/bus';
+import { diagnosticsChannels } from '@hsos/contracts/channels/diagnostics';
 import { shellChannels } from '@hsos/contracts/channels/shell';
+import { err, ok } from '@hsos/contracts/result';
 import { createBus } from '../modules/shell/bus/create-bus';
 import { isEnvelope } from '../modules/shell/bus/port-transport';
+import { loadModules } from '../modules/shell/loader/load-modules';
+import {
+  createContributionStore,
+  createServiceContext,
+  environmentDataPaths,
+} from '../modules/shell/loader/service-context';
 import { systemClock } from '../modules/shell/system-clock';
 import { buildOwnerIndex, createBroker } from './bus/broker';
+import {
+  createProcessLogger,
+  mainModules,
+  processDeathReporters,
+  processMetricsSources,
+} from './module-list';
+import type { ProcessMetric } from './module-list';
 import { utilityProcessLauncher } from './supervisor/service-process';
 import type { ServiceName, ServiceProcess } from './supervisor/service-process';
 import { createSupervisor } from './supervisor/supervisor';
@@ -16,14 +32,66 @@ const RENDERER_LOSS_WINDOW_MS = 60_000;
 const RENDERER_LOSSES_BEFORE_DIALOG = 3;
 const UNRESPONSIVE_RELOAD_MS = 10_000;
 
-const log = {
-  log: (level: string, event: string, data?: Record<string, unknown>) =>
-    console.log(JSON.stringify({ level, event, process: 'main', ...data })),
-};
+const paths = environmentDataPaths();
+const log = createProcessLogger(paths);
 const broker = createBroker(buildOwnerIndex());
 const bus = createBus({ process: 'main', transport: broker.mainTransport, clock: systemClock, log });
+const store = createContributionStore();
+const stopHandlers: (() => Promise<void>)[] = [];
 let window: BrowserWindow | null = null;
 let rendererLoaded = false;
+
+/** Live processes for `diagnostics.getHealth`, from Electron's metrics (DIAG-9). */
+function processMetrics(): ProcessMetric[] {
+  const uiPid = window?.webContents.getOSProcessId();
+  return app.getAppMetrics().flatMap((metric): ProcessMetric[] => {
+    const service = SERVICES.find((name) => name === metric.serviceName);
+    const process =
+      metric.type === 'Browser'
+        ? 'main'
+        : metric.type === 'Utility' && service !== undefined
+          ? service
+          : metric.type === 'Tab' && metric.pid === uiPid
+            ? 'ui'
+            : null;
+    if (process === null) return [];
+    return [
+      {
+        process,
+        pid: metric.pid,
+        workingSetKb: metric.memory.workingSetSize,
+        createdAt: toEpoch(metric.creationTime),
+      },
+    ];
+  });
+}
+
+function toEpoch(ms: number): EpochMs {
+  return ms as EpochMs;
+}
+
+/** main's own modules (SHELL-20) and the extension points main fills or reads (cards 013, 014). */
+function loadMainModules(): void {
+  store.contribute(processMetricsSources, processMetrics);
+  loadModules(
+    mainModules,
+    (id) =>
+      createServiceContext(id, {
+        bus,
+        clock: systemClock,
+        paths,
+        store,
+        logFor: (module) => log.forModule(module),
+        onStop: (handler) => void stopHandlers.push(handler),
+      }),
+    log,
+  );
+  bus.handle(diagnosticsChannels.openLogFolder, async () => {
+    await mkdir(paths.logsDir, { recursive: true });
+    const failure = await shell.openPath(paths.logsDir);
+    return failure === '' ? ok({}) : err('INTERNAL', 'The log folder could not be opened.', failure);
+  });
+}
 
 /** Opens the one 1280 by 800 window that loads the renderer. */
 function createWindow(): BrowserWindow {
@@ -74,8 +142,10 @@ const supervisor = createSupervisor({
       running.set(name, child);
       if (window !== null && rendererLoaded) sendServicePort(window, name, child);
     },
-    // Card 013 turns this into a crash report (DIAG-7).
-    reportDeath: (name, exitCode) => log.log('error', 'service_death', { service: name, exitCode }),
+    reportDeath: (name, exitCode) => {
+      for (const report of store.contributions(processDeathReporters))
+        report({ process: name, exitCode, appVersion: app.getVersion() });
+    },
   },
 });
 
@@ -130,7 +200,10 @@ function watchRenderer(target: BrowserWindow): void {
   contents.on('responsive', () => cancelUnresponsive());
 }
 
+// Start order of architecture §6: diagnostics and main's modules, the services, then the window.
 void app.whenReady().then(() => {
+  loadMainModules();
+  supervisor.start();
   const created = createWindow();
   window = created;
   ipcMain.on('hsos-bus', (event, message: unknown) => {
@@ -138,7 +211,6 @@ void app.whenReady().then(() => {
   });
   broker.connect('ui', { send: (envelope) => created.webContents.send('hsos-bus', envelope) });
   watchRenderer(created);
-  supervisor.start();
 });
 
 // Stop the services before quitting (SHELL-7, architecture §7 step 4).
@@ -149,9 +221,13 @@ app.on('before-quit', (event) => {
   event.preventDefault();
   if (stopping) return;
   stopping = true;
-  void supervisor.stop().then(() => {
-    stopped = true;
-    app.quit();
-  });
+  void supervisor
+    .stop()
+    .then(() => Promise.allSettled(stopHandlers.map((handler) => handler())))
+    .then(() => log.close())
+    .then(() => {
+      stopped = true;
+      app.quit();
+    });
 });
 app.on('window-all-closed', () => app.quit());

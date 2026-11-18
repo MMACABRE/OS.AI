@@ -1,6 +1,14 @@
 import type { Envelope } from '@hsos/contracts/bus';
 import type { ServiceId } from '@hsos/contracts/ids';
-import type { Logger } from '@hsos/contracts/module';
+import type { Logger, ServiceContext } from '@hsos/contracts/module';
+import type { DataPaths } from '@hsos/contracts/paths';
+import { loadModules } from '../../modules/shell/loader/load-modules';
+import type { ModuleEntry } from '../../modules/shell/loader/load-modules';
+import {
+  createContributionStore,
+  createServiceContext,
+  environmentDataPaths,
+} from '../../modules/shell/loader/service-context';
 import { createBus } from '../../modules/shell/bus/create-bus';
 import type { BusClient } from '../../modules/shell/bus/create-bus';
 import { isEnvelope, mainPortEndpoint } from '../../modules/shell/bus/port-transport';
@@ -36,27 +44,71 @@ function controlType(value: unknown): string | null {
 /** Exit code of a process ended by an uncaught exception or unhandled rejection (DIAG-8). */
 export const CRASH_EXIT_CODE = 70;
 
+/** A process's logger as the diagnostics module builds it (its file logger), seen by shape. */
+export type ProcessLogger = Logger & {
+  forModule(module: string): Logger;
+  close(): Promise<void>;
+  flushSync(): void;
+};
+
 /** Logs an uncaught exception or unhandled rejection with its stack, then exits with 70; the supervisor restarts the service (DIAG-8). */
-function installCrashHandlers(log: Logger): void {
+function installCrashHandlers(log: ProcessLogger): void {
   const crash = (event: string, reason: unknown) => {
     const error = reason instanceof Error ? reason : new Error(String(reason));
     log.log('error', event, { message: error.message, stack: error.stack });
+    log.flushSync();
     process.exit(CRASH_EXIT_CODE);
   };
   process.on('uncaughtException', (error) => crash('uncaught_exception', error));
   process.on('unhandledRejection', (reason) => crash('unhandled_rejection', reason));
 }
 
+/** A logger that writes to stdout (main pipes it to its own); for a service started without a file logger. */
+function consoleLogger(name: ServiceId): ProcessLogger {
+  const line = (module: string): Logger => ({
+    log: (level, event, data) =>
+      console.log(JSON.stringify({ level, event, process: name, module, ...data })),
+  });
+  return { ...line('shell'), forModule: line, close: () => Promise.resolve(), flushSync: () => undefined };
+}
+
+/** Starts a service: runtime, its module list through the loader (SHELL-20), then `ready` (SHELL-3). Card 014. */
+export function runService(
+  name: Exclude<ServiceId, 'main'>,
+  modules: readonly ModuleEntry<ServiceContext>[],
+  makeLogger: (paths: DataPaths) => ProcessLogger,
+): ServiceRuntime {
+  const paths = environmentDataPaths();
+  const log = makeLogger(paths);
+  const runtime = startServiceRuntime(name, log);
+  const store = createContributionStore();
+  loadModules(
+    modules,
+    (id) =>
+      createServiceContext(id, {
+        bus: runtime.bus,
+        clock: systemClock,
+        paths,
+        store,
+        logFor: (module) => log.forModule(module),
+        onStop: runtime.onStop,
+      }),
+    log,
+  );
+  runtime.onStop(() => log.close());
+  return runtime;
+}
+
 /**
  * Shared start code of every service entry: the bus on the parent port and on the renderer's port,
  * the ready message, and the stop message. Card 010.
  */
-export function startServiceRuntime(name: ServiceId): ServiceRuntime {
+export function startServiceRuntime(
+  name: ServiceId,
+  log: ProcessLogger = consoleLogger(name),
+): ServiceRuntime {
   const parent: unknown = Reflect.get(process, 'parentPort');
   if (!isParentPort(parent)) throw new Error(`${name} must run as an Electron utility process.`);
-  const log: Logger = {
-    log: (level, event, data) => console.log(JSON.stringify({ level, event, process: name, ...data })),
-  };
   installCrashHandlers(log);
   const stopHandlers: (() => Promise<void>)[] = [];
   const listeners: ((envelope: Envelope, from: Peer) => void)[] = [];

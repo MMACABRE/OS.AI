@@ -58,3 +58,22 @@ Code: `src/modules/diagnostics/service/crash-reports.ts` (`writeCrashReport`, `c
 | DIAG-10 | 60 crash files, 5 of them 40 days old (time in the name)          | `cleanCrashReports(crashDir, now)` runs        | 50 remain and none is older than 30 days                                                                      |
 
 Also worth a test: `toHealth` turns a working set of 2 048 KB into 2 MB and uptime into `now - createdAt`; a service that throws an uncaught exception exits with 70 (needs the app, e2e).
+
+## 013 Crash reports and health, wiring (done with card 014)
+
+The block is resolved with extension points: `processDeathReporters` and `processMetricsSources` in `src/modules/diagnostics/register.service.ts`, re-exported by `src/main/module-list.ts`. main's supervisor calls every death reporter (diagnostics writes the crash file); main contributes a metrics source built from `app.getAppMetrics()` and `getHealth` reads it.
+
+Extra tests for the later agent: with a contribution store, `register` from diagnostics contributes one death reporter, and calling it writes a crash file (DIAG-7 end to end); `getHealth` returns the rows of a contributed fake metrics source (DIAG-9). The SHELL-10 e2e row of card 011 can now check the crash file.
+
+## 014 Module loader and contexts
+
+Code: `src/modules/shell/loader/load-modules.ts` (`loadModules`, `ModuleEntry`), `src/modules/shell/loader/service-context.ts` (`createServiceContext`, `createContributionStore`, `createDataPaths`, `environmentDataPaths`, `defaultSettingsReader`), `src/modules/shell/loader/ui-context.ts` (`createUiContext`, `createUiRegistry`), the module lists `src/main/module-list.ts`, `src/services/*/module-list.ts`, `src/ui/module-list.ts`, and `runService` in `src/services/shared/service-main.ts`.
+
+`tests/shell/loader.test.ts`:
+
+| Rule            | Given                                                        | When                                                 | Then                                                                                                                    |
+| --------------- | ------------------------------------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| SHELL-20        | a list of three modules where the second's `register` throws | `loadModules` runs with a recording logger           | modules one and three registered, in order; one `error` record names the second; the return value is the two loaded ids |
+| extension point | a contribution store                                         | two modules contribute `'a'` then `'b'` to one point | `contributions(point)` returns `['a', 'b']`                                                                             |
+
+Also worth a test: `createUiRegistry` throws on a second panel, command or status item with the same id; `createDataPaths('C:\cfg', 'C:\loc').workspaceFile(id)` is `C:\cfg\workspaces\<id>.json`; `registerSettings` returns the section defaults until card 016.

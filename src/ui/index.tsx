@@ -1,5 +1,10 @@
 import { createRoot } from 'react-dom/client';
+import type { Bus } from '@hsos/contracts/bus';
 import type { ServiceId } from '@hsos/contracts/ids';
+import { loadModules } from '../modules/shell/loader/load-modules';
+import { createUiContext, createUiRegistry } from '../modules/shell/loader/ui-context';
+import type { UiRegistry } from '../modules/shell/loader/ui-context';
+import { createModuleLogger, uiModules } from './module-list';
 import { pingChannel } from '../modules/shell/bus/ping-channel';
 import { systemClock } from '../modules/shell/system-clock';
 import { createRendererBus } from './bus';
@@ -48,13 +53,32 @@ function checkPorts(show: (text: string) => void): void {
   });
 }
 
+/** Registers the renderer's modules (SHELL-20, card 014). The workspace reads the registry later. */
+function loadUiModules(bus: Bus): UiRegistry {
+  const registry = createUiRegistry();
+  const shellLog = createModuleLogger(bus, systemClock, 'shell');
+  loadModules(
+    uiModules,
+    (id) =>
+      createUiContext(id, {
+        bus,
+        clock: systemClock,
+        registry,
+        logFor: (module) => createModuleLogger(bus, systemClock, module),
+      }),
+    shellLog,
+  );
+  return registry;
+}
+
 if (root !== null) {
   const view = createRoot(root);
   view.render(<p>HSOS</p>);
   if (new URLSearchParams(window.location.search).get('e2e') !== '1')
     checkPorts((text) => view.render(<p>{text}</p>));
-  if (preload !== null && new URLSearchParams(window.location.search).get('e2e') === '1') {
-    const bus = createRendererBus(preload, systemClock, log);
+  const bus = preload === null ? null : createRendererBus(preload, systemClock, log);
+  if (bus !== null) loadUiModules(bus);
+  if (bus !== null && new URLSearchParams(window.location.search).get('e2e') === '1') {
     const pingAll = async () => {
       const replies = await Promise.all(PING_TARGETS.map((service) => bus.call(pingChannel(service), {})));
       view.render(
