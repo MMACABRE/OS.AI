@@ -51,6 +51,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .clock { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--cyan); text-shadow: var(--g-cyan); font-variant-numeric: tabular-nums; margin-left: -8px; }
 .clock .colon { animation: colon 1s steps(1) infinite; } @keyframes colon { 50% { opacity: .25; } }
 .proj { font-size: 22px; color: var(--terra); margin-left: 8px; } .proj span { color: var(--muted); }
+.repo-btn { display: flex; align-items: center; gap: 6px; font-size: 19px; color: var(--text-2); padding: 0 10px; border: 2px solid var(--line); border-radius: var(--radius-c); margin-left: -10px; }
+.repo-btn .br { color: var(--cyan); } .repo-btn .ab { color: var(--muted); }
+.repo-btn .gh { width: 12px; height: 12px; background: var(--terra); clip-path: polygon(0 30%, 30% 30%, 30% 0, 70% 0, 70% 30%, 100% 30%, 100% 100%, 0 100%); }
 .pages { display: flex; gap: 2px; }
 .pages button { padding: 0 12px; font-size: 21px; color: var(--text-2); border-radius: var(--radius-c); }
 .pages button[aria-current] { background: var(--accent); color: var(--accent-text); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
@@ -211,6 +214,45 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 [data-layout="c"] .hud .w .cn, [data-layout="c"] .hud .w .strip { display: none; }
 [data-layout="c"] .hud .row:not(.need) { text-shadow: 0 0 4px #000, 0 0 8px #000; }
 [data-layout="c"] .hud .ctxw { display: none; }
+.cx { display: none; }
+[data-layout="c"] .cx { display: flex; }
+[data-layout="c"] .work { grid-template-columns: 200px 1fr 318px; }
+[data-layout="c"] .hud { gap: 10px; }
+[data-layout="c"] .hud .mascot { flex-direction: row; align-items: center; justify-content: flex-end; gap: 8px; margin: -8px 0 -6px; }
+[data-layout="c"] .hud .mascot .word { font-size: 28px; }
+[data-layout="c"] .hud .ses .row:nth-child(n+4) { display: none; }
+[data-layout="c"] .hud .usew .usage { grid-template-columns: 1fr 1fr; gap: 14px; }
+[data-layout="c"] .hud .usew .lab { flex-direction: column; align-items: flex-start; gap: 0; margin-bottom: 4px; }
+[data-layout="c"] .hud .usew .num { font-size: 28px; }
+.quick { flex-direction: column; gap: 6px; }
+.quick .qt { color: var(--yellow); text-shadow: var(--g-yel); font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quick .qb { display: flex; flex-wrap: wrap; gap: 5px; }
+.quick button { padding: 0 8px; font-size: 17px; border: 2px solid var(--frame); border-radius: var(--radius-c); background: rgba(18,16,16,.88); box-shadow: 2px 3px 0 #2A1A14; white-space: nowrap; }
+.quick .chip b { font-weight: 400; color: var(--yellow); } .quick .chip.danger b { color: #FF3D66; text-shadow: 0 0 4px rgba(255,0,60,.6); }
+.quick .chip kbd, .search kbd { font-family: inherit; color: var(--muted); font-size: 15px; }
+.quick .chip.skills { background: var(--accent); color: var(--accent-text); border-color: var(--accent); box-shadow: 2px 3px 0 var(--terra-deep), var(--g-yel); }
+.quick .chip.skills kbd { color: #4E5212; }
+.skills { flex-direction: column; }
+[data-layout="c"] .hud .skills.w { background: rgba(18,16,16,.72); border: 2px solid var(--frame); padding: 10px 12px; box-shadow: inset 0 0 0 1px #000; }
+[data-layout="c"] .hud .skills.w .cn { display: block; }
+.skills .fold { width: 22px; height: 18px; align-self: center; border: 2px solid var(--frame); border-radius: 3px; position: relative; }
+.skills .fold::before { content: ""; position: absolute; left: 3px; right: 3px; top: 3px; bottom: 3px; background: var(--terra); clip-path: polygon(0 0, 45% 0, 55% 25%, 100% 25%, 100% 100%, 0 100%); }
+.search { display: flex; align-items: center; gap: 4px; height: 32px; padding: 0 8px; border: 2px solid var(--yellow); border-radius: var(--radius-c); background: #0B0A09; box-shadow: var(--g-yel); }
+.search .mag { width: 12px; height: 12px; border: 2px solid var(--yellow); border-radius: 50%; margin-right: 4px; position: relative; }
+.search .typed { color: var(--text); }
+.search kbd { margin-left: auto; }
+.sk { list-style: none; display: grid; gap: 1px; }
+.sk li { display: grid; grid-template-columns: 14px auto 1fr 14px; gap: 6px; align-items: baseline; padding: 1px 6px; border-radius: 4px; font-size: 17px; white-space: nowrap; }
+.sk li > * { overflow: hidden; text-overflow: ellipsis; }
+.sk .nm { color: var(--lav); } .sk .ds { color: var(--muted); font-size: 15px; } .sk .star { color: var(--muted); } .sk .star.on { color: var(--yellow); }
+.sk .run { color: var(--muted); font-size: 12px; text-align: right; }
+.sk li.hit { background: rgba(199,125,255,.16); outline: 2px solid rgba(199,125,255,.55); outline-offset: -2px; }
+.sk li.hit .run { color: var(--cyan); }
+.runs { display: grid; grid-template-columns: 8px auto 1fr auto auto; gap: 6px; align-items: center; font-size: 16px; padding: 3px 6px; border: 2px dashed rgba(0,240,255,.4); border-radius: 4px; white-space: nowrap; }
+.runs .nm { color: var(--lav); } .runs .t { color: var(--muted); }
+.runs button, .repo-row button { padding: 0 6px; font-size: 15px; border: 2px solid var(--frame); border-radius: 4px; }
+.repo-row { display: grid; grid-template-columns: 14px 1fr auto auto; gap: 6px; align-items: center; font-size: 16px; }
+.repo-row .ok { color: var(--cyan); }
 
 /* buttons: lift and tilt toward the pointer */
 .btn3d { --rx: 0deg; --ry: 0deg; transform: perspective(320px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform 140ms cubic-bezier(.2,0,0,1), filter 140ms ease-out; }
@@ -253,6 +295,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       <div class="brand" data-text="HSOS">HSOS</div>
       <div class="clock"><span class="hh">16</span><span class="colon">:</span><span class="mm">42</span></div>
       <div class="proj">hsos <span>▾</span></div>
+      <button class="repo-btn" title="Open owner/hsos on GitHub"><span class="gh"></span>owner/hsos <span class="br">main</span> <span class="ab">↑1 ↓0</span></button>
       <nav class="pages" aria-label="Pages"><button>Dashboard</button><button aria-current="page">Code</button><button>Notes</button></nav>
       <div class="grow"></div>
       <div class="hint">Ctrl+Shift+P</div>
@@ -340,10 +383,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       <aside class="hud" aria-label="HUD">
         <section class="mascot">
           <canvas id="berry" aria-label="Strawberry mascot"></canvas>
-          <div class="word">Working</div>
-          <div class="doing">editing pty.ts</div>
+          <div class="say"><div class="word">Working</div>
+          <div class="doing">editing pty.ts</div></div>
         </section>
-        <section class="w" data-icon="battery" data-led="yel">
+        <section class="quick cx" aria-label="Quick bar">
+          <div class="qt">Fix PTY resize race</div>
+          <div class="qb">
+            <button class="chip danger">Usage <b>90%</b></button><button class="chip warn">Context <b>61%</b></button><button class="chip skills">Skills <kbd>Ctrl+K</kbd></button>
+            <button>opus 5.5 · high ▾</button><button>Plan ⇄</button><button>Compact</button><button>Clear</button><button>More ▾</button>
+          </div>
+        </section>
+        <section class="w usew" data-icon="battery" data-led="yel">
           <h2>Usage <span class="aside">plan</span></h2>
           <div class="usage">
             <div><div class="lab"><span class="num">90%</span><span class="muted">5 h · 2:14</span></div><div class="cells" data-v="90"></div></div>
@@ -358,6 +408,18 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
             <div class="row"><span class="state" data-s="run"></span><div><div class="title">notes-sync · Backlinks</div><div class="sub">Running tests</div></div><span class="when">06:02</span></div>
             <div class="row"><span class="state" data-s="done"></span><div><div class="title">hsos · Card 014 tests</div><div class="sub">Finished, 3 files</div></div><span class="when">11:20</span></div>
           </div>
+        </section>
+        <section class="w skills cx" data-icon="spark" data-led="yel">
+          <h2>Skills <span class="aside">28</span><button class="fold" title="Open skills folder" aria-label="Open skills folder"></button></h2>
+          <div class="search"><span class="mag"></span><span class="typed">ui</span><span class="caret"></span><kbd>Ctrl+K</kbd></div>
+          <ul class="sk">
+            <li class="hit"><span class="star on">★</span><span class="nm">hsuiux</span><span class="ds">UI, UX and design bundle</span><span class="run" title="Run in background">▶</span></li>
+            <li><span class="star on">★</span><span class="nm">impeccable</span><span class="ds">Design, critique, polish</span><span class="run">▶</span></li>
+            <li><span class="star">☆</span><span class="nm">ui-ux-pro-max</span><span class="ds">Styles, palettes, fonts</span><span class="run">▶</span></li>
+            <li><span class="star">☆</span><span class="nm">web-design-guidelines</span><span class="ds">Review UI code</span><span class="run">▶</span></li>
+          </ul>
+          <div class="runs"><span class="led cyan"></span><span class="nm">graphify</span><span class="muted">in background</span><span class="t">2:31</span><button>Cancel</button></div>
+          <div class="repo-row"><span class="ok">✓</span><span>Skills repo <span class="muted">· Core</span></span><span class="cyan">In sync</span><button>Check</button></div>
         </section>
       </aside>
     </main>
@@ -461,6 +523,7 @@ const ICONS = {
   graph:  ["#.....#.", ".#...#..", "..###...", "..#.#...", "..###...", ".#...#..", "#.....#.", "........"],
   pulse:  ["........", "...#....", "...##...", "#.#.#..#", ".#..#.#.", "....##..", ".....#..", "........"],
   box:    ["..####..", ".#....#.", "########", "#..##..#", "#......#", "#......#", "########", "........"],
+  spark:  ["...#....", "...#....", ".#.#.#..", "..###...", "#######.", "..###...", ".#.#.#..", "...#...."],
   gear:   ["..#..#..", ".######.", "##....##", ".#.##.#.", ".#.##.#.", "##....##", ".######.", "..#..#.."],
 };
 const svg = (rows, c) => `<svg class="ico" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rows.map((r, y) => [...r].map((ch, x) => ch === '#' ? `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/>` : '').join('')).join('')}</svg>`;
@@ -480,7 +543,7 @@ document.querySelectorAll('[data-icon-inline]').forEach(s => s.outerHTML = svg(I
     h2.insertAdjacentHTML('afterend', '<div class="strip"></div>'); w.querySelector('.strip').style.backgroundImage = `url(${stURL})`;
   });
 })();
-document.querySelectorAll('.pages button, .hint, .winctl span, .rail button, .side .tabs button, .tree li, .rows .row, .row .open, .tabbar .tab, .tabbar .tools span, .ribbon .agents').forEach(b => {
+document.querySelectorAll('.repo-btn, .quick button, .sk li, .runs button, .repo-row button, .skills .fold, .pages button, .hint, .winctl span, .rail button, .side .tabs button, .tree li, .rows .row, .row .open, .tabbar .tab, .tabbar .tools span, .ribbon .agents').forEach(b => {
   b.classList.add('btn3d');
   b.addEventListener('pointermove', e => {
     const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5, wide = r.width > 160 ? .45 : 1;
@@ -512,8 +575,8 @@ const MINIS = [...document.querySelectorAll('canvas.mini')].map((cv, i) => ({ cv
 
 /* HUD mascot: turns its face to the pointer, blinks, holds a laptop while the session works */
 const berry = document.getElementById('berry'), bx = berry.getContext('2d');
-const PX = LAYOUT === 'c' ? 10 : LAYOUT === 'b' ? 8 : 8, OX = 18, OY = 26;
-berry.width = 16 * PX + OX * 2; berry.height = 15 * PX + OY + 12;
+const PX = LAYOUT === 'c' ? 5 : 8, OX = LAYOUT === 'c' ? 10 : 18, OY = LAYOUT === 'c' ? 16 : 26;
+berry.width = 16 * PX + OX * 2; berry.height = 15 * PX + OY + (LAYOUT === 'c' ? 6 : 12);
 const LAPTOP = ["cccccccccc", "gggggggggg", "ggggoggggg", "gggggggggg", "bbbbbbbbbb"], LAPC = { c:'#00F0FF', g:'#2A2420', o:'#FF7A3D', b:'#6E5A50' };
 const mouse = { x: -1e4, y: -1e4, last: performance.now() };
 addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.last = performance.now(); });

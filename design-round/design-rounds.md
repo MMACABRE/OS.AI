@@ -86,3 +86,12 @@ All three show the same moment: the left terminal is focused (yellow frame) with
 - B, stage: the focused terminal at about 860 px with the full ribbon; the second terminal beside it at the top; a compact HUD under it. Files folds into the rail.
 - C, open air: Files and the HUD float without boxes, the strawberry top right as on the Dashboard; terminals stacked full width, framed by corner brackets only, at 0.74 opacity.
 - Open points for the spec: the ribbon is drawn 32 px high so the 16 by 16 mascot sits at 2x (HUD-80 says 28 px and HUD-81 a 20 px mascot); a terminal under 0.8 opacity (layout C) needs `surface.text.minAlpha` set at or below it (UI-31); layout C has no activity rail, its side views move to a tab row above Files (layout.md, Areas).
+
+## Code page, round 2 (2026-11-18): layout C chosen
+
+Owner liked layout C best and asked for a smaller strawberry, more room for tools and details, and where the repo and the skill search are.
+
+- Strawberry at 5 px cells instead of 10, in a row with its word, top of the HUD column; the HUD column grows from 250 to 318 px and Files shrinks to 200.
+- HUD column, top to bottom: mascot, quick bar (HUD-60 to HUD-62: the target session's title; Usage, Context and Skills; model and effort, Plan, Compact, Clear, More), Usage, Sessions (three rows), Skills deck (HUD-30 to HUD-33: a search field, here with `ui` typed and the first hit lit, star toggles, a run-in-background action per row, one background run with Cancel) and the Skills repo row (HUD-40: "In sync", Check). The Skills deck keeps a box because it holds an input; the other HUD parts float.
+- Repo: a title bar button next to the project switcher shows `owner/repo`, the branch and ahead/behind, and opens `webUrl` (GIT-14). The ribbon still shows the session's repo and branch (HUD-81).
+- Open points for the spec: the repo button in the title bar is new (layout.md says the title bar holds the project switcher and the branch); `Ctrl+K` as the key for `hud.searchSkills` is new and clashes with the `Ctrl+K Ctrl+T` chord, so the spec author picks a free key.
