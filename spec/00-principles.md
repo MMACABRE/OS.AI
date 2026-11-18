@@ -51,9 +51,10 @@ When two goals conflict, the higher one wins.
 
 - **P-40.** Every panel has four designed states: loading, empty, error, ready.
 - **P-41.** Every action is reachable by keyboard and listed in the command palette.
-- **P-42.** Motion explains a change of state. It lasts 80 to 240 ms and is disabled when the system asks for reduced motion.
+- **P-42.** Motion is a hard rule: every widget, button, panel and page change moves, and pages change through seamless transitions, as `design/motion.md` says. Durations run from 80 to 420 ms. When Windows asks for reduced motion, movement becomes short fades (MOT-12). Terminal text never animates.
 - **P-43.** Text contrast is at least 4.5:1. State is never shown by colour alone.
 - **P-44.** The terminal always wins input focus disputes. No panel steals focus from a terminal the owner is typing in.
+- **P-45.** Surfaces may be glass: partly transparent over the animated background (UI-31). Text on any surface keeps the contrast of P-43 against the brightest frame of what is behind it, so surfaces that hold reading text (terminal, editor, transcript) are never more transparent than `surface.text.minAlpha`.
 
 ## What "done" means for any piece of work
 

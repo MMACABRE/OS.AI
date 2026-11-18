@@ -57,6 +57,7 @@ export const zModuleId = z.enum([
   'graph',
   'cli',
   'sessions',
+  'dashboard',
 ]);
 
 export const zAppError = z.object({

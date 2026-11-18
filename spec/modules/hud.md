@@ -65,6 +65,46 @@ Claude Code's most used slash commands as buttons, so the owner does not have to
 - **HUD-67.** "More" opens a menu: "Session history" (command `sessions.history`), "Find session" (command `sessions.find`), a separator, then one item per entry of `quickCommands`, each sending that command.
 - **HUD-68.** Every command text HSOS sends is fixed by this spec or comes from `quickModels`, `quickEfforts` and `quickCommands`, each value matching `^/?[a-z][a-z0-9:._\[\]-]{0,60}$` (settings reject others), and the compact field, from which line breaks and control characters are removed before sending.
 
+### Session ribbon
+
+Claude Code prints its model, effort, folder and mascot at the top of the conversation, and they scroll out of sight as the chat grows. The ribbon keeps them in view above every Claude terminal.
+
+- **HUD-80.** The HUD contributes to `terminalHeader` (TERM-75). For a terminal with a Claude session that is not `ended` (the newest bound session, SESS-11), it draws the ribbon; for any other terminal it returns null. It is `Surface role="ribbon"`, 28 px high when collapsed.
+- **HUD-81.** Collapsed, from left to right:
+
+| Part | Content | Pressing it |
+|---|---|---|
+| Mascot | HUD-90, 20 px high | expands or collapses the ribbon |
+| Chat name | the session title (the custom title of SESS-61 when set), cut with an ellipsis, full in its tooltip | opens Session History (`sessions.history`) |
+| Model and effort | `model` and `· <effort>` | the model menu of HUD-62 |
+| Mode | the HUD-64 label, shown when not `default` | as HUD-64 |
+| Folder | `cwd` with the home folder shown as `~`, middle-cut to fit | reveals it in the Files view |
+| Repo | `owner/repo` from `webUrl` of the open project's git status, with the branch, when the session's `cwd` is inside that project or one of its worktrees; else hidden | opens `webUrl` with `shell.openExternal` |
+| Context | a 40 px bar and the percentage (HUD-9 tones) | the Context popover of HUD-61 |
+| Agents | `<n> agents` while subagents run, else hidden | expands the ribbon |
+
+  Parts that do not fit are dropped from the right in this order: context bar (the number stays), folder, repo, mode. The chat name shrinks before anything is dropped.
+- **HUD-82.** Expanded, the ribbon grows below its first line (the terminal resizes, TERM-75) to list each running subagent on one row: its own small mascot (HUD-92), agent type, model when known, its description, its current tool, and time since it started. Subagents that ended stay for 60 seconds with "done" (LINK-29). With none running it shows "No subagents running." The expanded state is saved per terminal in the panel state.
+- **HUD-83.** Changes move (P-42): a new subagent row slides in (MOT-3), a changed value rolls (MOT-8), and expanding or collapsing slides the extra rows with `clip-path` over `motion.normal`, while the terminal resizes once at the end.
+
+### Mascot
+
+An original pixel-art character drawn for HSOS (`design/direction-brief.md`), not a copy of any other product's sprite. It shows at a glance what its session is doing.
+
+- **HUD-90.** The mascot is drawn from a sprite sheet of 16 by 16 pixel cells at whole-number scale, with `image-rendering: pixelated`. Its state follows the session's activity:
+
+| Activity | State | Loop |
+|---|---|---|
+| `working`, `background` | dancing | a dance of at least 6 frames at 8 frames a second |
+| `needs-you` | waving | waves and hops, toned with `color.accent` |
+| `done` | cheering | one jump, then a slow bob |
+| `idle` | resting | blinks every few seconds |
+| `ended` or no session | sleeping | slow breathing with a small "z" |
+
+- **HUD-91.** A change of state plays a 3-frame turn before the new loop. The sprite sheet is `resources/art/mascot.png` with its frame map `mascot.json`, from the chosen direction (`spec/reference/art/`). Until the design round delivers them, a placeholder sheet of plain coloured blocks is used.
+- **HUD-92.** Each running subagent has a mini mascot, 12 px high, that follows the session's mascot in the ribbon and dances while its subagent runs. At most 5 are drawn; more show as `+<n>`.
+- **HUD-93.** Under `data-motion="reduced"` each state shows its first frame and nothing loops (MOT-12). The mascot is decorative: it has no accessible name, and the state is also said in words wherever the mascot is the only sign of it (the ribbon's tooltip, the mascot widget's word).
+
 ### Sessions (the attention board)
 
 - **HUD-1.** The section lists sessions of the open project: those whose `cwd` is the project folder, inside it, or inside one of its worktrees. A toggle in the section menu, "Show all projects", lists every session.
@@ -90,7 +130,7 @@ Claude Code's most used slash commands as buttons, so the owner does not have to
 
 - **HUD-4.** Running subagents are listed under their session, indented: agent type, model when known, and current tool. A subagent that ended is removed after it has shown "done" for 60 seconds (LINK-29).
 - **HUD-5.** Activating a row (click or Enter) focuses that session's terminal panel and calls `link.markSeen`. A session with no terminal in HSOS does nothing on activation and shows "outside HSOS" in place of the model.
-- **HUD-6.** A session that changes to `needs-you` pulses its dot once (motion rules in `visual-direction.md`).
+- **HUD-6.** A session that changes to `needs-you` pulses its dot as MOT-9 says.
 - **HUD-7.** A terminal panel gaining focus calls `link.markSeen` for the sessions bound to it.
 - **HUD-8.** Cache state is computed in the UI every 30 seconds: minutes left = `cacheWarmMinutes` − minutes since `lastResponseAt`. Above zero shows `warm <n>m`; otherwise `cold`. A tooltip explains: "After this time the next message re-reads the whole conversation at full cost."
 - **HUD-9.** Context percentage is toned `state.warn` from 70 and `state.danger` from 90. Cost is shown in the row's tooltip, not in the row.
@@ -230,6 +270,15 @@ All component tests use a fake bus fed with `ClaudeSession`, `UsageLimits`, `Ski
 
 | Rule | Level | Given | When | Then |
 |---|---|---|---|---|
+| HUD-80 | component | terminal `t1` with a `working` session and `t2` with none | the header is asked for each | a ribbon for `t1`; null for `t2` |
+| HUD-81 | component | a session with `cwd` inside the project, `webUrl` `https://github.com/o/r`, branch `main` | the ribbon renders | it shows `o/r` and `main`; pressing it calls `shell.openExternal` with the URL |
+| HUD-81 | component | a 360 px wide terminal | the ribbon renders | the context bar, folder and repo are gone; the context number, model and chat name remain |
+| HUD-82 | component | two running subagents | the mascot is pressed | the ribbon lists both with type, model and current tool, and the terminal was resized once |
+| HUD-83 | component | an expanded ribbon | a subagent starts | its row enters with the MOT-3 motion |
+| HUD-90 | component | a session going `working`, `needs-you`, `done`, `idle` | the mascot renders each | the dancing, waving, cheering and resting frames show in turn |
+| HUD-91 | component | no sprite sheet in resources | the mascot renders | the placeholder sheet is used and nothing throws |
+| HUD-92 | component | 7 running subagents | the ribbon renders | 5 mini mascots and `+2` |
+| HUD-93 | component | `data-motion="reduced"` | a `working` session's mascot renders | one frame shows and no animation runs |
 | HUD-60 | component | no Claude terminal | the bar renders | Usage, Context and Skills are enabled; the others are disabled with "Start a Claude session first" |
 | HUD-61 | component | `contextTokens` 41 000 of 200 000 at 21 % | "Context" is pressed | the popover reads `41k of 200k tokens` |
 | HUD-62 | component | a session with `modelId` `claude-opus-5-5`, `effort` `high` | the model menu opens | `opus` and `high` are checked; choosing `sonnet` sends `/model sonnet` |

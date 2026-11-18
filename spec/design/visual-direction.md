@@ -1,5 +1,7 @@
 # Visual direction: Graphite
 
+Graphite is the current direction and one candidate of the design round (`direction-brief.md`). It stays until the owner picks a direction; the spec author then rewrites this file. Motion is not part of a direction: `motion.md` holds for all of them. The layering of the background and glass surfaces (UI-30, UI-31) holds for all of them too; Graphite renders it with near-opaque surfaces and no blur.
+
 ## The idea
 
 HSOS looks like a precision instrument, not a web page. The terminal is the subject. Everything else is quiet metal around it.
@@ -10,7 +12,7 @@ HSOS looks like a precision instrument, not a web page. The terminal is the subj
 - **Dense.** Small type, tight rows, no wasted padding. Information the owner checks often is always visible.
 - **Two type families.** Geist for the interface, Geist Mono for terminals, code, numbers and file paths.
 - **Small radii.** 4 px on controls, 6 px on panels and menus, 8 px on dialogs. Nothing is pill-shaped except status dots.
-- **Quiet motion.** Things move only to explain where they came from or went.
+- **Motion with purpose.** Everything moves (P-42, `motion.md`); in Graphite the movement is short and precise rather than playful.
 
 ## Forbidden
 
@@ -18,7 +20,7 @@ These mark generic generated interfaces. None appears in HSOS.
 
 - Gradients on surfaces, buttons or text.
 - Purple, indigo or violet anywhere in the shipped themes.
-- Glow, blur or glass effects.
+- Glow and blur. Surfaces are near-opaque: `surface.*.alpha` at 0.94 or more.
 - Radius above 8 px.
 - Cards with drop shadows laid out in a grid.
 - Emoji as icons.
@@ -91,20 +93,7 @@ Icons are one outlined set, drawn as inline SVG using `currentColor`.
 
 ## Motion
 
-| Token | Value | Used for |
-|---|---|---|
-| `motion.instant` | 80 ms | Hover, press |
-| `motion.quick` | 120 ms | Menus, tooltips, tab switch |
-| `motion.normal` | 160 ms | Panels opening, sidebar collapse |
-| `motion.slow` | 240 ms | Dialogs, the palette |
-| `motion.ease.out` | `cubic-bezier(0.2, 0, 0, 1)` | Things entering |
-| `motion.ease.in` | `cubic-bezier(0.4, 0, 1, 1)` | Things leaving |
-
-- Only `opacity` and `transform` animate. Never width, height, top or left.
-- Entering things fade in and move 4 px. Leaving things fade out without moving.
-- A value that updates (a percentage, a count) changes at once, with no count-up animation.
-- A session that starts needing the owner pulses its dot once, for 600 ms. It never loops.
-- With the system "reduce motion" setting on, every duration becomes 0.
+All motion rules and tokens are in `motion.md`. Graphite uses the default token values listed there.
 
 ## Focus
 

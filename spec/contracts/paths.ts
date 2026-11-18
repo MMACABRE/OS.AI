@@ -15,6 +15,8 @@ export type DataPaths = {
   readonly themesDir: AbsPath;
   readonly appStateFile: AbsPath;
   readonly skillFavouritesFile: AbsPath;
+  /** %APPDATA%\HSOS\dashboard.json (DASH-20). */
+  readonly dashboardFile: AbsPath;
 
   readonly logsDir: AbsPath;
   readonly crashDir: AbsPath;

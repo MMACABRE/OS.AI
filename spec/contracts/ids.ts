@@ -49,7 +49,8 @@ export type ModuleId =
   | 'browser'
   | 'graph'
   | 'cli'
-  | 'sessions';
+  | 'sessions'
+  | 'dashboard';
 
 export type ServiceId = 'main' | 'pty-host' | 'workspace-service' | 'link-service';
 

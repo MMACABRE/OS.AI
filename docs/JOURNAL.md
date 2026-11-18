@@ -431,3 +431,33 @@ Design choices and why:
 Also fixed: `zModuleId` in `schemas.ts` was missing `sessions`. Added `.gitattributes` so `*.sh` keeps LF endings on every device.
 
 Spec changes: new `spec/modules/cli.md`, `spec/contracts/channels/cli.ts`, `spec/reference/hsos-cli.sh`, `tasks/stage-8.md` (cards 099 to 103); removed `mcp.md` and `mcp.ts`; `sessions.md` SESS-30, SESS-60 to SESS-63, SESS-70 to SESS-77; `skills.md` SKILL-7 to SKILL-10; `hud.md` HUD-34 to HUD-37, HUD-60 to HUD-68; `terminal.md` TERM-74; `shell.md` SHELL-30; `claude-link.md` LINK-2, LINK-4, LINK-6, LINK-40, LINK-44; `browser.md`; `shell-init.ps1`; contracts `sessions.ts`, `skills.ts`, `hud.ts`, `terminal.ts`, `shell.ts`, `claude-link.ts`, `paths.ts`, `ids.ts`, `schemas.ts`, `result.ts`, `browser.ts`, `workspace.ts`; cards 051, 074, 080 to 083, 087; features F-044, F-045, F-062 to F-064; capability map stage 8; architecture data table; glossary. 19 modules, 564 rules, 64 features, 103 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7; the wrapper was re-tested in Windows PowerShell 5.1 under the Restricted policy with a stub `claude`.
+
+### Step 37. Look first: dashboard, pages, ribbon, motion, and a design round
+
+The owner asked for:
+- an always-visible strip with what Claude Code prints at the top of a chat (model, effort, folder, GitHub repo, chat name, subagents, and a dancing pixel character), because it scrolls away in long chats;
+- a dashboard of resizable widgets that snap to a grid, like the Samsung One UI home screen;
+- a minimal cyberpunk and pixel-art background;
+- a hard rule of a lot of motion in widgets, buttons and page changes, with seamless transitions between the dashboard, the coding page and an Obsidian-like notes page.
+
+Mid-way they added a second rule: implementation always starts with the look and the UI, they review it, and only then does the backend get built.
+
+The owner's decisions:
+- The cyberpunk and pixel-art preferences are a brief for a UI designer agent, which shows several directions to choose from. Graphite is not replaced; it is one candidate.
+- The background runs everywhere, terminal included, with glass parts of differing transparency.
+- Reduced motion follows the Windows setting.
+- The ribbon is a header on each Claude terminal.
+
+Design choices and why:
+- **A design round before Stage U, not a redesign now.** `spec/design/direction-brief.md` holds the owner's preferences, the limits every direction keeps (contrast against the background, the motion system, the background's budget, an original mascot), and what to deliver. The implementer never designs. Graphite stays the spec's direction until the owner picks.
+- **Motion became its own file and a principle** (`design/motion.md`, P-42). It is not part of a direction. Page transitions use the View Transitions API, so shared elements move between pages. The background is mounted once and never restarts. Terminal text never animates, and a key press is never held up by a transition. The old "quiet motion" rules are gone; Graphite keeps short, precise motion.
+- **The background and glass are structure** (UI-30 to UI-33, P-45). The scene draws in a worker with an `OffscreenCanvas`, at most 30 frames a second, paused when hidden. Each surface role has an opacity and blur token. Reading text never sits on a surface more transparent than `surface.text.minAlpha`. Graphite renders this as near-opaque surfaces with no blur.
+- **Three pages** (WS-40 to WS-45). The Code page is the existing workspace. Notes is a second dock for the graph and notes. Dashboard is the new `dashboard` module. Pages stay mounted, so terminals keep their output and state.
+- **`dashboard` is a module with an extension point.** Other modules contribute their own widgets, so it knows nothing about Claude. The grid is fixed (8 by 6 by default), so resizing the window never rearranges widgets. Edit mode follows One UI: hold for 500 ms, widgets sway, drag to snap, overlaps refused, screens swiped. There is a catalog of 11 widgets. The layout is one file for the whole app.
+- **The ribbon** (HUD-80 to HUD-83) fills a new header slot in the terminal (TERM-75), so `terminal` still knows nothing about Claude. The repo link comes from `git remote get-url origin` with credentials removed (GIT-14).
+- **The mascot** (HUD-90 to HUD-93) is an original sprite drawn in the design round, never a copy of another product's character. It has a state per session activity and mini mascots for subagents. A placeholder is used until the art exists.
+- **Look first in the build order.** A new Stage U, cards 026 to 037, comes right after stage 0. Stage 0 stays first because it is the window, bus, theme engine and base components the UI is drawn with, plus short spikes that prove the stack runs. Stage U builds the panel side of every module on a demo backend that answers every channel from fixtures, checked against the contracts. It ends at card 037: a packaged `HSOS Demo`, screenshots, and a stop until the owner approves. Later cards keep the approved look and only wire data (protocol "Look first"). Cards 026 to 103 became 038 to 115. Stage 9 (cards 116 to 118) saves the dashboard and pages and wires the ribbon to real sessions.
+
+Not taken: per-stage UI review, because the owner asked to see all of the app before any backend. Hard-coding a cyberpunk theme now, because the owner wants to choose.
+
+Spec changes: new `spec/design/direction-brief.md`, `spec/design/motion.md`, `spec/modules/dashboard.md`, `spec/contracts/channels/dashboard.ts`, `tasks/stage-u.md`, `tasks/stage-9.md`; P-42, P-45; `visual-direction.md`, `layout.md`, `themes/graphite.json`; `ui-kit.md` UI-6, UI-30 to UI-33; `settings.md` SET-15; `workspace.md` WS-40 to WS-45; `terminal.md` TERM-75, TERM-76; `hud.md` HUD-6, HUD-80 to HUD-83, HUD-90 to HUD-93; `git.md` GIT-4, GIT-14; contracts `theme.ts`, `workspace.ts`, `terminal.ts`, `git.ts`, `ids.ts`, `schemas.ts`, `paths.ts`; `02-architecture.md` budgets and data; `03-stack.md`; `04-implementer-protocol.md` "Look first"; `05-testing.md`; capability map; every card renumbered; features F-065 to F-072; glossary. 20 modules, 615 rules, 72 features, 118 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.

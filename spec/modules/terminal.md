@@ -110,6 +110,9 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
 
 ### View
 
+- **TERM-75.** A terminal panel has a header slot above its rows, filled through the extension point `terminalHeader`. A contribution's `render(terminalId)` returns content or null; the first non-null one is drawn. The header's height comes from the content; when it changes, the terminal is resized (TERM-31 path) so the header never covers a row. The terminal module knows nothing about what the header shows.
+- **TERM-76.** The terminal's background is `color.term.background` at the opacity of `surface.terminal.alpha` (UI-31), drawn by xterm with `allowTransparency`, so the background layer shows through. Text, cursor and selection colours stay fully opaque, and terminal text never animates (MOT-10).
+
 - **TERM-50.** On each workspace save and at stop, the panel serialises its scrollback with the serialize addon and sends `storeScrollback`. `pty-host` writes it to `terminalRestoreFile` atomically.
 - **TERM-51.** xterm is created with the font, cursor and scrollback settings and a colour theme built from the `color.term.*` tokens. A settings or theme change is applied to open terminals at once, without restarting shells.
 - **TERM-52.** The WebGL renderer is used when `useWebgl` is on. If the WebGL context is lost or cannot start, the panel falls back to xterm's default renderer and logs a warning. The terminal keeps working.
@@ -210,6 +213,9 @@ There is no empty state: a terminal panel always has or is starting a shell.
 | TERM-32 | integration | a terminal with no attach | 5 MB are emitted | the fake is never paused |
 | TERM-33 | integration | two attached terminals, the first paused | the second emits output | its `data` events arrive |
 | TERM-74 | integration | fake clock; a terminal | `write` of `a` at 10:00, `write` of `/model opus\r` with `source: 'quick-command'` at 10:01 | `getLastOwnerInput` returns 10:00 |
+| TERM-75 | component | a contribution that returns a 28 px header for `t1`, then a 64 px one | the panel renders | the terminal's rows shrink to fit each time and no row is hidden under the header |
+| TERM-75 | component | two contributions, the first returning null | the panel renders | the second one's header shows |
+| TERM-76 | component | `surface.terminal.alpha: 0.9` | the terminal renders | xterm was created with `allowTransparency: true` and a background with alpha 0.9 |
 | TERM-41 | component | text is selected | `Ctrl+C` | the clipboard holds the text and nothing is written to the shell |
 | TERM-41 | component | nothing is selected | `Ctrl+C` | `\x03` is written |
 | TERM-41 | component | default settings | `Shift+Enter` | `\x1b\r` is written |

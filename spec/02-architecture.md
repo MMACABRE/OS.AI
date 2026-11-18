@@ -90,6 +90,7 @@ Contract: `contracts/paths.ts`. All paths come from `DataPaths`, never from stri
 | App state | `%APPDATA%\HSOS\state\app.json` | recent projects, window bounds |
 | Workspaces | `%APPDATA%\HSOS\workspaces\<projectId>.json` | layout and panel state |
 | Skill favourites | `%APPDATA%\HSOS\skills\favourites.json` | JSON |
+| Dashboard | `%APPDATA%\HSOS\dashboard.json` | JSON, schema `DashboardFile` (DASH-20) |
 | Logs | `%LOCALAPPDATA%\HSOS\logs\<process>.log` | JSON lines |
 | Crash reports | `%LOCALAPPDATA%\HSOS\crash\` | JSON |
 | Local history | `%LOCALAPPDATA%\HSOS\history\<projectId>\` | `objects\<sha256>` and `index.sqlite` |
@@ -153,5 +154,9 @@ A service that misses its `ready` deadline is restarted once. If it fails again 
 | Memory with 4 terminals, tree, HUD, no browser | below 600 MB total |
 | File tree of 50 000 entries | first paint under 300 ms |
 | Graph of 5 000 notes | 60 frames per second when idle, 30 while laying out |
+| Background scene (UI-32) | under 3 % of one CPU core, at most 30 frames per second, 0 frames while minimised |
+| Page transition (MOT-5) | 60 frames per second with 4 terminals open, no frame over 33 ms |
+| Key press to terminal echo during a page transition | 33 ms median |
+| Terminal output throughput over the background with glass | 5 MB per second, as without it |
 
 The budgets are measured by tests in stage 6. They are targets the implementer reports against, and a miss is recorded in `PROGRESS.md`.

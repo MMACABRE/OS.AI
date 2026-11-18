@@ -4,7 +4,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 089 Theme editor
+## 101 Theme editor
 
 **Goal.** The owner edits a theme and sees every change at once.
 
@@ -29,7 +29,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 090 Fault tests
+## 102 Fault tests
 
 **Goal.** Every fault in the reliability bar is tested against the packaged app.
 
@@ -49,7 +49,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 091 Property and soak tests
+## 103 Property and soak tests
 
 **Goal.** The data-loss invariant holds under random sequences, and the app holds steady for two hours.
 
@@ -60,7 +60,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 **Files.** `tests/history/history-property.test.ts`, `scripts/soak.mjs`, `package.json`.
 
 **Steps.**
-1. Extend the REL-12 property test from card 050 with service kills between steps. Run 500 sequences of up to 40 steps.
+1. Extend the REL-12 property test from card 062 with service kills between steps. Run 500 sequences of up to 40 steps.
 2. `soak.mjs` launches the built app, opens 4 terminals running a loop that prints 200 KB every 5 seconds, writes 10 files a second in the project, posts `FakeClaude` events every second, samples `diagnostics.getHealth` every minute for 2 hours, and fails when REL-11 is broken. Add the script `soak` to `package.json`.
 
 **Tests.** Those files. The soak is run by `npm run soak`, not by `npm test`.
@@ -71,7 +71,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 092 Performance budgets
+## 104 Performance budgets
 
 **Goal.** Every budget in the architecture is measured and recorded.
 
@@ -91,7 +91,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 093 Installer and first run
+## 105 Installer and first run
 
 **Goal.** An installer the owner can run, and a first launch that explains itself.
 
@@ -114,7 +114,7 @@ At the end of this stage HSOS meets the reliability bar in `spec/05-testing.md`,
 
 ---
 
-## 094 Final review
+## 106 Final review
 
 **Goal.** Confirm HSOS matches its spec before the owner relies on it.
 

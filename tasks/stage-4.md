@@ -4,7 +4,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 075 Browser tabs
+## 087 Browser tabs
 
 **Goal.** Page views in an isolated profile, placed over their panels.
 
@@ -24,7 +24,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 076 Browser panel
+## 088 Browser panel
 
 **Goal.** The toolbar, address field and overlay handling.
 
@@ -44,7 +44,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 077 Agent page reading and input
+## 089 Agent page reading and input
 
 **Goal.** Claude can read the page and click and type in it.
 
@@ -64,7 +64,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 078 Agent navigation and owner control
+## 090 Agent navigation and owner control
 
 **Goal.** Claude navigates under the host rules, and the owner always sees and can stop it.
 
@@ -84,7 +84,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 079 Element capture
+## 091 Element capture
 
 **Goal.** Pick an element on a page and send its code to Claude or the feedback tray.
 
@@ -104,7 +104,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 080 The hsos command
+## 092 The hsos command
 
 **Goal.** Claude Code in an HSOS terminal can run `hsos` without a permission prompt, and HSOS answers it.
 
@@ -117,7 +117,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 **Steps.**
 1. Copy `spec/reference/hsos-cli.sh` to `src/modules/claude-link/service/hsos-cli.sh` unchanged. `generated-files.ts` writes it to `linkDir\bin\hsos`, the CLI-2 skill file and the CLI-3 permission rule, and sets `HSOS_BIN_DIR` (LINK-2). The wrapper already puts it on `PATH` (LINK-4).
 2. `arg-parser.ts`: CLI-6 as a pure function from the argument list and the command table to a parsed command or a usage error.
-3. `cli-route.ts`: CLI-4, CLI-5, CLI-7, CLI-8, CLI-9 on the `/cli` mount point of the link server. Register the `help` command; the groups come in cards 081, 082 and 087.
+3. `cli-route.ts`: CLI-4, CLI-5, CLI-7, CLI-8, CLI-9 on the `/cli` mount point of the link server. Register the `help` command; the groups come in cards 093, 094 and 099.
 
 **Tests.** `tests/cli/hsos-cli.test.ts`: the three CLI-1 rows, run in Git Bash against a test server. `tests/cli/arg-parser.test.ts`: CLI-6 rows. `tests/cli/cli-route.test.ts`: CLI-2, CLI-3, CLI-4, CLI-5, CLI-9. Never start the real `claude` here.
 
@@ -127,7 +127,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 081 Browser commands
+## 093 Browser commands
 
 **Goal.** Claude drives the browser panel through `hsos browser`.
 
@@ -147,7 +147,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 082 Workspace and review commands
+## 094 Workspace and review commands
 
 **Goal.** Claude can show files and diffs to the owner and read pinned feedback.
 
@@ -170,7 +170,7 @@ At the end of this stage HSOS has a browser panel in its own profile, and Claude
 
 ---
 
-## 083 Stage 4 checks
+## 095 Stage 4 checks
 
 **Goal.** Stage 4 works end to end.
 

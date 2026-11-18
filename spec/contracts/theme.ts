@@ -69,7 +69,26 @@ export const TOKEN_NAMES = [
   'motion.slow',
   'motion.ease.out',
   'motion.ease.in',
+  'motion.page',
+  'motion.ease.spring',
   'shadow.overlay',
+  // Glass surfaces over the background (UI-31): opacity 0 to 1 and blur in px per surface role.
+  'surface.app.alpha',
+  'surface.panel.alpha',
+  'surface.panel.blur',
+  'surface.terminal.alpha',
+  'surface.terminal.blur',
+  'surface.overlay.alpha',
+  'surface.overlay.blur',
+  'surface.widget.alpha',
+  'surface.widget.blur',
+  'surface.ribbon.alpha',
+  'surface.ribbon.blur',
+  /** The lowest opacity a surface holding reading text may have (P-45). */
+  'surface.text.minAlpha',
+  // The animated background (UI-30, UI-32).
+  'backdrop.scene',
+  'backdrop.fps',
 ] as const;
 
 export type TokenName = (typeof TOKEN_NAMES)[number];

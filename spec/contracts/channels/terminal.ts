@@ -165,6 +165,12 @@ export type TerminalRecovery = {
 
 export const terminalRecovery: ExtensionPoint<TerminalRecovery> = { id: 'terminal.recovery' };
 
+/** Fills the header slot above a terminal's rows (TERM-75). `render` returns UI content, or null for none. */
+export type TerminalHeader = {
+  render(terminalId: TerminalId): unknown;
+};
+export const terminalHeader: ExtensionPoint<TerminalHeader> = { id: 'terminal.header' };
+
 /** The seam between pty-host and the real ConPTY. tests/fakes/fake-pty.ts implements it too. */
 export type PtyProcess = {
   readonly pid: number;

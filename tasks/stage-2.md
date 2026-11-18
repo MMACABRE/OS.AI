@@ -4,7 +4,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 038 Reading files
+## 050 Reading files
 
 **Goal.** Files are listed and read with their kind, encoding and line endings.
 
@@ -24,7 +24,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 039 Saving safely
+## 051 Saving safely
 
 **Goal.** Saves keep encoding and line endings, never overwrite a changed file without consent, and notify observers.
 
@@ -44,7 +44,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 040 Create, rename, trash
+## 052 Create, rename, trash
 
 **Goal.** File operations that never destroy anything.
 
@@ -64,7 +64,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 041 Watching
+## 053 Watching
 
 **Goal.** Changes on disk arrive as clean batches.
 
@@ -84,7 +84,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 042 File search
+## 054 File search
 
 **Goal.** `Ctrl+P` finds any file in a few keystrokes.
 
@@ -104,7 +104,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 043 Files view
+## 055 Files view
 
 **Goal.** The file tree.
 
@@ -124,7 +124,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 044 Viewer
+## 056 Viewer
 
 **Goal.** Code, markdown and images open in the viewer.
 
@@ -144,7 +144,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 045 Edits that never get lost
+## 057 Edits that never get lost
 
 **Goal.** Changed-on-disk handling and hot exit.
 
@@ -164,7 +164,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 046 History store
+## 058 History store
 
 **Goal.** Snapshots stored by content, written in a crash-safe order.
 
@@ -184,7 +184,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 047 Snapshots of outside changes
+## 059 Snapshots of outside changes
 
 **Goal.** Changes by Claude and other programs are captured.
 
@@ -204,7 +204,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 048 Restore and retention
+## 060 Restore and retention
 
 **Goal.** Any version can be restored, and history stays within its limits.
 
@@ -224,7 +224,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 049 History timeline
+## 061 History timeline
 
 **Goal.** The owner sees every version of a file and restores one in two clicks.
 
@@ -244,7 +244,7 @@ At the end of this stage the owner browses, views and edits project files while 
 
 ---
 
-## 050 Stage 2 checks
+## 062 Stage 2 checks
 
 **Goal.** Stage 2 meets the file safety bar.
 

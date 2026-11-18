@@ -121,3 +121,25 @@
 **Skill state**: Whether Claude Code offers a skill: on, name only, you only (hidden from Claude, still runnable by the owner) or off.
 
 **Session history**: The panel that lists Claude sessions of every project and lets the owner rename, annotate and delete them.
+
+**Page**: One of the three full views of the window: Dashboard, Code and Notes. The owner switches between them; each keeps its state.
+
+**Dashboard**: The home page, made of widget screens the owner arranges like a phone home screen.
+
+**Widget**: A live tile on the dashboard, sized in grid cells, that shows one part of the app and opens it when activated.
+
+**Edit mode**: The dashboard state in which widgets can be moved, resized, added and removed.
+
+**Session ribbon**: The strip above each Claude terminal that keeps the session's model, effort, folder, repo, chat name and subagents in view.
+
+**Mascot**: HSOS's own small pixel-art character that shows what a Claude session is doing.
+
+**Background**: The animated scene drawn behind every page.
+
+**Glass surface**: A surface partly see-through to the background, by an amount the theme sets for its role.
+
+**Demo mode**: HSOS running on fixture data with no services, so the look can be reviewed before the backend exists.
+
+**Look first**: The rule that the owner approves the whole look in demo mode before any backend is built.
+
+**Design round**: The step before Stage U in which a designer shows the owner several visual directions and the owner picks one.

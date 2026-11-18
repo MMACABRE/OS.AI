@@ -4,7 +4,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 026 Projects
+## 038 Projects
 
 **Goal.** Open, switch and remember projects.
 
@@ -24,7 +24,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 027 App frame
+## 039 App frame
 
 **Goal.** The title bar, activity rail, side and right areas, and status bar.
 
@@ -44,7 +44,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 028 Dock and panel registry
+## 040 Dock and panel registry
 
 **Goal.** Panels open, split, tab and move in the dock.
 
@@ -64,7 +64,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 029 Save and restore
+## 041 Save and restore
 
 **Goal.** The workspace of each project comes back exactly as it was.
 
@@ -84,7 +84,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 030 Terminal registry
+## 042 Terminal registry
 
 **Goal.** `pty-host` creates, writes to, resizes and kills shells.
 
@@ -104,7 +104,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 031 Output and reattach buffer
+## 043 Output and reattach buffer
 
 **Goal.** Output is batched, numbered and kept for reattach.
 
@@ -124,7 +124,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 032 Flow control
+## 044 Flow control
 
 **Goal.** A flood of output cannot freeze the UI, and one terminal never slows another.
 
@@ -144,7 +144,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 033 Terminal view
+## 045 Terminal view
 
 **Goal.** A terminal panel draws a shell with the theme's colours and the GPU renderer.
 
@@ -164,7 +164,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 034 Terminal input
+## 046 Terminal input
 
 **Goal.** Keys, paste and drops behave as a careful terminal should.
 
@@ -174,7 +174,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 **Files.** `src/modules/terminal/panel/terminal-keys.ts`, `src/modules/terminal/panel/paste-pipeline.ts`, `src/modules/terminal/panel/paste-guard.ts`, `src/modules/terminal/panel/drop-paths.ts`, `src/modules/terminal/panel/elevation-notice.tsx`, `src/modules/terminal/panel/TerminalPanel.tsx`, `tests/e2e/helpers/send-input.ps1`.
 
-**Steps.** Implement the rules. `paste-pipeline.ts` is the one path of TERM-46; every paste source calls it. `send-input.ps1` is the e2e helper that sets the clipboard and presses keys through Windows: `Set-Clipboard`, then `Add-Type -AssemblyName System.Windows.Forms` and `[System.Windows.Forms.SendKeys]::SendWait('+{INSERT}')` or `('^v')`, then the optional second `Set-Clipboard` after the given delay. Links (TERM-55) use `@xterm/addon-web-links`; file-path links with a line number open through `workspace` `openPanel('files.viewer', { path, line })`, which exists after card 044. Until then they do nothing.
+**Steps.** Implement the rules. `paste-pipeline.ts` is the one path of TERM-46; every paste source calls it. `send-input.ps1` is the e2e helper that sets the clipboard and presses keys through Windows: `Set-Clipboard`, then `Add-Type -AssemblyName System.Windows.Forms` and `[System.Windows.Forms.SendKeys]::SendWait('+{INSERT}')` or `('^v')`, then the optional second `Set-Clipboard` after the given delay. Links (TERM-55) use `@xterm/addon-web-links`; file-path links with a line number open through `workspace` `openPanel('files.viewer', { path, line })`, which exists after card 056. Until then they do nothing.
 
 **Tests.** `tests/terminal/terminal-input.ui.test.tsx`: TERM-41, TERM-43, TERM-44, TERM-46, TERM-48 and TERM-49 component rows. `tests/e2e/terminal-input.e2e.ts`: TERM-45 and the two TERM-46, TERM-47 rows. Leave the TERM-47 manual row for the owner.
 
@@ -184,7 +184,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 035 Reattach and restore
+## 047 Reattach and restore
 
 **Goal.** Shells survive a UI reload, and history returns after a restart.
 
@@ -204,7 +204,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 036 Terminal commands and projects
+## 048 Terminal commands and projects
 
 **Goal.** Terminal commands, prompt marks, and shells that keep running across project switches.
 
@@ -224,7 +224,7 @@ At the end of this stage the owner opens a project and works in PowerShell and C
 
 ---
 
-## 037 Stage 1 checks
+## 049 Stage 1 checks
 
 **Goal.** Stage 1 meets its bar.
 

@@ -82,6 +82,8 @@ If a spike fails, the implementer stops and reports. The fallback choices are li
 | All checks | `npm run check` (typecheck, lint, deps, test) |
 | Build | `npm run build` |
 | Package to exe | `npm run dist` |
+| Run the UI on demo data, no services (Stage U) | `npm run demo`; `npm run demo -- --gallery` for every panel state |
+| Package the demo for the owner | `npm run dist -- --demo` |
 | Session start | `pwsh scripts/init.ps1` |
 
 ## Folder layout
@@ -101,12 +103,13 @@ src/
     workspace-service/
     link-service/
   ui/                     renderer entry, app frame, module list
+  demo/                   demo transport, fixtures and the state gallery (Stage U, card 026)
   modules/<id>/           one folder per module (see 02-architecture.md §4)
 tests/
   <id>/                   unit and integration tests for module <id>
   e2e/                    Playwright tests against the built app
   fakes/                  in-memory fakes of contracts
-resources/                fonts, icons, default themes, default settings
+resources/                fonts, icons, default themes, default settings, art (mascot sheet)
 ```
 
 ## TypeScript settings

@@ -2,9 +2,9 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete: 19 modules, 103 cards (001 to 103, stages 0 to 8). Latest: the `hsos` command replaces MCP (module `cli`), stage 8 Claude controls (session history, skill state, skills folder, HUD quick bar). See JOURNAL steps 35 and 36.
+**Status (2026-11-18):** spec complete: 20 modules, 118 cards (001 to 118). Build order is look first: stage 0, Stage U (every screen on demo data, ending at the owner's approval in card 037), then stages 1 to 9. Latest: dashboard, pages, session ribbon and mascot, motion as a hard rule, background and glass. See JOURNAL steps 36 and 37.
 
-**Next:** implementation. Start with task card 001 in `tasks/stage-0.md`.
+**Next:** the design round (`spec/design/direction-brief.md`): a designer agent shows the owner several directions, the owner picks one, the spec author writes it into `spec/design/`. Then implementation starts with card 001 in `tasks/stage-0.md`.
 
 ## Before any work
 
@@ -16,7 +16,7 @@ You build HSOS from the spec. You do not design it.
 
 1. Run `pwsh scripts/init.ps1` (skip until task 001 has created it). Without PowerShell 7 use `powershell -ExecutionPolicy Bypass -File scripts/init.ps1` (verify).
 2. Read `spec/04-implementer-protocol.md` once per session. It is the loop you run.
-3. Do the lowest-numbered card in `tasks/` that `PROGRESS.md` does not list as done. One card, then stop.
+3. Do the lowest-numbered card in `tasks/` that `PROGRESS.md` does not list as done. One card, then stop. Card 037 is a gate: after it, wait for the owner's approval (protocol "Look first").
 
 Rules:
 

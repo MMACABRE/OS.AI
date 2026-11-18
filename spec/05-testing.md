@@ -67,6 +67,8 @@ HSOS is trusted as a daily working environment only when all of these pass.
 | REL-12 | Property test: random sequences of edit, external change, save, restore, kill | The last content the owner was told is saved is always recoverable from disk or history |
 | REL-13 | Simulated power cut: kill every HSOS process and every shell at once while a Claude session runs (stub `claude`) | After relaunch the terminal types `claude --resume` with the same session id |
 
+The performance budgets of `02-architecture.md` §10 are measured on the owner's machine, the reference machine, by card 104.
+
 ## Tests that spend usage
 
 No automated test starts the real Claude Code with a prompt. Tests use `FakeClaude` and a stub `claude` executable. Checks that need real Claude Code are listed as "manual" in module test tables and are run by the owner.

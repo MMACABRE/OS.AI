@@ -16,7 +16,7 @@ Keeps the project in step with GitHub with as little effort as possible, and nev
 - **GIT-1.** Every command goes through `GitRunner.run` with an argument array (SEC-6) and these fixed leading arguments: `-c core.quotepath=false -c color.ui=false`.
 - **GIT-2.** The environment adds `GIT_TERMINAL_PROMPT=0` so git never waits for typed input, and `GIT_OPTIONAL_LOCKS=0` for read-only commands so HSOS never blocks a git command Claude is running.
 - **GIT-3.** Before running, the argument list is checked by `assertSafe`. A list containing any of these is refused with `GIT_REFUSED_UNSAFE` and never run (P-5): `--force`, `-f` (with `push`, `checkout`, `branch`, `clean`, `worktree`), `--force-with-lease`, `--hard`, `reset`, `clean`, `rebase`, `filter-branch`, `-D`, `--mirror`, `gc`, `prune`, `checkout --`, `restore`, `stash drop`, `stash clear`, `update-ref -d`.
-- **GIT-4.** The subcommands HSOS uses are exactly: `rev-parse`, `status`, `fetch`, `merge --ff-only`, `add`, `commit`, `push`, `show`, `diff`, `worktree list`, `worktree add`, `worktree remove`, `init` (only from the owner's command, GIT-13), `--version`. `assertSafe` also refuses any other subcommand.
+- **GIT-4.** The subcommands HSOS uses are exactly: `rev-parse`, `status`, `fetch`, `merge --ff-only`, `add`, `commit`, `push`, `show`, `diff`, `worktree list`, `worktree add`, `worktree remove`, `init` (only from the owner's command, GIT-13), `remote get-url origin`, `--version`. `assertSafe` also refuses any other subcommand.
 - **GIT-5.** `git --version` failing to start means git is missing: status kind `git-missing`. The UI then shows "Git is not installed" with a link to the download page.
 - **GIT-6.** Commands for one repo run one at a time, in order. A read-only status never waits behind a network command for more than 2 000 ms; it runs alongside.
 - **GIT-7.** Error mapping from exit code and stderr text:
@@ -36,6 +36,7 @@ Keeps the project in step with GitHub with as little effort as possible, and nev
 - **GIT-10.** Status is read with `status --porcelain=v2 --branch -z --untracked-files=all` and parsed by the reference parser. `operation` is found by checking for `MERGE_HEAD`, `rebase-merge` or `rebase-apply`, and `CHERRY_PICK_HEAD` inside the git folder reported by `rev-parse --git-dir`.
 - **GIT-11.** Status is re-read: at project open; 300 ms after a `files.changed` batch (one read per batch, however large); after every command HSOS runs; and when the window regains focus.
 - **GIT-12.** `statusChanged` is emitted only when the new status differs from the last one emitted.
+- **GIT-14.** `remoteUrl` is read with `remote get-url origin` at project open and after every fetch, and is null when there is no `origin`. Any user name, password or token in it is removed before it is stored, logged or shown (`https://user:token@host/x` becomes `https://host/x`). `webUrl` is the https address of the repo page when the host is `github.com`: `git@github.com:o/r.git`, `ssh://git@github.com/o/r.git` and `https://github.com/o/r.git` all become `https://github.com/o/r`; for other hosts it is null.
 - **GIT-13.** A project that is not a repo shows no git UI except one command, "Initialize Repository", which the owner must choose. HSOS never runs `git init` on its own.
 
 ### Sync
@@ -111,6 +112,8 @@ Integration tests use the real `git.exe` in temp repos, with a second temp repo 
 | GIT-3 | property | random argument lists containing a forbidden token | `assertSafe` | all are refused |
 | GIT-4 | unit | the subcommand `stash` | `assertSafe` | refused |
 | GIT-7 | unit | sample stderr for each row | mapping | the code matches the row |
+| GIT-14 | unit | `https://user:ghp_x@github.com/o/r.git`, `git@github.com:o/r.git`, `ssh://git@github.com/o/r.git`, `https://gitlab.com/o/r.git` | they are read | `remoteUrl` holds no `user` or token; `webUrl` is `https://github.com/o/r` for the first three and null for the last |
+| GIT-14 | integration | a repo with no `origin` | status is read | `remoteUrl` and `webUrl` are null |
 | GIT-10 | unit | covered by the reference self-check | | |
 | GIT-10 | integration | a repo in the middle of a conflicted merge | `getStatus` | `operation` is `merge`; the file is `isConflicted` |
 | GIT-11 | integration | fake clock | 50 file change batches in 1 s | status was read at most 4 times |

@@ -16,15 +16,16 @@ Module ids are fixed. They name folders, test files, rule prefixes and task card
 | `files` | `FILE` | File tree, watcher, viewer, light editor, atomic save, change detection | `workspace` |
 | `history` | `HIST` | Local history snapshots, per-file timeline, diff, restore | `files` |
 | `claude-link` | `LINK` | Hook receiver, statusline forwarder, registry of Claude sessions and subagents, snapshot before Claude edits a file | `shell`, `terminal`, `history` |
-| `git` | `GIT` | GitHub sign-in, status, fetch, pull, commit, push, worktrees, opt-in automatic sync | `files`, `claude-link` |
+| `git` | `GIT` | GitHub sign-in, status, fetch, pull, commit, push, worktrees, opt-in automatic sync | `files`, `claude-link`, `dashboard` |
 | `skills` | `SKILL` | Skill index, favourites, skill on/off state, skills folder, background runs, skills-repo sync | `files`, `git` |
-| `hud` | `HUD` | HUD panel: quick bar of Claude commands, attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `terminal`, `ui-kit` |
-| `activity` | `ACT` | Activity timeline across files, artifacts inbox | `history`, `claude-link` |
+| `hud` | `HUD` | HUD panel and session ribbon with the mascot: quick bar of Claude commands, attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `terminal`, `ui-kit`, `git`, `dashboard` |
+| `activity` | `ACT` | Activity timeline across files, artifacts inbox | `history`, `claude-link`, `dashboard` |
 | `review` | `REV` | Changes panel with live diff; feedback tray that sends pinned comments to a terminal | `git`, `history`, `terminal` |
 | `browser` | `BROW` | Browser panels, tabs, isolated profile, DevTools Protocol control, element capture | `workspace`, `review` |
-| `graph` | `GRAPH` | Markdown index, link resolution, graph view, backlinks | `files`, `ui-kit` |
+| `graph` | `GRAPH` | Markdown index, link resolution, graph view, backlinks | `files`, `ui-kit`, `dashboard` |
 | `cli` | `CLI` | The `hsos` command Claude runs: browser, file, graph and review commands | `browser`, `files`, `graph`, `workspace`, `review`, `claude-link` |
-| `sessions` | `SESS` | Claude session records, transcript backup, auto-resume after a crash or restart, session picker, transcript reader, session history of every project with rename, notes and delete | `claude-link`, `terminal`, `workspace` |
+| `sessions` | `SESS` | Claude session records, transcript backup, auto-resume after a crash or restart, session picker, transcript reader, session history of every project with rename, notes and delete | `claude-link`, `terminal`, `workspace`, `dashboard` |
+| `dashboard` | `DASH` | The home page of resizable widgets on snapping grid screens | `workspace`, `ui-kit` |
 
 Rules:
 
@@ -35,7 +36,7 @@ Rules:
 
 | Process | Electron kind | Hosts the service side of | Restart policy |
 |---|---|---|---|
-| `main` | main process | `shell`, `settings`, `diagnostics` | none; it is the supervisor |
+| `main` | main process | `shell`, `settings`, `diagnostics`, `dashboard` file | none; it is the supervisor |
 | `pty-host` | utility process | `terminal` | restart at once; shells are lost and reported |
 | `workspace-service` | utility process | `files`, `history`, `git`, `review`, `graph` index, `activity`, `skills` index | restart at once |
 | `link-service` | utility process | `claude-link`, `sessions`, `cli` | restart at once |
@@ -46,11 +47,12 @@ Rules:
 
 ## Build stages
 
-Each stage ends with an app that starts, passes all tests and packages to an `.exe`.
+Each stage ends with an app that starts, passes all tests and packages to an `.exe`. Build order: stage 0, stage U, then stages 1 to 9. Stage U draws everything on demo data so the owner can approve the look before the backend is built (`04-implementer-protocol.md` "Look first").
 
 | Stage | Modules | The app can now |
 |---|---|---|
 | 0. Skeleton | `contracts`, `diagnostics`, `shell`, `settings`, `ui-kit` | Open a themed empty window with a command palette and settings screen. Survive a renderer crash. |
+| U. The look | the panel side of every module, the pages, the dashboard, motion and the background, on the demo backend | Show the whole app, moving, on demo data, for the owner to approve before any backend (card 037 is the gate). |
 | 1. Terminal | `workspace`, `terminal` | Open a project, run PowerShell and Claude Code in tabs and splits. Shells survive a UI reload. Layout restores. |
 | 2. Files | `files`, `history` | Browse, view, edit, save safely. Restore any earlier version. |
 | 3. Claude awareness | `claude-link`, `sessions`, `git`, `skills`, `hud`, `activity`, `review` | Never lose a Claude session: resume it after a crash or restart, find and read any past one. Show limits, sessions that need the owner, subagents, skills, what Claude changed and produced. Review changes and send feedback. Sync with GitHub. Start sessions in worktrees. |
@@ -59,10 +61,11 @@ Each stage ends with an app that starts, passes all tests and packages to an `.e
 | 6. Finish | theme editor, fault tests, soak tests, installer | Meet the reliability bar in `05-testing.md`. |
 | 7. Awareness extras | spoken alerts in `hud` and `shell`, Claude setup view in `hud` and `claude-link`, agent view in `graph` | Say when a session finishes or needs the owner. Show the Claude Code setup with last use. Show what Claude loads at start and what links reach. |
 | 8. Claude controls | session history in `sessions`, skill state and skills folder in `skills` and `shell`, quick bar in `hud` and `terminal` | Rename, note and delete past sessions of every project. Turn skills on and off and open the skills folder. Change model, effort and mode, compact and clear, and open Claude's own screens, from buttons. |
+| 9. Dashboard and pages, wired | `dashboard` file, saved pages, repo link in `git` | Keep the dashboard and the page across restarts. Show the repo of each session in its ribbon. |
 
 ## Later, not in this spec
 
-- Home dashboard with pinned local web apps.
+- Pinned local web apps as dashboard widgets.
 - Cost by skill and connector. Stage 7 shows when each was last used, not what it cost.
 - 3D graph view.
 

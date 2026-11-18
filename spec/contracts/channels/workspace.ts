@@ -48,6 +48,10 @@ export const WorkspaceFile = z.object({
   left: SideAreaState,
   right: SideAreaState,
   focusedPanel: zPanelId.nullable(),
+  /** The page shown (WS-40, WS-44). */
+  activePage: z.enum(['dashboard', 'code', 'notes']).default('code'),
+  /** The notes page's own dock layout, or null for its default (WS-43). Panels live in `panels` too. */
+  notesDock: z.unknown().default(null),
 });
 export type WorkspaceFile = z.infer<typeof WorkspaceFile>;
 

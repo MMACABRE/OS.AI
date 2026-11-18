@@ -34,6 +34,10 @@ export const RepoStatus = z.discriminatedUnion('kind', [
     lastFetchAt: zEpochMs.nullable(),
     /** The last fetch failed because the network was unreachable. */
     isOffline: z.boolean(),
+    /** `origin` with any credentials removed, or null (GIT-14). */
+    remoteUrl: z.string().max(500).nullable(),
+    /** The GitHub page of the repo, or null for other hosts (GIT-14). */
+    webUrl: z.string().url().nullable(),
     /** Activity in progress, shown on the sync button. */
     busy: z.enum(['none', 'fetching', 'pulling', 'committing', 'pushing']),
   }),

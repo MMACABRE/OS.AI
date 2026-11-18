@@ -4,7 +4,7 @@ At the end of this stage the owner manages Claude Code from buttons instead of t
 
 ---
 
-## 099 Rename, notes and delete for sessions
+## 111 Rename, notes and delete for sessions
 
 **Goal.** Any past session, from any project, can be renamed, given a note, or moved to the Recycle Bin.
 
@@ -28,7 +28,7 @@ At the end of this stage the owner manages Claude Code from buttons instead of t
 
 ---
 
-## 100 Session history panel
+## 112 Session history panel
 
 **Goal.** One panel lists the sessions of every project and manages them.
 
@@ -51,7 +51,7 @@ At the end of this stage the owner manages Claude Code from buttons instead of t
 
 ---
 
-## 101 Skill state and skills folder
+## 113 Skill state and skills folder
 
 **Goal.** The skills deck can turn a skill on or off the way `/skills` does, and opens the skills folder.
 
@@ -75,7 +75,7 @@ At the end of this stage the owner manages Claude Code from buttons instead of t
 
 ---
 
-## 102 Quick bar
+## 114 Quick bar
 
 **Goal.** Claude's common commands are buttons in the HUD, and none of them can send a half-typed prompt.
 
@@ -99,7 +99,7 @@ At the end of this stage the owner manages Claude Code from buttons instead of t
 
 ---
 
-## 103 Stage 8 checks
+## 115 Stage 8 checks
 
 **Goal.** Stage 8 works end to end.
 

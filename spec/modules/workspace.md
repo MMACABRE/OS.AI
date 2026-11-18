@@ -66,6 +66,23 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 - **WS-36.** `requestOpenPanel` is re-emitted by `main` as `openPanelRequested`. The UI handles it as `openPanel`, except that with `focus: false` the panel is added behind the active tab of the focused group and focus does not move.
 - **WS-37.** `listOpenPanels` is answered by `main` from the last list the UI reported. The UI reports the list 300 ms after any dock change. `target` is the panel's file path or URL when it has one.
 
+### Pages
+
+The window shows one of three pages at a time. The title bar, the status bar and the background (UI-30) stay; everything between them belongs to the page.
+
+| Page | Holds | Default layout |
+|---|---|---|
+| `dashboard` | The widget screens of the `dashboard` module (DASH-1) | its own |
+| `code` | The activity rail, side and right areas and the dock described above | `design/layout.md` |
+| `notes` | A second dock, for the notes of the vault and the project: the full graph and markdown viewers | the full graph on the left two thirds, the viewer of the selected note on the right |
+
+- **WS-40.** The title bar has a page switcher with three segments, "Dashboard", "Code" and "Notes", and a marker under the active one. `Ctrl+1`, `Ctrl+2` and `Ctrl+3` (global) switch to them; `Ctrl+Alt+Left` and `Ctrl+Alt+Right` (global) go to the page beside the current one.
+- **WS-41.** Every page stays mounted once shown. Switching pages hides the others (`content-visibility: hidden`, `inert`), so terminals, viewers and the graph keep their state and a terminal keeps receiving output. A hidden page's panels are told through `usePageVisible()` and pause their own drawing.
+- **WS-42.** A switch runs the page transition of MOT-5 and MOT-6. When the switch comes from a shared element (a session widget, the notes widget), that element is the one that moves.
+- **WS-43.** The `notes` page's dock behaves like the `code` dock (WS-10 to WS-14, WS-34) and is saved in the same workspace file as `notesDock`. Opening a markdown file from the graph, a backlink or a wiki link while on the `notes` page opens it in this dock.
+- **WS-44.** The active page is saved as `activePage` and restored at start. A project opened for the first time starts on `code`. With no project open, the `dashboard` page shows, with the welcome view (WS-5) as its first screen's empty state.
+- **WS-45.** Focus moves with the page: after a switch, focus goes to the panel that last had it on that page, else the first terminal on `code`, the graph on `notes`, and the first widget on `dashboard`. A switch never happens on its own while the owner types (P-44).
+
 ## Commands
 
 | Id | Title | Default key |
@@ -81,6 +98,8 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 | `workspace.focusLeft`, `focusRight`, `focusUp`, `focusDown` | Focus Group Left, Right, Up, Down | `Alt+Left`, `Alt+Right`, `Alt+Up`, `Alt+Down` (global) |
 | `workspace.toggleMaximize` | Maximize Panel | `Ctrl+Shift+Enter` |
 | `workspace.resetLayout` | Reset Layout | none |
+| `workspace.pageDashboard`, `pageCode`, `pageNotes` | Go to Dashboard, Code, Notes | `Ctrl+1`, `Ctrl+2`, `Ctrl+3` (global) |
+| `workspace.pagePrevious`, `pageNext` | Previous Page, Next Page | `Ctrl+Alt+Left`, `Ctrl+Alt+Right` (global) |
 
 ## States
 
@@ -106,4 +125,10 @@ Turns a folder into a place to work: opens projects, arranges panels in the wind
 | WS-23 | e2e | a project never opened before | it opens | Files is in the side panel, one terminal in the dock, HUD on the right |
 | WS-24 | component | the saved focused panel no longer exists | restore finishes | the first terminal has focus |
 | WS-33 | component | both areas open | the window narrows to 780 then widens to 1300 | both collapse, then both reopen |
+| WS-40 | component | the `code` page | `Ctrl+3` while a terminal is focused | the `notes` page shows and the switcher marker is under "Notes" |
+| WS-41 | e2e | a terminal printing a line every 100 ms | the owner goes to the Dashboard for 3 s and back | no output was lost and the terminal element is the same node |
+| WS-42 | e2e | a session widget | it is activated | the `code` page shows with that terminal focused, through one view transition |
+| WS-43 | component | the `notes` page | a note is opened from the graph | it opens in the `notes` dock, not the `code` dock |
+| WS-44 | e2e | the `notes` page active | the app is closed and reopened | the `notes` page shows |
+| WS-45 | component | a terminal had focus on `code` | Dashboard, then Code | that terminal has focus again |
 | WS-4, WS-20 | e2e | a project with two splits and three tabs | the app is closed and reopened | the same splits and tabs appear with the same panel focused |

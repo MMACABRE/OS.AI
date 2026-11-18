@@ -18,7 +18,7 @@ Exports React components and hooks from `src/modules/ui-kit/index.ts`. This is t
 - **UI-3.** Every icon-only control has an accessible name and a tooltip showing that name and its key binding.
 - **UI-4.** Components take no `style` or `className` props. Variation is expressed through typed props listed below.
 - **UI-5.** Text passed as a prop is rendered as text. No component renders HTML strings.
-- **UI-6.** Animations use only `opacity` and `transform` and the motion tokens (P-42).
+- **UI-6.** Every component moves as `design/motion.md` says (P-42): only `opacity`, `transform`, `filter` and `clip-path`, only the motion tokens, and the reduced form under `data-motion="reduced"`. Shared motion helpers live in `src/modules/ui-kit/motion/`; components use them instead of writing their own keyframes.
 - **UI-7.** Lists with more than 200 rows are virtualised: only visible rows are in the DOM.
 
 ## Components
@@ -45,6 +45,9 @@ Exports React components and hooks from `src/modules/ui-kit/index.ts`. This is t
 | `SplitView` | `direction`, `initialSizes`, `minSizes`, `onSizesChange` | Draggable divider, 4 px hit area on a 1 px line |
 | `ProgressBar` | `value` (0 to 1), `tone: 'ok' \| 'warn' \| 'danger' \| 'info'`, `label` | Label is read by screen readers |
 | `Badge` | `tone`, `text` | |
+| `Surface` | `role` (UI-31) | The only way a panel, widget or overlay gets its background |
+| `Backdrop` | none | Mounted once by the app frame (UI-30) |
+| `RollingNumber` | `value`, `format` | Digits roll on change (MOT-8) |
 | `StatusDot` | `tone`, `pulseOnce?`, `label` | 8 px circle; never colour alone, always with `label` text nearby or as accessible name |
 | `Icon` | `name`, `size?` | Inline SVG, `currentColor` |
 | `Kbd` | `binding` | Renders a key binding |
@@ -61,6 +64,15 @@ type PanelViewState =
   | { kind: 'error'; message: string; onRetry?: () => void }
   | { kind: 'ready' };
 ```
+
+## Background and glass
+
+Every visual direction draws an animated background behind the whole app and lets surfaces show it through glass (P-45, `design/direction-brief.md`). The scene itself comes from the chosen direction; these rules hold for any scene.
+
+- **UI-30.** `Backdrop` is mounted once, by the app frame, behind every page, and is never unmounted while the window lives (MOT-7). It draws the scene named by the token `backdrop.scene` into one canvas through an `OffscreenCanvas` in a worker, so drawing never runs on the renderer's main thread. Scenes are registered in `src/modules/ui-kit/backdrop/scenes/`; an unknown name draws the `still` scene, a flat `color.bg.app`.
+- **UI-31.** Every surface has a role: `app`, `panel`, `terminal`, `overlay`, `widget`, `ribbon`. Its background is its colour token at the opacity `surface.<role>.alpha` (0 to 1) and, where `surface.<role>.blur` is above 0, `backdrop-filter: blur(<n>px)`. The `terminal` role, and any surface holding reading text (editor, transcript, viewer), never goes below `surface.text.minAlpha`; a theme value under it is raised to it and reported (SET-14).
+- **UI-32.** Budget: the scene runs at most at `backdrop.fps` frames a second (at most 30), its worker uses under 3 % of one CPU core on the reference machine (`05-testing.md`, performance), and it pauses while the window is minimised or hidden. With `data-motion="reduced"` it draws one frame and stops (MOT-12).
+- **UI-33.** The `Backdrop` never takes pointer or keyboard input, and nothing in it is read by screen readers.
 
 ## Icons
 
@@ -98,4 +110,9 @@ Each is a 16 by 16 SVG with 1.5 px strokes, round caps, no fill, stored in `src/
 | UI-14 | component | focus in a text field | the palette opens and closes | the text field has focus again |
 | UI-21 | component | focus inside a terminal element; `Ctrl+B` not global, `Ctrl+Shift+P` global | both keys are pressed | only the palette command runs |
 | UI-23 | component | binding `Ctrl+K Ctrl+T`, fake clock | `Ctrl+K`, then 2 000 ms pass, then `Ctrl+T` | the command does not run |
-| SET-15 | component | reduced motion on | a `Dialog` opens | its transition duration is `0ms` |
+| UI-30 | component | the app frame with `backdrop.scene: 'unknown'` | it renders | one canvas exists, drawing `still`, and a page change keeps the same canvas node |
+| UI-31 | unit | a theme with `surface.terminal.alpha: 0.3`, `surface.text.minAlpha: 0.85` | it is resolved | the terminal alpha is 0.85 and a problem is reported |
+| UI-32 | e2e | the app running a scene | the window is minimised for 2 s | the worker drew no frame in that time |
+| UI-32 | e2e | the reference machine | the Code page is idle for 60 s with a scene running | the worker's CPU stays under 3 % of one core |
+| UI-33 | component | the backdrop | the accessibility tree is read | it holds no node from the backdrop |
+| SET-15 | component | `data-motion="reduced"` | a `Dialog` opens | it only fades, for at most `motion.quick` (MOT-12) |

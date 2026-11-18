@@ -18,7 +18,7 @@ A git pre-commit hook (`scripts/guard.mjs`, created in task 001) rejects a commi
 
 1. Run `pwsh scripts/init.ps1`. It installs, type checks and runs the smoke test. If it fails, fixing that is the whole session.
 2. Read the last entry of `PROGRESS.md` and run `git log --oneline -10`.
-3. Find the lowest-numbered card that `PROGRESS.md` does not list with `Status: done`. Cards live in `tasks/stage-<n>.md`, one `## <number> <name>` section each, numbered across all stages from 001.
+3. Find the lowest-numbered card that `PROGRESS.md` does not list with `Status: done`. Cards live in `tasks/stage-<n>.md` and `tasks/stage-u.md`, one `## <number> <name>` section each, numbered across all stages from 001 in build order: stage 0, stage U, then stages 1 to 9. Card 037 is a gate ("Look first").
 4. Read the card's "Read first" files. Read nothing else from `spec/` unless the card says so.
 5. **Red.** Write the tests the card lists, from the test tables in the module spec. Run them. They must fail for the right reason: the thing under test does not exist yet.
 6. **Green.** Write the code. Only the files in the card's list.
@@ -44,7 +44,7 @@ A git pre-commit hook (`scripts/guard.mjs`, created in task 001) rejects a commi
 
 ```
 ## <task number> <task name>
-Status: done | blocked
+Status: done | blocked | waiting-for-owner
 Date: <YYYY-MM-DD>
 Did: <one to three sentences>
 Checks: typecheck ok, lint ok, deps ok, test <n> passed, e2e <n> passed
@@ -59,11 +59,21 @@ Every card has these parts, in this order. Paths in a card are from the repo roo
 - **Goal.** One sentence.
 - **Stage.** The build stage number.
 - **Read first.** At most four files, with section numbers.
-- **Files.** The exact list to create or change. Six at most, not counting test files. Card 001 is the one exception, because it creates the project's configuration.
+- **Files.** The exact list to create or change. Six at most, not counting test files. Card 001 is an exception, because it creates the project's configuration, and so are Stage U cards, which may list up to eight entries because each draws several modules' panels.
 - **Steps.** Numbered. Each step names the function or component to write and the rules it implements.
 - **Tests.** The test files to create and the rule ids each covers.
 - **Done when.** Commands that must pass and the feature ids that flip.
 - **Commit.** The exact commit message.
+
+## Look first
+
+The owner approves how HSOS looks and moves before any backend is built.
+
+- Stage U (`tasks/stage-u.md`, cards 026 to 037) runs after stage 0 and before stage 1. It builds the panel side of every module on the demo backend (`npm run demo`).
+- Card 037 ends with `Status: waiting-for-owner`. Card 038 and every later card start only after `PROGRESS.md` holds `## 037 Owner review of the look` with `Status: done`, written by the owner or by the spec author on the owner's word. Until then, a session that finds no Stage U card left to do writes nothing and stops.
+- Panel, widget and `ui-kit` files built in Stage U hold the approved look. A later card that lists one of them may change where its data comes from and what it does, to meet that card's rules. It may not change layout, tokens, sizes, copy or motion. If a rule cannot be met without a visible change, stop with a `blocked` entry naming the rule and the change.
+- A test a later card lists that already exists and passes from Stage U stays as it is. Step 5 (red) applies to the listed tests that do not exist yet.
+- `npm run demo` keeps working until the end of the project: a card that adds a request channel adds its fixture, and the fixture test (card 026) checks it.
 
 ## Hard rules
 

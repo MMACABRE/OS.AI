@@ -2,11 +2,11 @@
 
 At the end of this stage HSOS knows every Claude session in its terminals: who needs the owner, what each is doing, its subagents, the usage limits, what it changed and what it produced. The owner reviews changes, sends feedback, runs skills, syncs with GitHub and starts sessions in worktrees.
 
-`FakeClaude` (`spec/05-testing.md` "Fakes") is built in card 051 and used by every later card in this stage.
+`FakeClaude` (`spec/05-testing.md` "Fakes") is built in card 063 and used by every later card in this stage.
 
 ---
 
-## 051 Link listener and generated files
+## 063 Link listener and generated files
 
 **Goal.** `link-service` listens on localhost, writes the plugin, settings and wrapper files, and gives shells the variables.
 
@@ -17,9 +17,9 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 **Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init.ps1` (copy of the reference), `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fakes/fake-claude.ts`.
 
 **Steps.**
-1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/cli` used in card 080.
+1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/cli` used in card 092.
 2. `generated-files.ts`: writes the four files atomically from the tables. Copy `spec/reference/shell-init.ps1` unchanged, import it as text with Vite's `?raw` suffix, and write it as `shell-init.ps1` (LINK-4).
-3. Pass the variables to `terminal.setExtraEnv`. The terminal registry already loads `HSOS_SHELL_INIT` (TERM-7, card 030).
+3. Pass the variables to `terminal.setExtraEnv`. The terminal registry already loads `HSOS_SHELL_INIT` (TERM-7, card 042).
 4. `FakeClaude`: posts fixture JSON from `tests/fixtures/claude/` to the server with the right headers. Create the fixtures from the examples in the Claude Code hooks and statusline documentation: one file per event in the "Events registered" table, plus `statusline.json`.
 
 **Tests.** `tests/claude-link/link-server.test.ts`: LINK-1, LINK-2, LINK-6, LINK-10, LINK-13. `tests/claude-link/shell-init.test.ts`: LINK-4 rows.
@@ -30,7 +30,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 052 Hook payloads
+## 064 Hook payloads
 
 **Goal.** Every hook body is validated against a lenient schema and answered at once.
 
@@ -50,7 +50,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 053 Session registry
+## 065 Session registry
 
 **Goal.** HSOS tracks each Claude session's activity.
 
@@ -70,7 +70,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 054 Subagents and snapshot before edit
+## 066 Subagents and snapshot before edit
 
 **Goal.** Subagents with their model when known, and a snapshot of every file before Claude edits it.
 
@@ -90,7 +90,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 055 Usage, statusline and session events
+## 067 Usage, statusline and session events
 
 **Goal.** Usage limits, context and cost arrive, and each session's events are kept.
 
@@ -110,7 +110,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 056 Session records and launches
+## 068 Session records and launches
 
 **Goal.** Every Claude session started in an HSOS terminal has a record on disk before Claude starts, so no crash can lose it.
 
@@ -124,7 +124,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 1. `record-store.ts`: SESS-5 and SESS-6. Load at start, write with `write-file-atomic`, coalesce the timed writes.
 2. `launch-ingest.ts`: SESS-2 and SESS-3.
 3. Register `sessionsSection` and add `sessions` after `claude-link` in the link-service module list.
-4. `stub-claude.cmd`: a batch file named `claude` that prints `ARGS: ` and its arguments and exits. The wrapper itself is already in place from card 051.
+4. `stub-claude.cmd`: a batch file named `claude` that prints `ARGS: ` and its arguments and exits. The wrapper itself is already in place from card 063.
 
 **Tests.** `tests/sessions/wrapper.test.ts`: the three SESS-1 rows, running `powershell.exe` with the stub first on `PATH`; the test fails at once if `Get-Command claude -CommandType Application` does not resolve to the stub, so the real `claude` can never run. `tests/sessions/records.test.ts`: SESS-2, SESS-3, SESS-5, SESS-6 rows.
 
@@ -134,7 +134,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 057 Session states and transcript backup
+## 069 Session states and transcript backup
 
 **Goal.** Records follow each session through its hooks, and HSOS keeps its own copy of every transcript.
 
@@ -158,7 +158,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 058 Resume after restore
+## 070 Resume after restore
 
 **Goal.** A terminal that comes back without its shell resumes the Claude session it was running.
 
@@ -182,7 +182,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 059 Session picker and transcript reader
+## 071 Session picker and transcript reader
 
 **Goal.** Every session of a project can be found, read and resumed.
 
@@ -205,7 +205,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 060 Git runner and status
+## 072 Git runner and status
 
 **Goal.** Safe git commands and an accurate status.
 
@@ -225,7 +225,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 061 Sync with GitHub
+## 073 Sync with GitHub
 
 **Goal.** Fetch, pull, push and sync, automatic where safe.
 
@@ -245,7 +245,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 062 Commits, worktrees and sign-in
+## 074 Commits, worktrees and sign-in
 
 **Goal.** Commit with a suggested message, create worktree sessions, and sign in to GitHub.
 
@@ -265,7 +265,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 063 Git in the window
+## 075 Git in the window
 
 **Goal.** The branch button, the changes count and the worktree command.
 
@@ -285,7 +285,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 064 Skills index
+## 076 Skills index
 
 **Goal.** Every skill on the machine, with favourites.
 
@@ -305,7 +305,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 065 Background skill runs
+## 077 Background skill runs
 
 **Goal.** Run a skill on a chosen model and read its report.
 
@@ -325,7 +325,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 066 Skills repo sync
+## 078 Skills repo sync
 
 **Goal.** The skills folder stays in step with the owner's skills repo, pushing only.
 
@@ -345,7 +345,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 067 HUD sessions
+## 079 HUD sessions
 
 **Goal.** The attention board, notifications and the status items.
 
@@ -365,7 +365,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 068 HUD usage, skills deck and repo row
+## 080 HUD usage, skills deck and repo row
 
 **Goal.** Usage bars, the skills deck and the skills repo row.
 
@@ -385,7 +385,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 069 Session recap
+## 081 Session recap
 
 **Goal.** Coming back to a terminal shows what happened while away.
 
@@ -405,7 +405,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 070 Activity timeline
+## 082 Activity timeline
 
 **Goal.** One list of every change and who made it.
 
@@ -425,7 +425,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 071 Artifacts inbox
+## 083 Artifacts inbox
 
 **Goal.** Everything Claude made, in one searchable place.
 
@@ -445,7 +445,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 072 Changes and diffs
+## 084 Changes and diffs
 
 **Goal.** See what changed since the last commit or since a session began, live.
 
@@ -455,7 +455,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Files.** `src/modules/review/service/change-lists.ts`, `src/modules/review/panel/ChangesView.tsx`, `src/modules/review/panel/ChangesView.module.css`, `src/modules/review/panel/DiffPanel.tsx`, `src/modules/review/register.service.ts`, `src/modules/review/register.ui.ts`.
 
-**Steps.** Implement the rules except comments (card 073).
+**Steps.** Implement the rules except comments (card 085).
 
 **Tests.** `tests/review/change-lists.test.ts`: REV-1 to REV-5 rows. `tests/review/changes-view.ui.test.tsx`: REV-12, REV-14. `tests/review/diff-panel.ui.test.tsx`: REV-20.
 
@@ -465,7 +465,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 073 Feedback tray
+## 085 Feedback tray
 
 **Goal.** Pin comments and send them to Claude in one go.
 
@@ -485,7 +485,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 ---
 
-## 074 Stage 3 checks
+## 086 Stage 3 checks
 
 **Goal.** Stage 3 works end to end with `FakeClaude`, and survives a `link-service` crash.
 
@@ -496,7 +496,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 **Files.** `tests/e2e/stage-3.e2e.ts`, `tests/e2e/stage-3-fault.e2e.ts`.
 
 **Steps.**
-1. Put `tests/fixtures/claude/stub-claude.cmd` (card 056) first on `PATH` for the test app.
+1. Put `tests/fixtures/claude/stub-claude.cmd` (card 068) first on `PATH` for the test app.
 2. E2E: open a project; `terminal.newClaude`; the stub prints `--plugin-dir`, `--settings` and `--session-id` arguments; `sessions.find` lists the session; `FakeClaude` posts a session that needs the owner; the HUD shows it first; the status item reads `1 need you`; a `file-edit` event and an outside write to that file appear in Activity as Claude's change; the Changes view lists the file; a pinned comment is pasted into the terminal.
 3. Fault: REL-5.
 
