@@ -421,7 +421,7 @@ const gc = document.getElementById('graph'), gx = gc.getContext('2d');
 const COL = { o: tok('--yellow'), n: tok('--text-2'), a: tok('--terra'), s: tok('--lav'), m: tok('--mag'), u: '#4A3A33' };
 const HALO_RGB = { a: [255,122,61], o: [245,255,59], n: [0,240,255], s: [199,125,255], m: [255,0,255] };
 const NODES = N.map(([x, y, r, k, label], i) => ({ hx: x, hy: y, x, y, vx: 0, vy: 0, r, k, label, pinned: i === 0, i,
-  ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 3 : 5 + Math.random() * 7, sp: .6 + Math.random() * .8 }));
+  ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 2 : 3.5 + Math.random() * 5, sp: .5 + Math.random() * .6 }));
 let gs = 1, gox = 0, goy = 0, hover = null;
 const cam = LAYOUT === 'b' ? { x: 200, y: 105, z: 1.5 } : { x: 160, y: 125, z: 1 }, drag = { on: false, x: 0, y: 0 };
 function sizeGraph() {
