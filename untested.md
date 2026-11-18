@@ -243,3 +243,17 @@ Code: `src/modules/settings/panel/SettingsScreen.tsx` (+ `.module.css`, `SCREEN_
 Also: `fieldKindOf` gives `boolean` for `z.boolean().default(true)`, `enum` with options, `number` with min and max for `z.number().int().min(8).max(40).default(14)`, `path` for `zAbsPath.nullable().default(null)`; a valid edit is sent once, 400 ms after the last change.
 
 F-009 (e2e, card 025 covers it): press Ctrl+, , change a value, invalid input shows a message and is not saved.
+
+## 025 Stage 0 checks
+
+Code: `electron-builder.yml` (app id `local.hsos.app`, product `HSOS`, NSIS with `oneClick: false`, `perMachine: false`, `allowToChangeInstallationDirectory: true`, `asarUnpack` for node-pty and better-sqlite3, built-in themes copied to `<resources>\themes`, `npmRebuild: false`), `resources/icon.ico` (256 by 256, `HS` in Jersey 10, `#FF003C` on `#0B0A09`, radius 48, aliased). Feature F-010.
+
+`tests/e2e/stage-0.e2e.ts` (Playwright with Electron, a temp `APPDATA` and `LOCALAPPDATA` so the owner's real settings are never touched):
+
+1. REL-7 and P-32: write `{ not json` to `%APPDATA%\HSOS\settings\settings.json` before launch; the window opens; `Ctrl+,` opens the settings screen and its problems banner lists the file.
+2. F-008: `Ctrl+Shift+P` opens the palette; type `set`; "Open Settings" is in the list and Enter opens the settings screen.
+3. F-007: copy `tests/fixtures/themes/test-light.json` into `%APPDATA%\HSOS\themes`, set `theme` to `test-light` (through the settings screen's Themes "Use", or by writing settings.json), and `getComputedStyle(document.documentElement).getPropertyValue('--color-bg-app')` becomes `#F4F1EA` without a reload (keep a marker on `window` and check it survives).
+4. SHELL-14: kill the renderer (`webContents.forcefullyCrashRenderer()` through `electronApp.evaluate`); the window reloads and the `?e2e=1` ping line shows all three services again.
+5. `npm run dist` produces an installer `dist/HSOS Setup 0.1.0.exe` (check once, outside the e2e run).
+
+Also F-005 (move the window, restart, same place), F-006 (edit settings.json on disk, the change applies within a second) and F-004 (kill workspace-service, a crash file appears in `%LOCALAPPDATA%\HSOS\crash`, the service is ready again within 5 s) can join this file.

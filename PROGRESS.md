@@ -200,3 +200,11 @@ Did: `SettingsScreen` lists Appearance first, then each module's section in modu
 Checks: typecheck ok, lint ok (CSS rule clean), deps ok, test 27 passed, build ok, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. The screen has no approved mockup; CLAUDE.md asks for layout options shown to the owner first, but the owner asked for no questions until the end of the run, so this one Phosphor layout is built and options come to the card 037 gate. "Open file" reveals the file in Explorer, because `openPath` refuses `.json` (SHELL-27). The diagnostics `debug` key is not on the screen: its section is declared in the module, not the contracts, and the renderer cannot import service code. Theme swatches show only for the active theme (no channel gives other themes' tokens), and Duplicate copies the active theme. Files outside the list: `src/modules/ui-kit/palette/command-context.ts` and its export, `src/ui/app-root.tsx`, `src/ui/app-root.css` (base page styles).
 Next: 025
+
+## 025 Stage 0 checks
+Status: done (untested)
+Date: 2026-11-19
+Did: `electron-builder.yml` with app id `local.hsos.app`, product `HSOS`, an NSIS installer with `oneClick: false`, `perMachine: false` and `allowToChangeInstallationDirectory: true`, `asarUnpack` for node-pty and better-sqlite3, the built-in themes copied to `<resources>\themes` (card 018 reads them there) and the font licences beside them. `resources/icon.ico`: 256 by 256, `HS` in Jersey 10, `#FF003C` on `#0B0A09`, corner radius 48, drawn without anti-aliasing. `npm run dist` produced `dist/HSOS Setup 0.1.0.exe` (140 MB, unsigned).
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, dist ok (installer built), e2e not run
+Deviations: Tests not written (owner's rule): `tests/e2e/stage-0.e2e.ts` is described in `untested.md`, so F-010 stays failing. `npmRebuild: false`, because `postinstall` already builds the native modules for Electron and this worktree shares `node_modules` with the main checkout. The icon was drawn with System.Drawing from the bundled Jersey 10 file by a throwaway script.
+Next: 026

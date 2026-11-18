@@ -1,0 +1,48 @@
+# Packaging for Windows (card 025). `npm run dist` builds the app and writes the installer to dist/.
+appId: local.hsos.app
+productName: HSOS
+copyright: Copyright © 2026 HSOS
+
+directories:
+  output: dist
+  buildResources: resources
+
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+
+# Built-in themes are read from <resources>\themes at every start (card 018, settings.md "Files").
+extraResources:
+  - from: resources/themes
+    to: themes
+    filter:
+      - '*.json'
+  - from: resources/fonts
+    to: fonts
+    filter:
+      - 'OFL-*.txt'
+
+# Native modules are already built for Electron by `postinstall` (install-app-deps); do not rebuild them here.
+npmRebuild: false
+
+# Native modules load from disk, not from inside the asar archive.
+asarUnpack:
+  - node_modules/node-pty/**
+  - node_modules/better-sqlite3/**
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: HSOS
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
