@@ -51,6 +51,9 @@ export const shellChannels = {
    */
   openPath: request('shell.openPath', 'main', z.object({ path: zAbsPath }), zEmpty),
 
+  /** Opens an existing folder in Windows Explorer. Files and missing paths are refused (SHELL-30). */
+  openFolder: request('shell.openFolder', 'main', z.object({ path: zAbsPath }), zEmpty),
+
   /** Reveals a path in Windows Explorer. */
   revealInExplorer: request('shell.revealInExplorer', 'main', z.object({ path: zAbsPath }), zEmpty),
 

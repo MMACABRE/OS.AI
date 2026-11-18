@@ -2,7 +2,7 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete: 19 modules, 98 cards (001 to 098, stages 0 to 7). Latest: terminal input, stage 7 extras, session recovery (`sessions`, cards 056 to 059). See JOURNAL steps 33 to 35.
+**Status (2026-11-18):** spec complete: 19 modules, 103 cards (001 to 103, stages 0 to 8). Latest: the `hsos` command replaces MCP (module `cli`), stage 8 Claude controls (session history, skill state, skills folder, HUD quick bar). See JOURNAL steps 35 and 36.
 
 **Next:** implementation. Start with task card 001 in `tasks/stage-0.md`.
 

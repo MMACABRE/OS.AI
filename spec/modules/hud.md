@@ -6,17 +6,21 @@ One glance tells the owner: which Claude sessions need them, what each is doing,
 
 ## Interface
 
-No channels of its own. It reads `contracts/channels/claude-link.ts`, `skills.ts` and `terminal.ts`, and calls `shell.notify`, `shell.speak` and `shell.listVoices`. Background: `docs/research/agent-map-setup-voice.md`.
+No channels of its own. It reads `contracts/channels/claude-link.ts`, `skills.ts` and `terminal.ts`, and calls `shell.notify`, `shell.speak`, `shell.listVoices`, `shell.revealInExplorer`, `terminal.write`, `terminal.getLastOwnerInput`, `skills.setState` and `skills.openSkillsFolder`. Background: `docs/research/agent-map-setup-voice.md`.
 
 - Runs in: `ui`. Its `register.service.ts` runs in `main` and does one thing: it registers `hudSection` from `contracts/channels/hud.ts`.
 - Third-party packages allowed: `zustand`, `zod`.
 
 ## Panel
 
-Side view `hud.panel`, in the right area by default. One column, four sections in this order. Each section has a title row that collapses it; the collapsed set is saved in the panel state.
+Side view `hud.panel`, in the right area by default. One column: the quick bar, then four sections in this order. Each section has a title row that collapses it; the collapsed set is saved in the panel state.
 
 ```
-┌ SESSIONS ───────────────────────────────┐
+┌ fix login flow ─────────────────────────┐
+│ [Usage 58%] [Context 41%] [Skills]      │
+│ [Opus 5.5 · high ▾] [Plan ⇄] [Compact]  │
+│ [Clear] [More ▾]                        │
+├ SESSIONS ───────────────────────────────┤
 │ ● needs you   fix login flow            │
 │   Permission: Bash            opus  41% │
 │ ◐ working     refactor parser           │
@@ -37,6 +41,29 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 ```
 
 ## Behaviour
+
+### Quick bar
+
+Claude Code's most used slash commands as buttons, so the owner does not have to type them. Each acts on the **target session**: the session of the HUD-31 target terminal.
+
+- **HUD-60.** The bar's title row shows the target session's title. With no target, the speed dial still works and every other button is disabled with the tooltip "Start a Claude session first".
+- **HUD-61.** Speed dial, always the first three buttons:
+  - "Usage" shows the higher of the two `UsageLimits` percentages, toned as HUD-25. It opens a popover with the HUD-25 bars and "Open /usage in Claude", which sends `/usage` (HUD-63).
+  - "Context" shows `contextUsedPercentage`, toned as HUD-9. It opens a popover with a bar, `contextTokens` of `contextWindowSize` written as `41k of 200k tokens`, the cache state of HUD-8, "Open /context in Claude" (sends `/context`, which shows Claude Code's own breakdown) and "Compact…" (HUD-65). Before the first statusline input it reads "No data yet".
+  - "Skills" runs `hud.searchSkills`: it expands the Skills section, scrolls to it and focuses its search field.
+- **HUD-62.** The model button shows `model` and, when `effort` is not null, `· <effort>`. Its menu lists `quickModels`, with the current one checked when `modelId` or `model` contains it, then a separator and `quickEfforts`, with `effort` checked. Choosing a model sends `/model <name>`; choosing an effort sends `/effort <level>`.
+- **HUD-63.** Sending a command to the target terminal:
+  - when the session's activity is `needs-you`, nothing is written, and a toast says "Claude is waiting for you in the terminal. Answer it first.", with "Go to terminal";
+  - when the activity is `idle` or `done`, and `terminal.getLastOwnerInput` is null or earlier than the later of `lastResponseAt` and `startedAt`, the command and `\r` are written with `source: 'quick-command'`. Nothing has been typed into Claude's input since its last reply, so the input is empty and only the command runs;
+  - otherwise the command is written without `\r` as an `owner` write, and a toast says "Typed <command>. Press Enter in the terminal to run it.";
+  - in every case but the first, the target terminal is then focused.
+
+  HSOS never presses Enter on text it did not write itself in the same call. That is the whole safety of this rule: a half-typed prompt is never sent.
+- **HUD-64.** The mode button shows `permissionMode` as "Default", "Accept edits", "Plan", "Auto", "Don't ask" or "Bypass", and the raw value for anything else, with the tooltip "As Claude last reported it". Pressing it writes `\x1b[Z` (Shift+Tab, which cycles the mode in Claude Code) with `source: 'quick-command'`, unless the activity is `needs-you` or `ended`, where it does what HUD-63 does for `needs-you`. It does not take focus.
+- **HUD-65.** "Compact" opens a dialog titled "Compact this conversation?" with the text "Claude replaces the conversation so far with a summary to free up context. Details from earlier messages can be lost, and writing the summary uses some of your plan's usage.", an optional field "Keep in the summary", and the buttons "Compact" (warning tone) and "Cancel", which has focus. "Compact" sends `/compact`, followed by a space and the field's text when it is not empty.
+- **HUD-66.** "Clear" opens a dialog titled "Clear this conversation?" with the text "Claude starts a new, empty conversation in this terminal. The current one stays saved: you can resume it from Session History.", and the buttons "Clear" (danger tone) and "Cancel", which has focus. "Clear" sends `/clear`.
+- **HUD-67.** "More" opens a menu: "Session history" (command `sessions.history`), "Find session" (command `sessions.find`), a separator, then one item per entry of `quickCommands`, each sending that command.
+- **HUD-68.** Every command text HSOS sends is fixed by this spec or comes from `quickModels`, `quickEfforts` and `quickCommands`, each value matching `^/?[a-z][a-z0-9:._\[\]-]{0,60}$` (settings reject others), and the compact field, from which line breaks and control characters are removed before sending.
 
 ### Sessions (the attention board)
 
@@ -100,7 +127,19 @@ Side view `hud.panel`, in the right area by default. One column, four sections i
 - **HUD-31.** Activating a skill writes `/<name> ` (with the trailing space, no Enter) to the target terminal and focuses it. The target is the most recently focused terminal that has a Claude session not `ended`. With none, a toast says "Start a Claude session first" with the action "New Claude Session".
 - **HUD-32.** Each row has a star toggle and a "Run in background" action. That action opens a dialog: skill name, an arguments field, a model select (`runModels`, default `runModel`), an effort select when `runEfforts` is not empty, and the line "This starts a separate Claude run on <model> and uses your plan's usage." The primary button is "Run".
 - **HUD-33.** Runs appear beneath the search field while any exists: skill, state, elapsed time, and for finished runs "View report" (opens the report in a dialog as `MarkdownView`) and "Dismiss". A running run has "Cancel".
-- **HUD-34.** The row menu has "Open SKILL.md", which opens the file in a viewer.
+- **HUD-34.** The row menu has "Open SKILL.md", which opens the file in a viewer, and "Show in folder", which calls `shell.revealInExplorer` with the file.
+- **HUD-35.** The section's title row has a folder button, "Open skills folder", which calls `skills.openSkillsFolder`. `NOT_FOUND` shows a toast with the message and "Settings", which opens the Skills settings.
+- **HUD-36.** A row whose `state` is not `on` shows a chip: "name only", "you only" or "off", muted for "off". A filter row under the search field narrows the list by state (All, On, Name only, You only, Off) and by source (All, User, Project, Plugin).
+- **HUD-37.** The row menu has "State", with four choices, the current one checked:
+
+| Choice | `state` | Line under it |
+|---|---|---|
+| On | `on` | Claude sees it and can use it. |
+| Name only | `name-only` | Claude sees the name but not the description, which saves context. |
+| You only | `user-invocable-only` | Hidden from Claude. You can still run /name. |
+| Off | `off` | Hidden from Claude and from you. |
+
+  Under the choices a muted line names where it is saved: "Saved in <file>" for `local`, `project` and `user`. With `stateSource: 'default'` two more choices pick the `scope`: "For all projects" (`user`, the default) and "For this project only" (`project-local`). Choosing a state calls `skills.setState`. A `stateLock` disables the choices and shows its reason (SKILL-9) instead. A failure shows a toast with its message. A success shows "Saved. New Claude sessions use it; a running session may need restarting."
 
 ### Skills repo
 
@@ -153,17 +192,21 @@ Dock panel `hud.setup`, single instance, title "Claude Setup". It shows what the
 | `speakSummary` | boolean | `true` |
 | `speakVoice` | string, a voice name or empty | empty (Windows default) |
 | `speakRate` | number -10 to 10 | `1` |
+| `quickModels` | list of model names | `default`, `opus`, `sonnet`, `haiku`, `fable` |
+| `quickEfforts` | list of effort levels | `low`, `medium`, `high`, `xhigh`, `max` |
+| `quickCommands` | list of slash commands for "More" | `/status`, `/memory`, `/mcp`, `/agents`, `/hooks`, `/permissions`, `/config`, `/doctor` |
 
 ## States
 
 | Section | Loading | Empty | Error |
 |---|---|---|---|
+| Quick bar | buttons with no values | no target: HUD-60 | a button whose data failed shows "?" with the reason in its tooltip |
 | Sessions | skeleton rows | "No Claude sessions. Start one with Ctrl+Shift+A." | when the link is not listening: "Claude Code link is off." with the reason and "Retry" |
 | Usage | muted bars | "No data yet. Limits appear after a session's first reply." | same as Sessions |
 | Skills | skeleton rows | "No skills found." or, when filtering, "No skill matches." | "Skills could not be read." with "Retry" |
 | Skills repo | "Checking…" | `not-configured` row | error row |
 
-A fault in one section leaves the other three working (P-12): each section is its own error boundary.
+A fault in one section leaves the others working (P-12): the quick bar and each section are their own error boundary.
 
 | Claude setup view | Loading | Empty | Error |
 |---|---|---|---|
@@ -187,6 +230,23 @@ All component tests use a fake bus fed with `ClaudeSession`, `UsageLimits`, `Ski
 
 | Rule | Level | Given | When | Then |
 |---|---|---|---|---|
+| HUD-60 | component | no Claude terminal | the bar renders | Usage, Context and Skills are enabled; the others are disabled with "Start a Claude session first" |
+| HUD-61 | component | `contextTokens` 41 000 of 200 000 at 21 % | "Context" is pressed | the popover reads `41k of 200k tokens` |
+| HUD-62 | component | a session with `modelId` `claude-opus-5-5`, `effort` `high` | the model menu opens | `opus` and `high` are checked; choosing `sonnet` sends `/model sonnet` |
+| HUD-63 | component | an `idle` session, `lastResponseAt` 10:05, last owner input 10:02 | `/model sonnet` is sent | `terminal.write` got `/model sonnet\r` with `source: 'quick-command'` |
+| HUD-63 | component | an `idle` session, `lastResponseAt` 10:05, last owner input 10:06 | `/model sonnet` is sent | `terminal.write` got `/model sonnet` with no `\r`, source `owner`; the "Press Enter" toast shows; the terminal is focused |
+| HUD-63 | component | a `working` session | `/compact` is sent | no `\r` is written |
+| HUD-63 | component | a `needs-you` session | any command | nothing is written; the "waiting for you" toast shows |
+| HUD-64 | component | `permissionMode: 'plan'`, an `idle` session | the mode button is pressed | it reads "Plan"; `terminal.write` got `\x1b[Z` with `source: 'quick-command'`; focus did not move |
+| HUD-65 | component | the compact dialog | it opens; then "Compact" with `keep the API notes` and a line break | "Cancel" has focus; then `/compact keep the API notes` is sent |
+| HUD-66 | component | the clear dialog | Enter is pressed at once | the dialog closes and nothing is sent, because "Cancel" had focus |
+| HUD-67 | component | `quickCommands` `['/status']` | "More" then "/status" | `/status` is sent through HUD-63 |
+| HUD-68 | unit | the settings schema | `quickCommands: ['/x; rm -rf ~']` | it is rejected |
+| HUD-34 | component | a skill row | "Show in folder" | `shell.revealInExplorer` got its `file` |
+| HUD-35 | component | `openSkillsFolder` returns `NOT_FOUND` | the folder button is pressed | a toast with "Settings" shows |
+| HUD-36 | component | skills `a` on, `b` off, `c` name-only | filter "Off" | only `b`, with the chip "off" |
+| HUD-37 | component | a skill with `stateSource: 'default'` | "State" then "You only" with "For this project only" | `setState({ name, state: 'user-invocable-only', scope: 'project-local' })` |
+| HUD-37 | component | a skill with `stateLock: 'plugin'` | "State" opens | the choices are disabled and "A plugin skill is managed with its plugin." shows |
 | HUD-1 | component | sessions in the project, in a worktree of it, and elsewhere | the panel renders | the first two are listed; the third only with "Show all projects" |
 | HUD-2 | component | sessions `idle`, `needs-you`, `working`, `done` | the panel renders | the order is needs-you, working, done, idle |
 | HUD-3 | component | a `needs-you` session with reason `Permission: Bash` | it renders | the row shows the words "needs you" and the reason |

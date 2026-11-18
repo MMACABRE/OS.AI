@@ -17,7 +17,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 **Files.** `src/modules/claude-link/service/link-server.ts`, `src/modules/claude-link/service/generated-files.ts`, `src/modules/claude-link/service/shell-init.ps1` (copy of the reference), `src/modules/claude-link/register.service.ts`, `src/services/link-service/module-list.ts`, `tests/fakes/fake-claude.ts`.
 
 **Steps.**
-1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/mcp` used in card 080.
+1. `link-server.ts`: `http.createServer` on `127.0.0.1`, port search, token check, body size limit, routes `/hook/<Event>`, `/statusline`, and a mount point for `/cli` used in card 080.
 2. `generated-files.ts`: writes the four files atomically from the tables. Copy `spec/reference/shell-init.ps1` unchanged, import it as text with Vite's `?raw` suffix, and write it as `shell-init.ps1` (LINK-4).
 3. Pass the variables to `terminal.setExtraEnv`. The terminal registry already loads `HSOS_SHELL_INIT` (TERM-7, card 030).
 4. `FakeClaude`: posts fixture JSON from `tests/fixtures/claude/` to the server with the right headers. Create the fixtures from the examples in the Claude Code hooks and statusline documentation: one file per event in the "Events registered" table, plus `statusline.json`.
@@ -497,7 +497,7 @@ At the end of this stage HSOS knows every Claude session in its terminals: who n
 
 **Steps.**
 1. Put `tests/fixtures/claude/stub-claude.cmd` (card 056) first on `PATH` for the test app.
-2. E2E: open a project; `terminal.newClaude`; the stub prints `--plugin-dir`, `--settings`, `--mcp-config` and `--session-id` arguments; `sessions.find` lists the session; `FakeClaude` posts a session that needs the owner; the HUD shows it first; the status item reads `1 need you`; a `file-edit` event and an outside write to that file appear in Activity as Claude's change; the Changes view lists the file; a pinned comment is pasted into the terminal.
+2. E2E: open a project; `terminal.newClaude`; the stub prints `--plugin-dir`, `--settings` and `--session-id` arguments; `sessions.find` lists the session; `FakeClaude` posts a session that needs the owner; the HUD shows it first; the status item reads `1 need you`; a `file-edit` event and an outside write to that file appear in Activity as Claude's change; the Changes view lists the file; a pinned comment is pasted into the terminal.
 3. Fault: REL-5.
 
 **Tests.** Those files.

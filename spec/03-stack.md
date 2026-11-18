@@ -36,7 +36,6 @@ Read from the npm registry on 2026-11-17. Install these exact versions. `package
 | `graphology` | 0.26.0 | Graph data |
 | `graphology-layout-forceatlas2` | 0.10.1 | Graph layout |
 | `graphology-communities-louvain` | 2.0.2 | Graph communities |
-| `@modelcontextprotocol/sdk` | 1.32.2 | MCP server |
 | `vitest` | 5.1.0 | Unit and integration tests |
 | `@playwright/test` | 1.65.1 | End-to-end tests on the Electron app |
 | `fast-check` | 4.10.2 | Property tests |

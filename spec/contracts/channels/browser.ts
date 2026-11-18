@@ -124,7 +124,7 @@ export const browserChannels = {
     }),
   ),
 
-  // Agent-facing: called by the mcp module in link-service. Each answers within its timeout.
+  // Agent-facing: called by the cli module in link-service. Each answers within its timeout.
   agentSnapshot: request('browser.agentSnapshot', 'main', zTab, z.object({ url: z.string(), title: z.string(), tree: SnapshotNodeSchema }), 15_000),
   agentClick: request('browser.agentClick', 'main', z.object({ tabId: zBrowserTabId, ref: z.string() }), zEmpty, 15_000),
   agentType: request(

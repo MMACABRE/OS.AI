@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A real Chromium browser inside HSOS, in its own profile, that the owner uses to look at what they are building and that Claude can drive through MCP while the owner watches.
+A real Chromium browser inside HSOS, in its own profile, that the owner uses to look at what they are building and that Claude can drive through the `hsos` command while the owner watches.
 
 ## Interface
 
@@ -36,7 +36,7 @@ A real Chromium browser inside HSOS, in its own profile, that the owner uses to 
 
 ### Agent control
 
-- **BROW-30.** Agent requests come only from the `mcp` module. They act on a tab that is visible to the owner; an agent never controls a hidden page.
+- **BROW-30.** Agent requests come only from the `cli` module. They act on a tab that is visible to the owner; an agent never controls a hidden page.
 - **BROW-31.** `agentSnapshot` returns the page's accessibility tree from `Accessibility.getFullAXTree`, reduced to nodes with a role other than `none`, `generic` and `InlineTextBox`, or with a name. Each node gets a ref `e<n>`, numbered in tree order and kept in a map to its `backendDOMNodeId` until the next snapshot or navigation. Names are cut to 200 characters. The tree is cut at 2 000 nodes, with a final node `{ role: 'note', name: 'Truncated' }`.
 - **BROW-32.** `agentClick(ref)` scrolls the node into view (`DOM.scrollIntoViewIfNeeded`), reads its box (`DOM.getBoxModel`), and sends a mouse press and release at its centre (`Input.dispatchMouseEvent`). An unknown or stale ref returns `BROW_ELEMENT_NOT_FOUND` with "Take a new snapshot."
 - **BROW-33.** `agentType(ref, text, submit)` focuses the node (`DOM.focus`), selects its current content, inserts `text` with `Input.insertText`, and presses Enter when `submit`.

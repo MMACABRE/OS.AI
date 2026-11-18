@@ -61,8 +61,14 @@ export const ClaudeSession = z.object({
   cwd: zAbsPath,
   /** Session name or first prompt, cut to 80 characters. */
   title: z.string(),
+  /** Display name, for example `Opus 5.5` (LINK-40). */
   model: z.string().nullable(),
+  /** Model id, for example `claude-opus-5-5`, or null before the first statusline input. */
+  modelId: z.string().nullable(),
+  /** `effort.level` from the statusline, or null when the model has none (LINK-40). */
   effort: z.string().nullable(),
+  /** From hook payloads, for example `default`, `acceptEdits` or `plan` (LINK-44). */
+  permissionMode: z.string().max(40).nullable(),
   activity: SessionActivity,
   /** Why the session needs the owner, for example `Permission: Bash`. Null otherwise. */
   attentionReason: z.string().nullable(),
@@ -73,6 +79,9 @@ export const ClaudeSession = z.object({
   lastResponseAt: zEpochMs.nullable(),
   /** 0 to 100, or null before the first statusline input. */
   contextUsedPercentage: z.number().min(0).max(100).nullable(),
+  /** Input tokens in the context now, and the window size, or null before the first statusline input. */
+  contextTokens: z.number().int().nonnegative().nullable(),
+  contextWindowSize: z.number().int().positive().nullable(),
   /** Estimated cost in US dollars, or null. */
   costUsd: z.number().nonnegative().nullable(),
   /** The last assistant message, cut to 500 characters, or null. */
@@ -221,7 +230,7 @@ export const claudeLinkChannels = {
   /** Reads the owner's Claude Code setup for a project folder (LINK-70). Read-only. */
   getSetup: request('link.getSetup', 'link-service', z.object({ projectPath: zAbsPath }), ClaudeSetup, 10_000),
 
-  /** Connection details other local servers in link-service reuse (the MCP server). */
+  /** Connection details other parts of link-service reuse (the `/cli` route, CLI-1). */
   getLocalEndpoint: request(
     'link.getLocalEndpoint',
     'link-service',

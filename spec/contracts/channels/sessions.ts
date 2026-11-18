@@ -2,7 +2,7 @@
 import { z } from 'zod';
 import { event, request } from '../bus';
 import type { SettingsSection } from '../module';
-import { zAbsPath, zClaudeSessionId, zEpochMs, zTerminalId } from '../schemas';
+import { zAbsPath, zClaudeSessionId, zEmpty, zEpochMs, zTerminalId } from '../schemas';
 
 /**
  * `running`: started and not ended. `ended`: the owner ended it (SESS-12).
@@ -30,6 +30,12 @@ export const SessionRecord = z.object({
   endReason: z.string().max(40).nullable(),
   /** Bytes of the transcript copied to the backup so far (SESS-20). */
   backupBytes: z.number().int().nonnegative(),
+  /** The owner's name for the session, or null (SESS-61). Wins over every other title. */
+  customTitle: z.string().min(1).max(80).nullable().default(null),
+  /** True while a rename waits for the session to stop before it is written to the transcript (SESS-61). */
+  pendingTitleLine: z.boolean().default(false),
+  /** The owner's note, never sent to Claude (SESS-63). */
+  note: z.string().max(2000).default(''),
 });
 export type SessionRecord = z.infer<typeof SessionRecord>;
 
@@ -48,6 +54,8 @@ export const SessionListItem = z.object({
   liveTerminalId: zTerminalId.nullable(),
   hasOriginal: z.boolean(),
   hasBackup: z.boolean(),
+  /** The owner's note, or empty (SESS-63). */
+  note: z.string().max(2000),
 });
 export type SessionListItem = z.infer<typeof SessionListItem>;
 
@@ -87,11 +95,14 @@ export const sessionsSection: SettingsSection<SessionsSettings> = {
 };
 
 export const sessionsChannels = {
-  /** Sessions whose `cwd` is the project folder or inside it, newest activity first, at most 500 (SESS-30). */
+  /**
+   * Sessions whose `cwd` is the project folder or inside it, newest activity first, at most 500.
+   * With `projectPath` null: sessions of every project, at most 2 000 (SESS-30).
+   */
   list: request(
     'sessions.list',
     'link-service',
-    z.object({ projectPath: zAbsPath, liveTerminalIds: z.array(zTerminalId) }),
+    z.object({ projectPath: zAbsPath.nullable(), liveTerminalIds: z.array(zTerminalId) }),
     z.array(SessionListItem),
     15_000,
   ),
@@ -129,7 +140,34 @@ export const sessionsChannels = {
     z.object({ items: z.array(TranscriptItem), total: z.number().int().nonnegative() }),
     15_000,
   ),
+  /** Sets the owner's name for a session and, when it is not running, writes it to the transcript (SESS-61). */
+  rename: request(
+    'sessions.rename',
+    'link-service',
+    z.object({ sessionId: zClaudeSessionId, title: z.string().max(400) }),
+    z.object({ title: z.string().max(80), writtenToTranscript: z.boolean() }),
+  ),
+  /** Stores the owner's note in the record only (SESS-63). */
+  setNote: request(
+    'sessions.setNote',
+    'link-service',
+    z.object({ sessionId: zClaudeSessionId, note: z.string().max(2000) }),
+    zEmpty,
+  ),
+  /** Moves each session's transcript, its folder, the backup and the record to the Recycle Bin (SESS-62). */
+  trash: request(
+    'sessions.trash',
+    'link-service',
+    z.object({ sessionIds: z.array(zClaudeSessionId).min(1).max(500) }),
+    z.object({
+      trashed: z.array(zClaudeSessionId),
+      failed: z.array(z.object({ sessionId: zClaudeSessionId, message: z.string() })),
+    }),
+    120_000,
+  ),
   recordChanged: event('sessions.recordChanged', 'link-service', SessionRecord),
+  /** Sessions moved to the Recycle Bin by `trash`. */
+  removed: event('sessions.removed', 'link-service', z.object({ sessionIds: z.array(zClaudeSessionId) })),
 } as const;
 
 /** Text the terminal types to resume a session: through the HSOS `claude` wrapper, so hooks still load. */

@@ -76,8 +76,8 @@ export const workspaceChannels = {
   ),
 
   /**
-   * A service asks the UI to open a panel (used by `mcp`). `main` re-emits it as
-   * `openPanelRequested`. With `focus: false` the panel opens as a background tab (MCP-11).
+   * A service asks the UI to open a panel (used by `cli`). `main` re-emits it as
+   * `openPanelRequested`. With `focus: false` the panel opens as a background tab (CLI-11).
    */
   requestOpenPanel: request(
     'workspace.requestOpenPanel',

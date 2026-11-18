@@ -4,6 +4,13 @@ import { event, request } from '../bus';
 import type { SettingsSection } from '../module';
 import { zAbsPath, zEmpty, zEpochMs } from '../schemas';
 
+/**
+ * Claude Code's `skillOverrides` values (Claude Code 2.1.327). `name-only`: listed without its
+ * description. `user-invocable-only`: hidden from the model, `/name` still works. `off`: hidden from both.
+ */
+export const SkillState = z.enum(['on', 'name-only', 'user-invocable-only', 'off']);
+export type SkillState = z.infer<typeof SkillState>;
+
 export const SkillInfo = z.object({
   /** The name typed after the slash, for example `caveman` or `mattpocock-skills:grilling`. */
   name: z.string(),
@@ -14,6 +21,12 @@ export const SkillInfo = z.object({
   /** Path of the SKILL.md file. */
   file: zAbsPath,
   isFavourite: z.boolean(),
+  /** What Claude Code does with the skill, from `skillOverrides` (SKILL-8). */
+  state: SkillState,
+  /** Which settings file sets `state`; `default` when none does. */
+  stateSource: z.enum(['policy', 'local', 'project', 'user', 'default']),
+  /** Why `state` cannot be changed from HSOS, or null (SKILL-9). */
+  stateLock: z.enum(['policy', 'plugin', 'author']).nullable(),
 });
 export type SkillInfo = z.infer<typeof SkillInfo>;
 
@@ -85,6 +98,19 @@ export const skillsChannels = {
     'workspace-service',
     z.object({ name: z.string(), isFavourite: z.boolean() }),
     zEmpty,
+  ),
+  /** Opens the owner's skills folder in Windows Explorer (SKILL-7). */
+  openSkillsFolder: request('skills.openSkillsFolder', 'workspace-service', zEmpty, z.object({ path: zAbsPath })),
+  /**
+   * Changes one `skillOverrides` entry in one Claude Code settings file (SKILL-9). `scope` is used only
+   * when no file sets the skill yet.
+   */
+  setState: request(
+    'skills.setState',
+    'workspace-service',
+    z.object({ name: z.string().min(1).max(500), state: SkillState, scope: z.enum(['user', 'project-local']) }),
+    z.object({ file: zAbsPath }),
+    10_000,
   ),
 
   /** Starts a background run (SKILL-20). */

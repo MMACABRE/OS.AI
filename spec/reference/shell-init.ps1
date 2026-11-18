@@ -6,6 +6,9 @@
 if ($Global:__HsosShellInit) { return }
 $Global:__HsosShellInit = $true
 
+# The hsos command for Claude (CLI-1) goes first on PATH, so Claude Code's Bash tool finds it.
+if ($env:HSOS_BIN_DIR -and (Test-Path -LiteralPath $env:HSOS_BIN_DIR)) { $env:Path = "$env:HSOS_BIN_DIR;$env:Path" }
+
 # Flags after which Claude Code does not start a new interactive conversation of its own.
 $Global:__HsosNotFresh = @(
     '-r', '--resume', '-c', '--continue', '--session-id', '--fork-session', '--from-pr',
@@ -78,10 +81,7 @@ function Global:claude {
     # A subcommand such as `claude doctor` runs as typed: session flags before it would be refused.
     if ($ownerArgs.Count -gt 0 -and $Global:__HsosSubcommands -contains $ownerArgs[0]) { & $exe.Source @ownerArgs; return }
 
-    # --mcp-config takes several values, so it comes first: anything after it up to the next flag would be read as a config.
-    $hsosArgs = @()
-    if ($env:HSOS_MCP_CONFIG -and (Test-Path -LiteralPath $env:HSOS_MCP_CONFIG)) { $hsosArgs += @('--mcp-config', $env:HSOS_MCP_CONFIG) }
-    $hsosArgs += @('--plugin-dir', $env:HSOS_PLUGIN_DIR, '--settings', $env:HSOS_SESSION_SETTINGS)
+    $hsosArgs = @('--plugin-dir', $env:HSOS_PLUGIN_DIR, '--settings', $env:HSOS_SESSION_SETTINGS)
 
     $launch = Get-HsosLaunch $ownerArgs
     if ($launch) {

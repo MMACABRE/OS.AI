@@ -31,6 +31,32 @@ It carries over the behaviour of the owner's `agent-hud` mod: the skill finder, 
 - **SKILL-5.** The index is rebuilt at start, when the project changes, and 500 ms after a watcher change under any scanned location. `listChanged` is emitted when the result differs.
 - **SKILL-6.** Favourites are stored in `skillFavouritesFile` as `{ "version": 1, "names": [...] }`, in the order they were starred. A favourite whose skill no longer exists is kept in the file and not shown.
 
+### Skills folder
+
+- **SKILL-7.** `openSkillsFolder` resolves `localSkillsDir` (empty means `%USERPROFILE%\.agents\skills`) and opens it in Windows Explorer through `shell.openFolder`. A folder that does not exist returns `NOT_FOUND` "Skills folder not found: <path>".
+
+### Skill state
+
+What `/skills` in Claude Code changes, verified in the 2.1.327 binary and in the owner's settings files on 2026-11-18:
+
+- The settings key `skillOverrides` maps a skill name to `on`, `name-only` (listed without its description), `user-invocable-only` (hidden from the model, `/name` still works) or `off` (hidden from both). A missing entry means `on`.
+- Claude Code reads it from these files, first match wins: policy settings, then `<project>\.claude\settings.local.json`, then `<project>\.claude\settings.json`, then `%USERPROFILE%\.claude\settings.json`. When the project is the home folder, the two project files are the ones in `%USERPROFILE%\.claude\`.
+- A plugin skill's state is managed with its plugin. A skill whose own frontmatter has `disable-model-invocation: true` cannot be changed there either.
+
+- **SKILL-8.** Each `SkillInfo` carries `state`, `stateSource` and `stateLock`, computed at every index build (SKILL-5) and again 500 ms after any of the three settings files changes:
+  - `state` is the first entry found for the skill's `name` in the order above, else `on`. An entry that is not one of the four values is skipped. Policy settings are `%ProgramFiles%\ClaudeCode\managed-settings.json`, read only.
+  - `stateSource` is `policy`, `local`, `project`, `user`, or `default` when no file names it.
+  - `stateLock` is `policy` when the policy file sets it, `plugin` for a plugin skill, `author` when its frontmatter has `disable-model-invocation: true`, else null. A locked skill cannot be changed (SKILL-9).
+- **SKILL-9.** `setState({ name, state, scope })` changes one entry in one file, and nothing else:
+  1. A locked skill returns `BAD_REQUEST` with the reason: "Set by your organisation's policy.", "A plugin skill is managed with its plugin." or "This skill's own file turns model use off."
+  2. The file is the one named by `stateSource` when that is `local`, `project` or `user`, because writing anywhere else would have no effect. With `stateSource: 'default'` it is the file for `scope`: `user` is `%USERPROFILE%\.claude\settings.json`, `project-local` is `<project>\.claude\settings.local.json`.
+  3. It reads the file's bytes. A missing file counts as `{}`. Text that `JSON.parse` rejects, or that is not an object, returns `BAD_REQUEST` "Could not read <file>. Fix it in an editor first." and nothing is written.
+  4. It copies the old bytes to `claudeSettingsBackupDir\<yyyyMMdd-HHmmss>-<file name>`, keeping the newest 50 there.
+  5. It sets `skillOverrides[name] = state` on the parsed object, creating `skillOverrides` when missing, and serialises with two-space indentation and a final line break. Every other key keeps its value and its order.
+  6. Just before writing it reads the file again. When the bytes differ from step 3, it starts again from step 3 once; a second difference returns `BAD_REQUEST` "The file changed while saving. Try again."
+  7. It writes with `write-file-atomic`, then rebuilds the state (SKILL-8) and emits `listChanged`.
+- **SKILL-10.** HSOS never removes a `skillOverrides` entry and never writes any other key of a Claude Code settings file (LINK-6).
+
 ### Sending to a terminal
 
 Done in the UI by `hud` (HUD-30): it writes `/<name> ` to a terminal. No service rule is involved.
@@ -86,3 +112,12 @@ Done in the UI by `hud` (HUD-30): it writes `/<name> ` to a terminal. No service
 | SKILL-32 | integration | a local skill folder containing `.env` | `pushToRepo` | the repo copy has no `.env` |
 | SKILL-32 | integration | the repo has diverged from the remote | `pushToRepo` | state `error`; nothing was copied or committed |
 | SKILL-33 | integration | every sync test above | all finish | no folder was removed on either side and the local folder's files are unchanged |
+| SKILL-7 | integration | a fake `shell.openFolder`; `localSkillsDir` empty and a temp home with `.agents\skills` | `openSkillsFolder` | `openFolder` got `<home>\.agents\skills`; with the folder removed, `NOT_FOUND` |
+| SKILL-8 | integration | a temp home and project: user file `{ skillOverrides: { a: 'off', b: 'off' } }`, project-local file `{ skillOverrides: { b: 'name-only', c: 'bogus' } }` | the index builds | `a` is `off` from `user`; `b` is `name-only` from `local`; `c` is `on` from `default` |
+| SKILL-8 | unit | a plugin skill; a user skill with `disable-model-invocation: true` | state is computed | locks `plugin` and `author` |
+| SKILL-9 | integration | the user file with other keys `model`, `hooks` in that order and `skillOverrides: { a: 'off' }` | `setState({ name: 'a', state: 'on', scope: 'user' })` | the file parses to the same object with `a: 'on'`, keys in the same order; a backup with the old bytes exists |
+| SKILL-9 | integration | `b` set by the project-local file | `setState({ name: 'b', state: 'off', scope: 'user' })` | the project-local file changed; the user file did not |
+| SKILL-9 | integration | a user file containing `{ "a": 1, }` | `setState` | `BAD_REQUEST` "Could not read …"; the file's bytes are unchanged |
+| SKILL-9 | integration | a fake reader that returns new bytes on the second read twice | `setState` | `BAD_REQUEST` "The file changed while saving. Try again."; nothing written |
+| SKILL-9 | integration | a plugin skill | `setState` | `BAD_REQUEST` "A plugin skill is managed with its plugin." |
+| SKILL-10 | integration | every SKILL-9 test | all finish | outside `skillOverrides`, every file parses to the same values as before |

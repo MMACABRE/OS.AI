@@ -70,17 +70,17 @@ At the end of this stage the owner sees the notes of the project and vault, Clau
 
 **Stage.** 5
 
-**Read first.** `spec/modules/graph.md` GRAPH-30 to GRAPH-32, `spec/modules/files.md` FILE-79, `spec/modules/mcp.md` "Graph group".
+**Read first.** `spec/modules/graph.md` GRAPH-30 to GRAPH-32, `spec/modules/files.md` FILE-79, `spec/modules/cli.md` "graph".
 
-**Files.** `src/modules/graph/panel/LocalGraph.tsx`, `src/modules/graph/panel/Backlinks.tsx`, `src/modules/files/panel/FileViewer.tsx`, `src/modules/mcp/service/tools/graph-tools.ts`, `src/modules/mcp/register.service.ts`, `src/modules/graph/register.ui.ts`.
+**Files.** `src/modules/graph/panel/LocalGraph.tsx`, `src/modules/graph/panel/Backlinks.tsx`, `src/modules/files/panel/FileViewer.tsx`, `src/modules/cli/service/commands/graph-commands.ts`, `src/modules/cli/register.service.ts`, `src/modules/graph/register.ui.ts`.
 
-**Steps.** Implement the rules and the three graph tools.
+**Steps.** Implement the rules and the three graph commands.
 
-**Tests.** `tests/graph/local-graph.ui.test.tsx`: GRAPH-30, GRAPH-31. `tests/files/markdown-links.ui.test.tsx`: GRAPH-32. `tests/mcp/graph-tools.test.ts`: each tool maps to its channel.
+**Tests.** `tests/graph/local-graph.ui.test.tsx`: GRAPH-30, GRAPH-31. `tests/files/markdown-links.ui.test.tsx`: GRAPH-32. `tests/cli/graph-commands.test.ts`: each command maps to its channel.
 
 **Done when.** Tests pass. Feature `F-048` passes.
 
-**Commit.** `feat(graph): add local graph, backlinks and graph tools`
+**Commit.** `feat(graph): add local graph, backlinks and graph commands`
 
 ---
 

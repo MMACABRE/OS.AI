@@ -1,0 +1,2 @@
+# Shell scripts run in Git Bash, which fails on CRLF line endings (CLI-1).
+*.sh text eol=lf

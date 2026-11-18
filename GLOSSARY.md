@@ -42,7 +42,7 @@
 
 **Skill**: A folder with a `SKILL.md` file that Claude Code can run as a slash command.
 
-**Skills deck**: The part of the HUD that lists skills and starts them.
+**Skills deck**: The part of the HUD that lists skills, starts them, and sets their skill state.
 
 **Background run**: A skill started by HSOS outside any terminal, with a chosen model and effort, ending in a report.
 
@@ -111,3 +111,13 @@
 **Claude setup view**: The HUD panel that lists the owner's MCP servers, plugins, skills, subagents, hooks and permission rules with when each was last used.
 
 **Spoken alert**: A sentence HSOS says aloud with the Windows voice when a Claude session finishes or needs the owner.
+
+**hsos command**: The command Claude runs in an HSOS terminal to show the owner files, diffs and notes, and to drive the browser panel. It replaces an MCP server.
+
+**Quick bar**: The row of buttons at the top of the HUD that runs common Claude Code commands for the target session.
+
+**Target session**: The Claude session in the terminal the owner focused last. Skills and quick bar commands go to it.
+
+**Skill state**: Whether Claude Code offers a skill: on, name only, you only (hidden from Claude, still runnable by the owner) or off.
+
+**Session history**: The panel that lists Claude sessions of every project and lets the owner rename, annotate and delete them.

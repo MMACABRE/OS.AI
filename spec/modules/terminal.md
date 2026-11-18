@@ -105,6 +105,7 @@ The centre of HSOS: real terminals that run PowerShell and Claude Code correctly
   The clipboard is read exactly once per paste, during the key press. Dictation apps such as Wispr Flow put their text on the clipboard, press a paste key, and put the previous clipboard back shortly after the first read, so a second read would get the wrong text.
 - **TERM-47.** Key presses sent by another program through Windows (`SendInput`), as dictation and automation apps do, are handled exactly like the owner's own key presses. HSOS never ignores an event because it is synthetic, never rate-limits input, and never moves focus away from a focused terminal while it is receiving input (P-44).
 - **TERM-48.** When the HSOS process runs elevated, the first terminal panel to mount shows a one-line notice inside the terminal area: "HSOS is running as administrator. Dictation apps and drag and drop from Explorer cannot reach it unless they run as administrator too." with a close button. It shows once per app run. `pty-host` reports elevation through `hostInfo`, found once at start by running `whoami /groups` with a 2 000 ms timeout and looking for the SID `S-1-16-12288` (high integrity). A timeout counts as not elevated.
+- **TERM-74.** `pty-host` keeps, per terminal, the time of the last `write` whose `source` is `owner` (the default). Keys, pastes, drops, compositions and every module that types for the owner (HUD-31, HUD-54, SESS-32) are `owner` writes. Only the HUD quick bar writes with `source: 'quick-command'`, and only for a command it submits with `\r` (HUD-63). `getLastOwnerInput` returns that time, or null when there was none.
 - **TERM-49.** Text committed by an input method or by Windows voice typing (`Win+H`) arrives as a composition. When the composition ends, the committed text is written once, as typed text. Text shown during the composition is never written.
 
 ### View
@@ -208,6 +209,7 @@ There is no empty state: a terminal panel always has or is starting a shell.
 | TERM-31 | integration | an attached terminal | 1 000 001 bytes are emitted with no ack | the fake is paused; after acks bring the gap to 250 000 it is resumed |
 | TERM-32 | integration | a terminal with no attach | 5 MB are emitted | the fake is never paused |
 | TERM-33 | integration | two attached terminals, the first paused | the second emits output | its `data` events arrive |
+| TERM-74 | integration | fake clock; a terminal | `write` of `a` at 10:00, `write` of `/model opus\r` with `source: 'quick-command'` at 10:01 | `getLastOwnerInput` returns 10:00 |
 | TERM-41 | component | text is selected | `Ctrl+C` | the clipboard holds the text and nothing is written to the shell |
 | TERM-41 | component | nothing is selected | `Ctrl+C` | `\x03` is written |
 | TERM-41 | component | default settings | `Shift+Enter` | `\x1b\r` is written |

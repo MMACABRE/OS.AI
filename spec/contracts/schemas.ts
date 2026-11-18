@@ -55,7 +55,8 @@ export const zModuleId = z.enum([
   'review',
   'browser',
   'graph',
-  'mcp',
+  'cli',
+  'sessions',
 ]);
 
 export const zAppError = z.object({

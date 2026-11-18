@@ -17,14 +17,14 @@ Module ids are fixed. They name folders, test files, rule prefixes and task card
 | `history` | `HIST` | Local history snapshots, per-file timeline, diff, restore | `files` |
 | `claude-link` | `LINK` | Hook receiver, statusline forwarder, registry of Claude sessions and subagents, snapshot before Claude edits a file | `shell`, `terminal`, `history` |
 | `git` | `GIT` | GitHub sign-in, status, fetch, pull, commit, push, worktrees, opt-in automatic sync | `files`, `claude-link` |
-| `skills` | `SKILL` | Skill index, favourites, background runs, skills-repo sync | `files`, `git` |
-| `hud` | `HUD` | HUD panel: attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `terminal`, `ui-kit` |
+| `skills` | `SKILL` | Skill index, favourites, skill on/off state, skills folder, background runs, skills-repo sync | `files`, `git` |
+| `hud` | `HUD` | HUD panel: quick bar of Claude commands, attention board of sessions, subagents, usage bars, context, cost, cache state, skills, notifications, session recap | `claude-link`, `skills`, `terminal`, `ui-kit` |
 | `activity` | `ACT` | Activity timeline across files, artifacts inbox | `history`, `claude-link` |
 | `review` | `REV` | Changes panel with live diff; feedback tray that sends pinned comments to a terminal | `git`, `history`, `terminal` |
 | `browser` | `BROW` | Browser panels, tabs, isolated profile, DevTools Protocol control, element capture | `workspace`, `review` |
 | `graph` | `GRAPH` | Markdown index, link resolution, graph view, backlinks | `files`, `ui-kit` |
-| `mcp` | `MCP` | MCP server for Claude: browser, file, graph and layout tools | `browser`, `files`, `graph`, `workspace`, `claude-link` |
-| `sessions` | `SESS` | Claude session records, transcript backup, auto-resume after a crash or restart, session picker, transcript reader | `claude-link`, `terminal`, `workspace` |
+| `cli` | `CLI` | The `hsos` command Claude runs: browser, file, graph and review commands | `browser`, `files`, `graph`, `workspace`, `review`, `claude-link` |
+| `sessions` | `SESS` | Claude session records, transcript backup, auto-resume after a crash or restart, session picker, transcript reader, session history of every project with rename, notes and delete | `claude-link`, `terminal`, `workspace` |
 
 Rules:
 
@@ -38,7 +38,7 @@ Rules:
 | `main` | main process | `shell`, `settings`, `diagnostics` | none; it is the supervisor |
 | `pty-host` | utility process | `terminal` | restart at once; shells are lost and reported |
 | `workspace-service` | utility process | `files`, `history`, `git`, `review`, `graph` index, `activity`, `skills` index | restart at once |
-| `link-service` | utility process | `claude-link`, `sessions`, `mcp` | restart at once |
+| `link-service` | utility process | `claude-link`, `sessions`, `cli` | restart at once |
 | `ui` | renderer | the panel side of every module | reload on crash |
 | browser views | `WebContentsView`, one per browser tab | page content | reload that tab |
 
@@ -54,10 +54,11 @@ Each stage ends with an app that starts, passes all tests and packages to an `.e
 | 1. Terminal | `workspace`, `terminal` | Open a project, run PowerShell and Claude Code in tabs and splits. Shells survive a UI reload. Layout restores. |
 | 2. Files | `files`, `history` | Browse, view, edit, save safely. Restore any earlier version. |
 | 3. Claude awareness | `claude-link`, `sessions`, `git`, `skills`, `hud`, `activity`, `review` | Never lose a Claude session: resume it after a crash or restart, find and read any past one. Show limits, sessions that need the owner, subagents, skills, what Claude changed and produced. Review changes and send feedback. Sync with GitHub. Start sessions in worktrees. |
-| 4. Browser | `browser`, `mcp` | Show a browser panel that Claude drives through MCP. |
-| 5. Graph | `graph`, graph tools in `mcp` | Show the link graph of notes, skills and memory files. |
+| 4. Browser | `browser`, `cli` | Show a browser panel that Claude drives through the `hsos` command. |
+| 5. Graph | `graph`, graph commands in `cli` | Show the link graph of notes, skills and memory files. |
 | 6. Finish | theme editor, fault tests, soak tests, installer | Meet the reliability bar in `05-testing.md`. |
 | 7. Awareness extras | spoken alerts in `hud` and `shell`, Claude setup view in `hud` and `claude-link`, agent view in `graph` | Say when a session finishes or needs the owner. Show the Claude Code setup with last use. Show what Claude loads at start and what links reach. |
+| 8. Claude controls | session history in `sessions`, skill state and skills folder in `skills` and `shell`, quick bar in `hud` and `terminal` | Rename, note and delete past sessions of every project. Turn skills on and off and open the skills folder. Change model, effort and mode, compact and clear, and open Claude's own screens, from buttons. |
 
 ## Later, not in this spec
 

@@ -48,7 +48,7 @@ export type ModuleId =
   | 'review'
   | 'browser'
   | 'graph'
-  | 'mcp'
+  | 'cli'
   | 'sessions';
 
 export type ServiceId = 'main' | 'pty-host' | 'workspace-service' | 'link-service';

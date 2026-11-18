@@ -397,3 +397,37 @@ Changes from the draft, and why:
 One test run during the research started the real `claude` instead of the stub, because Git Bash rewrote `PATH`. It stopped at once on a missing settings file and sent nothing. The wrapper test in card 056 now refuses to run unless the stub is the `claude` that `Get-Command` finds.
 
 Spec changes: new `spec/modules/sessions.md`, `spec/contracts/channels/sessions.ts`, `spec/reference/shell-init.ps1`; `ids.ts` (`sessions`), `paths.ts` (`sessionsDir`), `terminal.ts` (`terminalRecovery`), `claude-link.ts` (`hookObservers`); `terminal.md` TERM-24, TERM-25, TERM-57; `claude-link.md` LINK-2, LINK-4, LINK-6, LINK-15; `01-capability-map.md`, `02-architecture.md`, `05-testing.md` REL-13; cards 051, 056 to 059, 074, 080; features F-060 and F-061; glossary. 19 modules, 530 rules, 61 features, 98 cards.
+
+### Step 36. Claude controls, and the hsos command instead of MCP
+
+The owner asked for four things in one session: a history of past Claude sessions across every project, with rename, edit and delete; a button that opens the skills folder; the `/usage`, `/context` and `/skills` commands on speed dial, with skill on/off settable from the app as `/skills` does; and buttons for `/model`, `/effort` and the other common commands. They also asked that HSOS's own link to Claude be a command-line tool instead of MCP where that is possible and safe.
+
+Facts, checked in the Claude Code 2.1.327 binary and on this machine:
+
+- `/rename` appends `{"type":"custom-title","customTitle":...,"sessionId":...}` to the transcript, and the last one is the name `/resume` shows.
+- A session's files are `<id>.jsonl` and a folder `<id>\` beside it. Project folders also hold `memory\`.
+- Skill state is the settings key `skillOverrides`, with values `on`, `name-only`, `user-invocable-only` and `off`. Read order: policy, flag, project-local, project, user. The owner's own settings files already use it.
+- The statusline input carries `model.id`, `effort.level`, `context_window.total_input_tokens` and `context_window_size`. Hook payloads carry `permission_mode`.
+- Permission rules take the form `Bash(git *)`. Claude Code's Bash tool on Windows is Git Bash, and it finds a command placed first on `PATH` by the HSOS wrapper (tested from Windows PowerShell 5.1 with `bash -c` and `bash -lc`).
+
+The owner's decisions:
+
+- History shows every project. A rename is stored by HSOS and also written to the transcript the way `/rename` does it. Delete moves the transcript, its folder, HSOS's backup and the record to the Recycle Bin. "Edit" means the title and a private note; transcript content is never changed.
+- Quick bar buttons press Enter only when the session is idle or done and nothing has been typed into that terminal since Claude's last reply. Otherwise they type the command and leave Enter to the owner. Compact and Clear ask first, with "Cancel" focused.
+- Skill state is written to Claude Code's own settings files, the same effect as `/skills`.
+- The quick bar gets model and effort, compact and clear, the mode toggle, and a "More" menu of Claude's own screens.
+
+Design choices and why:
+
+- **`mcp` became `cli`.** Claude runs `hsos <group> <command>` in Bash. The MCP server put 20 tool definitions into every session's context. Now one skill description sits there, and `hsos help` lists the commands when Claude needs them. The command is a 30-line POSIX script (`spec/reference/hsos-cli.sh`) that posts its arguments through `curl`, which Git Bash and Windows already ship, so HSOS needs neither the MCP SDK nor Electron's run-as-node switch. It is no less safe than MCP: the same token, the same localhost listener, and the same rule that no command runs a program, writes a file or changes git. That rule is why the permission rule `Bash(hsos *)` is safe to pass. Screenshots come back as a PNG path that Claude opens with Read. The wrapper no longer passes `--mcp-config`.
+- **Rename of a running session waits.** Claude Code keeps the old name in memory and writes it again, so HSOS appends its line only after the session stops.
+- **Delete checks every path.** Only the exact `<id>.jsonl`, `<id>\`, backup and record can be moved, so `memory\` and other sessions are safe even with a wrong id.
+- **The skill-state writer changes one key.** It parses strictly, refuses a file it cannot parse, keeps the old bytes in `claude-settings-backups`, re-reads before writing, and writes the file that actually decides the state. A plugin, author or policy lock is shown, not overridden.
+- **The quick bar never presses Enter on text it did not write.** `pty-host` now records the last owner input per terminal (TERM-74), so the bar can tell an empty Claude input from a half-typed one.
+- **`/usage` and `/context` stay in Claude for the details.** HSOS shows what the statusline gives (limits, tokens of window) and has a button that runs the command in the terminal for Claude Code's own breakdown, which HSOS cannot read.
+- `LINK-6` now lists every write HSOS may make into Claude Code's files: restore a missing transcript, append a rename line, move a deleted session to the Recycle Bin, and change one `skillOverrides` entry.
+- Not taken: editing transcript messages, since a bad edit can stop a session from resuming; a PowerShell `hsos.cmd`, because Claude's Bash tool is Git Bash and the owner never types `hsos`.
+
+Also fixed: `zModuleId` in `schemas.ts` was missing `sessions`. Added `.gitattributes` so `*.sh` keeps LF endings on every device.
+
+Spec changes: new `spec/modules/cli.md`, `spec/contracts/channels/cli.ts`, `spec/reference/hsos-cli.sh`, `tasks/stage-8.md` (cards 099 to 103); removed `mcp.md` and `mcp.ts`; `sessions.md` SESS-30, SESS-60 to SESS-63, SESS-70 to SESS-77; `skills.md` SKILL-7 to SKILL-10; `hud.md` HUD-34 to HUD-37, HUD-60 to HUD-68; `terminal.md` TERM-74; `shell.md` SHELL-30; `claude-link.md` LINK-2, LINK-4, LINK-6, LINK-40, LINK-44; `browser.md`; `shell-init.ps1`; contracts `sessions.ts`, `skills.ts`, `hud.ts`, `terminal.ts`, `shell.ts`, `claude-link.ts`, `paths.ts`, `ids.ts`, `schemas.ts`, `result.ts`, `browser.ts`, `workspace.ts`; cards 051, 074, 080 to 083, 087; features F-044, F-045, F-062 to F-064; capability map stage 8; architecture data table; glossary. 19 modules, 564 rules, 64 features, 103 cards. Contracts compile under TypeScript 7.0.2 and zod 4.6.7; the wrapper was re-tested in Windows PowerShell 5.1 under the Restricted policy with a stub `claude`.

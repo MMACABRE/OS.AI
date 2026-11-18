@@ -79,7 +79,20 @@ export const terminalChannels = {
   list: request('terminal.list', 'pty-host', z.object({ projectId: zProjectId }), z.array(TerminalInfo)),
   attach: request('terminal.attach', 'pty-host', z.object({ id: zTerminalId }), AttachResponse),
   /** Keyboard input or pasted text for the shell. */
-  write: request('terminal.write', 'pty-host', z.object({ id: zTerminalId, data: z.string() }), zEmpty),
+  /** `source` defaults to `owner`. Only the HUD quick bar uses `quick-command` (TERM-74, HUD-63). */
+  write: request(
+    'terminal.write',
+    'pty-host',
+    z.object({ id: zTerminalId, data: z.string(), source: z.enum(['owner', 'quick-command']).default('owner') }),
+    zEmpty,
+  ),
+  /** Time of the last `owner` write to the terminal, or null (TERM-74). */
+  getLastOwnerInput: request(
+    'terminal.getLastOwnerInput',
+    'pty-host',
+    z.object({ id: zTerminalId }),
+    z.object({ at: zEpochMs.nullable() }),
+  ),
   resize: request(
     'terminal.resize',
     'pty-host',

@@ -8,7 +8,7 @@ Makes HSOS aware of Claude Code. It learns, for every Claude session running in 
 
 `contracts/channels/claude-link.ts`.
 
-- Runs in: `link-service`. It has no panel; `hud`, `activity`, `skills` and `mcp` show its data.
+- Runs in: `link-service`. It has no panel; `hud`, `activity`, `skills` and `cli` show its data.
 - Third-party packages allowed: `zod`. The HTTP server uses Node's built-in `http` module.
 
 ## How Claude Code reports to HSOS
@@ -21,7 +21,7 @@ Verified against the Claude Code hooks, statusline and CLI documentation on 2026
 | Hook header interpolation | Header values may contain `$VAR`; only names in `allowedEnvVars` are filled in. The URL is fixed text. |
 | Plugin hooks | A plugin's `hooks/hooks.json` adds hooks that merge with the owner's own hooks. `claude --plugin-dir <dir>` loads a plugin for one session. |
 | Statusline command | Claude Code runs a command with session JSON on stdin, including `rate_limits`, and shows what it prints. |
-| `claude --settings <file>` | Overrides chosen settings keys for one session. Used for `statusLine` only. |
+| `claude --settings <file>` | Overrides chosen settings keys for one session. Used for `statusLine` and one permission rule (CLI-3). |
 
 ### Files HSOS generates
 
@@ -31,9 +31,10 @@ Written under `linkDir` at every launch, atomically. They are HSOS's own data.
 |---|---|
 | `plugin\.claude-plugin\plugin.json` | `{ "name": "hsos-link", "version": "<app version>", "description": "Reports session activity to HSOS" }` |
 | `plugin\hooks\hooks.json` | One HTTP hook per event in the table below |
-| `session-settings.json` | `{ "statusLine": { "type": "command", "command": "<statusline command>" } }` |
+| `session-settings.json` | `{ "statusLine": { "type": "command", "command": "<statusline command>" }, "permissions": { "allow": ["Bash(hsos *)"] } }`; `permissions` only when `cli` is enabled (CLI-3) |
 | `shell-init.ps1` | The `claude` wrapper function: a byte-for-byte copy of `spec/reference/shell-init.ps1` (LINK-4) |
-| `mcp.json` | The HSOS MCP server entry (MCP-2). Written only when `mcp` is enabled. |
+| `plugin\skills\hsos\SKILL.md` | The skill that tells Claude about the `hsos` command (CLI-2). Written only when `cli` is enabled. |
+| `bin\hsos` | The `hsos` command: a byte-for-byte copy of `spec/reference/hsos-cli.sh` (CLI-1) |
 
 `session-settings.json` and `hooks.json` contain the port. `session-settings.json` also contains the launch token, because a statusline command cannot read HSOS's environment portably. This is the one exception to P-8: the file is rewritten at every launch, lives under the owner's profile, and the token is useless after HSOS exits.
 
@@ -96,11 +97,18 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | `HSOS_SESSION_SETTINGS` | `linkDir\session-settings.json` |
 | `HSOS_SHELL_INIT` | `linkDir\shell-init.ps1` |
 | `HSOS_SESSIONS_LAUNCH_DIR` | `sessionsDir\launches` (SESS-1) |
+| `HSOS_BIN_DIR` | `linkDir\bin` (CLI-1) |
 
 - **LINK-3.** When `HSOS_SHELL_INIT` is set and the shell is `pwsh.exe` or `powershell.exe`, `terminal` loads the file through the loader of TERM-7, which reads it as text and runs it as a script block, so it works under the `Restricted` execution policy. This rule is implemented in `terminal`'s spawn step and listed here because `claude-link` supplies the variable.
-- **LINK-4.** `shell-init.ps1` is `spec/reference/shell-init.ps1`, copied unchanged. It defines a function `claude` that finds the real executable with `Get-Command claude -CommandType Application` and runs it with, in this order: `--mcp-config $env:HSOS_MCP_CONFIG` when that variable is set and the file exists, `--plugin-dir $env:HSOS_PLUGIN_DIR`, `--settings $env:HSOS_SESSION_SETTINGS`, `--session-id <guid>` for a fresh session (SESS-1), then the owner's own arguments. `--mcp-config` comes first because it takes several values and would swallow an owner's prompt placed after it. A first argument that is a Claude Code subcommand, such as `doctor`, runs with the owner's arguments only. `HSOS_MCP_CONFIG` is set by LINK-2 to `linkDir\mcp.json` when `mcp` is enabled. If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
+- **LINK-4.** `shell-init.ps1` is `spec/reference/shell-init.ps1`, copied unchanged. It defines a function `claude` that finds the real executable with `Get-Command claude -CommandType Application` and runs it with, in this order: `--plugin-dir $env:HSOS_PLUGIN_DIR`, `--settings $env:HSOS_SESSION_SETTINGS`, `--session-id <guid>` for a fresh session (SESS-1), then the owner's own arguments. A first argument that is a Claude Code subcommand, such as `doctor`, runs with the owner's arguments only. When it loads, the file puts `HSOS_BIN_DIR` first on the shell's `PATH`, so Claude Code's Bash tool finds `hsos` (CLI-1). If no executable is found it prints `Claude Code is not installed or not on PATH.` The owner's profile script still runs first, because `-NoExit -Command` runs after the profile.
 - **LINK-5.** With `enabled` false, no server listens, no variables are set, and shells start without the wrapper.
-- **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file. The one exception is SESS-22: on the owner's request, `sessions` puts a transcript backup back where Claude Code expects it, and only when no file is there.
+- **LINK-6.** HSOS never edits `~/.claude/settings.json`, the project's `.claude` folder, or any other Claude Code file, except in these cases, each one started by the owner in HSOS:
+  - SESS-22: `sessions` puts a transcript backup back where Claude Code expects it, only when no file is there;
+  - SESS-61: `sessions` appends one `custom-title` line to a transcript when the owner renames that session;
+  - SESS-62: `sessions` moves a session's transcript and its folder to the Recycle Bin when the owner deletes that session;
+  - SKILL-8: `skills` changes one `skillOverrides` entry in a Claude Code settings file when the owner sets a skill's state.
+
+  Each of these rules names the exact file and the one change. No other write is allowed.
 - **LINK-7.** `getStatus` reports whether `claude` is on `PATH` and its version, found by running `claude --version` once at start with a 5 000 ms timeout.
 
 ### Receiving
@@ -148,10 +156,11 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 
 ### Usage and statusline
 
-- **LINK-40.** A statusline post updates the session's `model`, `contextUsedPercentage` and `costUsd` from `model.display_name`, `context_window.used_percentage` and `cost.total_cost_usd`.
+- **LINK-40.** A statusline post updates the session's `model` from `model.display_name`, `modelId` from `model.id`, `effort` from `effort.level`, `contextUsedPercentage` from `context_window.used_percentage`, `contextTokens` from `context_window.total_input_tokens`, `contextWindowSize` from `context_window.context_window_size`, and `costUsd` from `cost.total_cost_usd`. A field that is missing leaves the stored value as it was. Verified in Claude Code 2.1.327: `effort` is present only for models that support it.
 - **LINK-41.** `rate_limits.five_hour` and `rate_limits.seven_day`, when present, replace the stored `UsageLimits` and set `updatedAt`. `resets_at` arrives in seconds and is stored in milliseconds. A window whose `resetsAt` has passed is set to null by a timer.
 - **LINK-42.** The reply to a statusline post is one line of plain text: `HSOS · <model> · ctx <n>%`, and ` · 5h <n>%` when known. It is produced within 50 ms.
 - **LINK-43.** Statusline posts do not create sessions and do not change activity.
+- **LINK-44.** Every hook payload that carries `permission_mode` sets the session's `permissionMode` to it. Values HSOS knows: `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, `bypassPermissions`; any other string is stored as it is, cut to 40 characters.
 
 ### Cache state
 
@@ -210,7 +219,10 @@ curl.exe -s -m 1 -X POST -H "Authorization: Bearer <token>" -H "Content-Type: ap
 | LINK-1 | integration | the first port is taken | the service starts | it listens on the next port and `getStatus` reports it |
 | LINK-2 | integration | a fake terminal channel | the service starts | `setExtraEnv` was called once with the five variables |
 | LINK-4 | integration | the generated `shell-init.ps1` and a stub `claude.cmd` on PATH that prints its arguments | `powershell.exe -NoProfile -Command "<TERM-7 loader>; claude -p hi"` with `HSOS_SHELL_INIT` set to the file | output contains `--plugin-dir`, `--settings` and `-p hi` |
-| LINK-4 | integration | `generated-files` has written its files | the written `shell-init.ps1` is compared | it equals `spec/reference/shell-init.ps1` byte for byte |
+| LINK-4 | integration | `generated-files` has written its files | the written `shell-init.ps1` and `bin\hsos` are compared | they equal `spec/reference/shell-init.ps1` and `spec/reference/hsos-cli.sh` byte for byte |
+| LINK-4 | integration | the generated `shell-init.ps1` loaded by the TERM-7 loader with `HSOS_BIN_DIR` set to an existing folder | `($env:Path -split ';')[0]` | that folder |
+| LINK-40 | unit | a statusline body with `model.id` `claude-opus-5-5`, `effort.level` `high`, `context_window.total_input_tokens` 41 000 and `context_window_size` 200 000 | it is applied | the session has those four values; a second body without `effort` leaves `effort` at `high` |
+| LINK-44 | integration | a running session | `PreToolUse` with `permission_mode: 'plan'` | `permissionMode` is `plan` |
 | LINK-15 | integration | two observers, the first throws | `FakeClaude` posts `SessionStart` with header `X-HSOS-Terminal: t1` | the second observer got `SessionStart`, `t1` and the body; the hook was answered 200 |
 | LINK-6 | integration | a temp home folder with a `.claude\settings.json` | the service starts and stops | that file's bytes are unchanged |
 | LINK-10 | integration | a request without the token | it is posted | status 401; no session exists |

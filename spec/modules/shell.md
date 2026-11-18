@@ -81,6 +81,8 @@ The frame everything else runs in: starts and supervises processes, owns the win
 
   A failure or a 10 000 ms timeout returns an empty list, which is not cached.
 
+- **SHELL-30.** `openFolder` opens a folder in Windows Explorer with Electron's `shell.openPath`. The path must be an existing directory; a file or a missing path returns `BAD_REQUEST`, so this request can never start a program.
+
 ## Preload API
 
 ```ts
@@ -127,4 +129,5 @@ Nothing else is exposed (SEC-3).
 | SHELL-24 | e2e | the app is running | the renderer calls `window.open('https://example.com')` | no new window opens |
 | SHELL-28 | unit | a fake process runner that never exits | `speak` is called 4 times | one process started; after the first is killed at 30 s, the third and fourth play and the second was dropped |
 | SHELL-28 | unit | a fake process runner | `speak({ text: 'a"; calc; "', voice: null, rate: 0 })` | the argument array is exactly `-NoProfile`, `-NonInteractive`, `-Command` and the script; stdin received the text |
+| SHELL-30 | unit | a fake Electron `shell` | `openFolder` with a temp folder, then with `C:\Windows\notepad.exe`, then with a missing path | the first opens; the other two return `BAD_REQUEST` and `shell.openPath` was called once |
 | SHELL-29 | integration | Windows PowerShell on the test machine | `listVoices` twice | the same non-empty list both times and one process started |

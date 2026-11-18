@@ -22,6 +22,8 @@ export type DataPaths = {
   readonly linkDir: AbsPath;
   /** %LOCALAPPDATA%\HSOS\sessions: `records\`, `launches\` and `transcripts\` (SESS-1, SESS-5, SESS-20). */
   readonly sessionsDir: AbsPath;
+  /** %LOCALAPPDATA%\HSOS\claude-settings-backups: old bytes of each Claude Code settings file HSOS changed (SKILL-9). */
+  readonly claudeSettingsBackupDir: AbsPath;
   /** %LOCALAPPDATA%\HSOS\link-usage.json: last use of MCP servers and subagents seen by HSOS (LINK-72). */
   readonly linkUsageFile: AbsPath;
   /** %LOCALAPPDATA%\HSOS\terminal\terminal-init.ps1, rewritten by pty-host at every start (TERM-8). */

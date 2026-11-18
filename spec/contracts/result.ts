@@ -52,8 +52,8 @@ export const ERROR_CODES = [
   'BROW_CONTROL_STOPPED',
   // graph
   'GRAPH_INDEX_BUSY',
-  // mcp
-  'MCP_UNAUTHORISED',
+  // cli
+  'CLI_UNAUTHORISED',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

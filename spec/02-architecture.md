@@ -6,7 +6,7 @@
 main  (supervisor, window, bus broker, settings, diagnostics)
  ├─ pty-host            utility process   shells
  ├─ workspace-service   utility process   files, history, git, graph index, activity, skills index
- ├─ link-service        utility process   Claude hook receiver, session recovery, MCP server
+ ├─ link-service        utility process   Claude hook receiver, session recovery, `hsos` command endpoint
  ├─ ui                  renderer          every panel
  └─ browser views       WebContentsView   one per browser tab
 ```
@@ -96,14 +96,15 @@ Contract: `contracts/paths.ts`. All paths come from `DataPaths`, never from stri
 | Note index | `%LOCALAPPDATA%\HSOS\index\<projectId>.sqlite` | SQLite |
 | Terminal restore | `%LOCALAPPDATA%\HSOS\terminals\<projectId>\<terminalId>.json` | serialised scrollback |
 | Browser profile | `%LOCALAPPDATA%\HSOS\browser\` | Chromium partition |
-| Claude link | `%LOCALAPPDATA%\HSOS\link\` | forwarder script, port file |
+| Claude link | `%LOCALAPPDATA%\HSOS\link\` | generated files (LINK-2), `bin\hsos` (CLI-1), `shots\` screenshots kept 24 hours (CLI-12) |
 | Terminal init script | `%LOCALAPPDATA%\HSOS\terminal\terminal-init.ps1` | PowerShell, rewritten at every start (TERM-8) |
 | Claude sessions | `%LOCALAPPDATA%\HSOS\sessions\` | `records\<sessionId>.json`, `launches\*.json`, `transcripts\<sessionId>.jsonl` (SESS-1, SESS-5, SESS-20) |
+| Claude settings backups | `%LOCALAPPDATA%\HSOS\claude-settings-backups\` | old bytes of a Claude Code settings file before HSOS changed it, newest 50 (SKILL-9) |
 
 - `projectId` is the first 16 hex characters of the SHA-256 of the project's absolute path, lower-cased, with forward slashes.
 - Every JSON file HSOS writes has a top-level `"version"` number. A loader that meets a higher version than it knows refuses to load and keeps defaults.
 - Before overwriting any of its own JSON files, HSOS keeps the previous content as `<name>.bak`.
-- HSOS writes nothing inside a project except the files the owner edits and saves.
+- HSOS writes nothing inside a project except the files the owner edits and saves, and the one `skillOverrides` entry of SKILL-9 when the owner sets a skill state for that project.
 
 ## 6. Start
 
@@ -137,7 +138,7 @@ A service that misses its `ready` deadline is restarted once. If it fails again 
 - **SEC-2.** The renderer cannot navigate. `will-navigate` and `setWindowOpenHandler` deny everything in the main window.
 - **SEC-3.** The preload exposes only `window.hsos.bus` and `window.hsos.platform`. No Node objects cross.
 - **SEC-4.** Local files are shown to the renderer through the custom protocol `hsos-file:`, which serves only paths inside the open project, the vault and the artifacts list.
-- **SEC-5.** Local listeners (hook receiver, MCP server) bind to `127.0.0.1` on a random free port and require the launch token in the `Authorization` header.
+- **SEC-5.** Local listeners (hook receiver, `hsos` command endpoint) bind to `127.0.0.1` on a random free port and require the launch token in the `Authorization` header.
 - **SEC-6.** Child programs are started with an argument array, never through a shell string built from outside text.
 
 ## 10. Performance budgets
