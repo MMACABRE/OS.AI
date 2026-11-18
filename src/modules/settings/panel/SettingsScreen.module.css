@@ -1,0 +1,204 @@
+/* The settings screen in the Phosphor look: an orange-framed box, a section list, rows of controls. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+  padding: 1rem 1.25rem;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.heading {
+  margin: 0;
+  color: var(--color-brand);
+  font-family: var(--font-display);
+  font-size: var(--font-size-number);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: var(--glow-danger);
+}
+
+.banner {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-state-danger);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--color-bg-panel) calc(var(--surface-panel-alpha) * 100%), transparent);
+}
+
+.bannerTitle {
+  color: var(--color-state-danger);
+  font-weight: 400;
+  text-shadow: var(--glow-danger);
+}
+
+.problems {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.problem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.body {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 13rem;
+  flex: none;
+  overflow: auto;
+}
+
+.navItem {
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  color: var(--color-text-primary);
+}
+
+.navItem[aria-current='page'] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  text-shadow: var(--glow-accent);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--color-bg-panel) calc(var(--surface-panel-alpha) * 100%), transparent);
+  box-shadow: 0.25rem 0.25rem 0 var(--color-structure-deep);
+}
+
+.section {
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.5rem;
+  color: var(--color-structure);
+  font-size: var(--font-size-title);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-shadow: var(--glow-structure);
+  text-transform: uppercase;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-control);
+  outline: none;
+}
+
+.row:hover,
+.row[data-selected='true'] {
+  background: var(--color-bg-raised);
+}
+
+.row:focus-visible {
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 16rem;
+  flex: none;
+  color: var(--color-text-primary);
+}
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.reset {
+  composes: focusRing from '../../ui-kit/motion/lift.module.css';
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-small);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reset:hover {
+  color: var(--color-accent);
+}
+
+.conflict {
+  display: inline-flex;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-state-danger);
+}
+
+.hint,
+.muted {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.swatches {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.swatch {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 2px;
+}

@@ -67,3 +67,5 @@ export type { CommandPaletteProps, PaletteModeId } from './palette/CommandPalett
 export { createCommandRegistry } from './palette/command-registry';
 export type { CommandRegistry, PaletteItem, PaletteMode } from './palette/command-registry';
 export { matchScore, rankCommands } from './palette/rank-commands';
+export { CommandsContext, useCommands } from './palette/command-context';
+export type { CommandsView } from './palette/command-context';

@@ -229,3 +229,17 @@ Code: `src/modules/ui-kit/palette/rank-commands.ts` (`matchScore`, `rankCommands
 - Also UI-12: with a provider mode of prefix '' opened as `initialMode`, typing `>` switches to the commands list.
 
 F-008 (e2e, card 025 covers it): press Ctrl+Shift+P, type "set", "Open Settings" runs from the list (needs card 024's `settings.open`).
+
+## 024 Settings screen
+
+Code: `src/modules/settings/panel/SettingsScreen.tsx` (+ `.module.css`, `SCREEN_SECTIONS`, `SAVE_DELAY_MS`, `keyLabel`), `schema-control.tsx` (`SchemaControl`, `fieldKindOf`), `KeybindingsSection.tsx`, `ThemesSection.tsx`, the `settings.screen` panel and `settings.open` command (`Ctrl+,`) in `src/modules/settings/register.ui.ts`; `CommandsContext` in `src/modules/ui-kit/palette/command-context.ts`; the full-window panel host in `src/ui/app-root.tsx` (+ `app-root.css`). Feature F-009.
+
+`tests/settings/settings-screen.ui.test.tsx` (jsdom, `FakeBus` answering `getSection`, `getProblems`, `setValue`; fake timers):
+
+- An invalid number (type 400 into the terminal font size with max 40, or text into a number-backed text field) shows the schema's message under the control and no `setValue` is sent after 400 ms.
+- "Reset" appears only for a key whose value differs from its default; pressing it sends `setValue` with the default after 400 ms.
+- The problems banner lists each problem from `getProblems` (and from a `problemsChanged` event) with an "Open file" button.
+
+Also: `fieldKindOf` gives `boolean` for `z.boolean().default(true)`, `enum` with options, `number` with min and max for `z.number().int().min(8).max(40).default(14)`, `path` for `zAbsPath.nullable().default(null)`; a valid edit is sent once, 400 ms after the last change.
+
+F-009 (e2e, card 025 covers it): press Ctrl+, , change a value, invalid input shows a message and is not saved.

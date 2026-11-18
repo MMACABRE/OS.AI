@@ -1,6 +1,9 @@
 import { AppearanceSettings, settingsChannels } from '@hsos/contracts/channels/settings';
 import type { UiContext } from '@hsos/contracts/module';
+import { createElement } from 'react';
+import { z } from 'zod';
 import { applyMotion, applyTheme } from './panel/apply-theme';
+import { SettingsScreen } from './panel/SettingsScreen';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -32,4 +35,25 @@ export function register(ctx: UiContext): void {
   ctx.bus.on(settingsChannels.sectionChanged, ({ moduleId, value }) => {
     if (moduleId === 'settings') takeAppearance(value);
   });
+
+  // The settings screen (card 024): a single-instance dock panel opened by `settings.open`.
+  ctx.registerPanel({
+    type: SETTINGS_PANEL,
+    kind: 'dock',
+    title: 'Settings',
+    icon: 'settings',
+    stateSchema: z.object({}),
+    initialState: {},
+    allowMultiple: false,
+    component: () => createElement(SettingsScreen, { bus: ctx.bus }),
+  });
+  ctx.registerCommand({
+    id: 'settings.open',
+    title: 'Open Settings',
+    defaultKey: 'Ctrl+,',
+    global: false,
+    run: () => ctx.openPanel(SETTINGS_PANEL),
+  });
 }
+
+export const SETTINGS_PANEL = 'settings.screen';

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { diagnosticsChannels } from '@hsos/contracts/channels/diagnostics';
-import { ToastProvider, UiKitActionsContext } from '../modules/ui-kit';
+import type { PanelId } from '@hsos/contracts/ids';
+import { CommandsContext, Icon, IconButton, ToastProvider, UiKitActionsContext } from '../modules/ui-kit';
+import './app-root.css';
 import type { UiKitActions } from '../modules/ui-kit';
 import { COMMAND_MODE, CommandPalette } from '../modules/ui-kit/palette/CommandPalette';
 import type { PaletteModeId } from '../modules/ui-kit/palette/CommandPalette';
@@ -57,26 +60,78 @@ export type AppRootProps = {
 export function AppRoot({ bus, registry, keyFor, palette, message }: AppRootProps) {
   const [text, setText] = useState('HSOS');
   const [paletteMode, setPaletteMode] = useState<PaletteModeId | null>(null);
+  const [openPanel, setOpenPanel] = useState<string | null>(null);
   useEffect(() => message.subscribe(setText), [message]);
   useEffect(() => palette.subscribe(setPaletteMode), [palette]);
+  // Until the workspace (card 028) docks panels, an opened panel fills the window.
+  useEffect(() => registry?.setPanelOpener((type) => setOpenPanel(type)), [registry]);
   const actions = useMemo<UiKitActions>(
     () => ({ openLog: () => void bus?.call(diagnosticsChannels.openLogFolder, {}) }),
     [bus],
   );
+  const commands = useMemo(
+    () => ({ registry: registry?.commandRegistry ?? null, keyFor }),
+    [registry, keyFor],
+  );
+  const panel = openPanel === null ? undefined : registry?.panels.get(openPanel);
   return (
     <UiKitActionsContext.Provider value={actions}>
-      <ToastProvider>
-        <p>{text}</p>
-        {registry === null ? null : (
-          <CommandPalette
-            registry={registry.commandRegistry}
-            open={paletteMode !== null}
-            initialMode={paletteMode ?? COMMAND_MODE}
-            onClose={() => setPaletteMode(null)}
-            keyFor={keyFor}
-          />
-        )}
-      </ToastProvider>
+      <CommandsContext.Provider value={commands}>
+        <ToastProvider>
+          <p>{text}</p>
+          {panel === undefined ? null : (
+            <FullWindowPanel title={panel.title} onClose={() => setOpenPanel(null)}>
+              <panel.component
+                panelId={'full-window' as PanelId}
+                state={panel.initialState}
+                setState={() => undefined}
+                isFocused
+              />
+            </FullWindowPanel>
+          )}
+          {registry === null ? null : (
+            <CommandPalette
+              registry={registry.commandRegistry}
+              open={paletteMode !== null}
+              initialMode={paletteMode ?? COMMAND_MODE}
+              onClose={() => setPaletteMode(null)}
+              keyFor={keyFor}
+            />
+          )}
+        </ToastProvider>
+      </CommandsContext.Provider>
     </UiKitActionsContext.Provider>
+  );
+}
+
+/** A panel shown over the whole window, closed with Escape or the close button (card 024, until card 028). */
+function FullWindowPanel({
+  title,
+  onClose,
+  children,
+}: {
+  readonly title: string;
+  readonly onClose: () => void;
+  readonly children: ReactNode;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div role="region" aria-label={title} className="hsos-full-window-panel">
+      <div className="hsos-full-window-close">
+        <IconButton
+          icon={<Icon name="close" />}
+          label={`Close ${title}`}
+          keyBinding="Escape"
+          onPress={onClose}
+        />
+      </div>
+      {children}
+    </div>
   );
 }
