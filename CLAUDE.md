@@ -39,6 +39,27 @@ Build gotchas (found in cards 001 to 010):
 - Never run Prettier over existing tests: the guard rejects any changed test line. Format new files only.
 - Bash heredocs in Claude Code's shell can turn a double backslash into one and a backslash-r into a raw CR. Write files that hold backslashes with the Write or Edit tool.
 
+### Parallel coder subagents: when and where
+
+Default: one coder, cards in number order. The build is a dependency chain, and nearly every card touches files other cards share: `PROGRESS.md` and `features.json` (every card; the guard allows append-only and `passes`-only changes), the `module-list.ts` files (19 cards), `register.*.ts` (44), `src/main/index.ts` (9) and `ui-kit/index.ts`. The guard also runs `npm run check` on the whole tree, so one coder's unfinished work blocks every commit in a shared tree.
+
+| Cards | Parallel? | Lanes |
+|---|---|---|
+| 001 to 014 | No | Serial chain: skeleton, bus, supervisor, logging, loader. |
+| 015 to 022 | Up to 2 | Settings, themes and keys (016 to 019); ui-kit components (020 to 022). Card 015 first. |
+| 023 to 028 | No | Each needs both lanes above; 026 to 028 lay the demo backend, motion and app frame that all of Stage U uses. |
+| 029 to 036 | Up to 2 or 3, only if the owner agrees | Module folders: terminal and HUD (029, 031); files, sessions, git (030, 032, 033); notes and dashboard (034, 035). One coder for 036. The look must read as one design for the 037 review, so serial is safer. |
+| 037 | No | Owner gate. |
+| 038 to 118 | Up to 2 or 3 | One module group per lane, for example files and history (050 to 062), claude-link and sessions (063 to 071), git (072 to 075), skills (076 to 078). Check each group's `Read first` for cards in another lane first. |
+
+Rules when lanes run in parallel:
+
+- Each coder has its own git worktree and branch, and its own `node_modules` (or a junction to the main one at the same lockfile).
+- Only the Lead writes `PROGRESS.md` and `features.json`, and merges branches into `main` in card-number order. The Lead merges `module-list.ts` and `register.*.ts` additions by hand.
+- A coder changes only its lane's module folders plus the card's listed files. A card that needs another lane's unfinished work waits.
+- The Tester checks merged `main`, not lane branches, so each batch is one known commit.
+- Ask the owner before starting parallel lanes (subagents cost usage, and the owner approves every spawn).
+
 ## If you are changing the spec
 
 You are the spec author. Log every decision in `docs/JOURNAL.md` and push after each step. Commit spec changes with the hook off: `git -c core.hooksPath= commit`. Keep `spec/contracts/` compiling: copy it with `spec/reference/` into a scratch folder with `zod@4.6.7`, `typescript@7.0.2`, `@types/node` and `@types/react`, run `tsc` under the settings in `spec/03-stack.md`. Test PowerShell in Windows PowerShell 5.1 too: this device has no `pwsh` and the default `Restricted` policy, so scripts are loaded as script blocks (TERM-7).
