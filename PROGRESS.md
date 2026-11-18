@@ -63,3 +63,11 @@ Did: Pinned ok, err (with and without details), newId (length, alphabet, injecte
 Checks: typecheck ok, lint ok, deps ok, test 14 passed, e2e 1 passed, 1 skipped
 Deviations: none
 Next: 009
+
+## 009 Bus core
+Status: done
+Date: 2026-11-18
+Did: `createBus` routes by channel owner, runs own-process calls directly with the same validation, validates requests, responses and events, converts throws to INTERNAL, times out with the injected clock, and resolves pending calls with SERVICE_DOWN through `failPending`. `createLoopbackTransport`, `FakeClock` and `FakeBus` support the tests.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e 1 passed, 1 skipped
+Deviations: `Transport.onMessage` listeners also receive the sending peer, so `meta.from` comes from the transport (BUS-7). `createBus` returns `BusClient`, the `Bus` plus `failPending(owner)`, which the supervisor needs for BUS-4. `BusOptions.owns` lets the fake bus handle channels of any owner. Batch 1 Tester findings for the spec author: `scripts/guard.mjs` checks removed lines only in `*.test.ts(x)`, so lines removed from `tests/e2e/*.e2e.ts` pass; and it runs from the working tree. The reference file is copied unchanged as the card says.
+Next: 010
