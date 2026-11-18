@@ -56,3 +56,12 @@ Owner loved round 3 and asked for HSOS, the clock, the strawberry and the graph 
 - Background: a 10 px parallax against the pointer.
 - One animation loop capped at 30 frames a second, paused when the window is hidden; reduced motion turns all of it off.
 - Open points for the spec: the graph widget needs zoom and pan (GRAPH module); the mascot needs reading and working states in HUD-90.
+
+## Round 5 (2026-11-18): living background, strawberry face
+
+Owner: the white eyes looked scary; the strawberry should turn its whole face to the mouse with big black eyes and keep a poker face; the background should not be still; the halos behind nodes should become part of the background and move with physics; nodes fled the mouse so much they could not be picked.
+
+- Strawberry: big black 2x3 eyes with a small pink glint; the eyes, cheeks and mouth slide toward the pointer, the body leans a few pixels and the leaves shift the other way, the extrusion falls on the far side; a flat mouth (poker face); cheeks only on hover.
+- Background: a 120 by 75 cell dot field. A ripple height field (pointer movement makes small waves, a click on empty space drops a big one, fast nodes make their own); a velocity field the pointer drags that carries colour like smoke; each graph node pours its halo colour into the field every frame, so halos follow, smear and trail as nodes move. Waves brighten dots and nudge them sideways. Rendered at 480 by 300 and scaled up pixelated.
+- Graph: halos are no longer drawn on the graph; only a fast pointer sweep pushes nodes, a slow or resting pointer can reach and pick one, and a hovered node holds still.
+- Note: headless Edge runs only one animation frame under virtual time, so stills come from `?still=1`, which simulates 60 steps.

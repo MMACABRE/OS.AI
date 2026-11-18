@@ -167,7 +167,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .clock:hover .ss { display: inline; }
 .clock:hover { filter: brightness(1.35) drop-shadow(0 0 6px rgba(0,240,255,.8)); }
 .clock.flicker { opacity: .72; }
-#bg { transform: scale(1.02); }
+#bg { transform: none; }
 #berry { cursor: pointer; }
 .graph canvas { flex: 1; min-height: 0; width: 100%; display: block; }
 [data-still="1"] .clock .colon { animation: none; }
@@ -326,7 +326,7 @@ const SPR = [
   ".krhrrrrrrrrrk..",
   ".krreerrrreerk..",
   ".krreerrrreerk..",
-  ".krlrrkrrkrlrk..",
+  ".krrrrrrrrrrrk..",
   "..krryrkkrrryk..",
   "...krrrrrrrrk...",
   "....krryrrrk....",
@@ -362,22 +362,6 @@ WORDS.forEach((w, i) => {
   N.push([x, y, 2 + Math.round(rg()), rg() < .12 ? 'u' : 'n', w + '.md']);
   E.push([hub, N.length - 1]); if (rg() < .3) E.push([N.length - 1, N.length - 2]);
 });
-/* background: dithered dots whose colour walks the palette along the diagonal, so the colour has an order */
-(() => {
-  const b = document.getElementById('bg').getContext('2d'), c = 6, W = 240, H = 150;
-  const bayer = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
-  const ramp = [[255,122,61],[255,0,60],[255,0,255],[199,125,255],[0,240,255]];
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const u = x / W, v = y / H;
-    let n = .5 + .22 * Math.sin(u * 9 + Math.sin(v * 5) * 2) + .18 * Math.sin(v * 13 - u * 4) + .12 * Math.sin((u + v) * 23);
-    n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
-    if (n <= (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16) continue;
-    const t = Math.min(.999, (u * .6 + v * .4)) * (ramp.length - 1), i = Math.floor(t);
-    b.fillStyle = `rgba(${ramp[i].join(',')},.22)`;
-    b.fillRect(x * c, y * c, c - 2, c - 2);
-  }
-})();
-
 /* barrel map */
 (() => {
   const mw = 288, mh = 180, m = document.createElement('canvas'); m.width = mw; m.height = mh;
@@ -410,7 +394,7 @@ const tick = () => { const d = new Date(); clock.querySelector('.hh').textConten
 if (!still) { tick(); setInterval(tick, 1000); }
 if (animate) (function flick() { setTimeout(() => { clock.classList.add('flicker'); setTimeout(() => clock.classList.remove('flicker'), 70 + Math.random() * 90); flick(); }, 2500 + Math.random() * 6000); })();
 
-/* strawberry: blinks, follows the mouse with its eyes, sleeps, reads, works */
+/* strawberry: turns its whole face to the mouse, big black eyes, blinks, sleeps, reads, works */
 const BODY = [
   "................",
   ".......c........",
@@ -421,25 +405,26 @@ const BODY = [
   ".krhrrrrrrrrrk..",
   ".krrrrrrrrrrrk..",
   ".krrrrrrrrrrrk..",
-  ".krlrrrrrrrlrk..",
+  ".krrrrrrrrrrrk..",
   "..krryrrrrrryk..",
   "...krrrrrrrrk...",
   "....krryrrrk....",
   ".....krrrrk.....",
   "......kkkk......"];
-const BP = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', l:'#C77DFF', y:'#F5FF3B', c:'#00F0FF' };
+const BP = { k:'#3A0A12', r:'#FF003C', h:'#FF8A9E', y:'#F5FF3B', c:'#00F0FF' };
 const BOOK = ["oPPPPooPPPPo", "oPLPPooPLLPo", "oPPLPooPPPPo", ".oooooooooo."], BOOKC = { o:'#FF7A3D', P:'#F2E8DE', L:'#A08F84' };
 const LAPTOP = ["cccccccccc", "gggggggggg", "ggggoggggg", "gggggggggg", "bbbbbbbbbb"], LAPC = { c:'#00F0FF', g:'#2A2420', o:'#FF7A3D', b:'#6E5A50' };
 const berry = document.getElementById('berry'), bx = berry.getContext('2d'), PX = 10, OX = 30, OY = 40;
 const word = document.querySelector('.mascot .word'), doing = document.querySelector('.mascot .doing');
 const LABEL = { awake: ['Thinking', 'reading pty.ts'], reading: ['Reading', 'the motion spec'], working: ['Working', 'typing a fix'], sleep: ['Sleeping', 'zzz'] };
-const B = { mode: 'awake', until: 0, nextAct: performance.now() + 9000, blinkAt: performance.now() + 2200, blinkEnd: 0, hover: false, hop: -1e4, dy: 0 };
+const B = { mode: 'awake', until: 0, nextAct: performance.now() + 9000, blinkAt: performance.now() + 2200, blinkEnd: 0, hover: false, hop: -1e4, dy: 0, lx: 0, ly: 0 };
 const setMode = m => { if (B.mode === m) return; B.mode = m; word.textContent = LABEL[m][0]; doing.textContent = LABEL[m][1]; };
 berry.addEventListener('pointerenter', () => B.hover = true);
 berry.addEventListener('pointerleave', () => B.hover = false);
 berry.addEventListener('click', () => { B.hop = performance.now(); setMode('awake'); B.nextAct = performance.now() + 9000; });
-const cell = (x, y, c) => { bx.fillStyle = c; bx.fillRect(OX + x * PX, OY + y * PX + B.dy, PX, PX); };
-const sprite = (rows, pal, x0, y0) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') cell(x0 + x, y0 + y, pal[ch]); }));
+const cell = (x, y, c, dx = 0) => { bx.fillStyle = c; bx.fillRect(Math.round(OX + x * PX + dx), Math.round(OY + y * PX + B.dy), PX, PX); };
+const box = (x, y, w, h, c) => { bx.fillStyle = c; bx.fillRect(Math.round(OX + x * PX), Math.round(OY + y * PX + B.dy), Math.round(w * PX), Math.round(h * PX)); };
+const sprite = (rows, pal, x0, y0, dx = 0) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') cell(x0 + x, y0 + y, pal[ch], dx); }));
 function drawBerry(t) {
   const idle = t - mouse.last;
   if (animate) {
@@ -447,35 +432,42 @@ function drawBerry(t) {
     else if (B.mode === 'sleep' && idle < 300) { setMode('awake'); B.nextAct = t + 8000; }
     if (B.mode === 'awake' && t > B.nextAct) { setMode(Math.random() < .5 ? 'reading' : 'working'); B.until = t + 5000 + Math.random() * 3000; }
     if ((B.mode === 'reading' || B.mode === 'working') && t > B.until) { setMode('awake'); B.nextAct = t + 12000 + Math.random() * 10000; }
-    if (t > B.blinkAt) { B.blinkEnd = t + 130; B.blinkAt = t + 2500 + Math.random() * 3000; }
+    if (t > B.blinkAt) { B.blinkEnd = t + 140; B.blinkAt = t + 2500 + Math.random() * 3000; }
   }
   const sleeping = B.mode === 'sleep', busy = B.mode === 'reading' || B.mode === 'working', blinking = t < B.blinkEnd;
   const hp = (t - B.hop) / 420, hop = hp >= 0 && hp < 1 ? Math.sin(hp * Math.PI) * 18 : 0;
   B.dy = animate ? Math.round((sleeping ? Math.sin(t / 900) * 3 : Math.sin(t / 650) * 2) - hop) : 0;
+  // where to look: the whole face turns
+  let lx = 0, ly = 0;
+  if (busy) ly = 1; else if (sleeping) ly = .4;
+  else if (mouse.x > -1e3) {
+    const r = berry.getBoundingClientRect(), sc = r.width / berry.width;
+    const dx = mouse.x - (r.left + (OX + 8 * PX) * sc), dy = mouse.y - (r.top + (OY + 8 * PX) * sc), d = Math.hypot(dx, dy) || 1, m = Math.min(1, d / 240);
+    lx = dx / d * m; ly = dy / d * m;
+  }
+  B.lx += (lx - B.lx) * .22; B.ly += (ly - B.ly) * .22;
+  const bodyDx = Math.round(B.lx * 4), leafDx = -Math.round(B.lx * 3);
+  const ox = Math.round(B.lx * 2) / 2 + bodyDx / PX, oy = Math.round(B.ly * 2) / 4;
   bx.clearRect(0, 0, berry.width, berry.height);
+  // extrusion falls on the side turned away
+  const ez = B.lx > 0 ? -1 : 1;
   for (let z = 3; z >= 1; z--) BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return;
-    bx.fillStyle = z === 3 ? 'rgba(0,0,0,.6)' : '#7A001D'; bx.fillRect(OX + x * PX + z, OY + y * PX + B.dy + z, PX, PX); }));
-  sprite(BODY, BP, 0, 0);
+    bx.fillStyle = z === 3 ? 'rgba(0,0,0,.6)' : '#7A001D'; bx.fillRect(OX + x * PX + bodyDx + z * (Math.abs(B.lx) > .3 ? ez : 1), OY + y * PX + B.dy + z, PX, PX); }));
+  BODY.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') cell(x, y, BP[ch], ch === 'c' ? leafDx : bodyDx); }));
+  // shade the far side of the face
   bx.fillStyle = 'rgba(122,0,29,.5)';
-  BODY.forEach((row, y) => { const k = row.lastIndexOf('k'); if (k > 0 && row[k - 1] === 'r') bx.fillRect(OX + (k - 1) * PX, OY + y * PX + B.dy, PX, PX); });
-  if (B.hover) { cell(3, 9, '#E2B0FF'); cell(11, 9, '#E2B0FF'); }
-  const r = berry.getBoundingClientRect(), sc = r.width / berry.width;
-  [[4, 7], [10, 7]].forEach(([ex, ey]) => {
-    if (sleeping || blinking) { cell(ex, ey + 1, BP.k); cell(ex + 1, ey + 1, BP.k); return; }
-    for (const [i, j] of [[0,0],[1,0],[0,1],[1,1]]) cell(ex + i, ey + j, '#FFE9EC');
-    let lx = 0, ly = 0;
-    if (busy) ly = 1;
-    else if (mouse.x > -1e3) {
-      const cx = r.left + (OX + (ex + 1) * PX) * sc, cy = r.top + (OY + (ey + 1) * PX + B.dy) * sc;
-      const dx = mouse.x - cx, dy = mouse.y - cy, d = Math.hypot(dx, dy) || 1, m = Math.min(1, d / 120);
-      lx = dx / d * m; ly = dy / d * m;
-    }
-    bx.fillStyle = '#140406';
-    bx.fillRect(OX + ex * PX + Math.round((lx * .5 + .5) * 2) / 2 * PX, OY + ey * PX + B.dy + Math.round((ly * .5 + .5) * 2) / 2 * PX, PX, PX);
+  BODY.forEach((row, y) => { if (y < 4) return; const k = B.lx > .25 ? row.indexOf('k') + 1 : row.lastIndexOf('k') - 1; if (k > 0 && row[k] === 'r') bx.fillRect(OX + k * PX + bodyDx, OY + y * PX + B.dy, PX, PX); });
+  // cheeks
+  if (B.hover) { box(3 + ox, 9 + oy, 1, 1, '#C77DFF'); box(11 + ox, 9 + oy, 1, 1, '#C77DFF'); }
+  // big black eyes, a small pink glint
+  [4, 10].forEach(ex => {
+    if (sleeping || blinking) { box(ex + ox, 8 + oy, 2, .5, '#140406'); return; }
+    box(ex + ox, 6 + oy, 2, 3, '#140406');
+    box(ex + ox + .5, 6.5 + oy, .5, .5, '#FF8A9E');
   });
-  // a small smile
-  if (!sleeping) { cell(6, 9, BP.k); cell(9, 9, BP.k); }
-  cell(7, 10, BP.k); cell(8, 10, BP.k);
+  // mouth: a flat line, always a poker face
+  if (sleeping) box(7 + ox, 10 + oy, 2, .5, BP.k);
+  else box(6.5 + ox, 10 + oy, 3, .5, BP.k); // poker face
   if (B.mode === 'reading') sprite(BOOK, BOOKC, 2, 11);
   if (B.mode === 'working') {
     bx.fillStyle = 'rgba(0,240,255,.12)'; bx.fillRect(OX + 2 * PX, OY + 5 * PX + B.dy, 11 * PX, 5 * PX);
@@ -489,11 +481,10 @@ function drawBerry(t) {
     bx.globalAlpha = 1;
   }
 }
-
 /* graph: nodes float like they are in space; the mouse pushes them; scroll zooms at the cursor, drag pans, double click resets */
 const gc = document.getElementById('graph'), gx = gc.getContext('2d');
 const COL = { o: tok('--yellow'), n: tok('--text-2'), a: tok('--terra'), s: tok('--lav'), m: tok('--mag'), u: '#4A3A33' };
-const HALO = { a: tok('--terra'), o: tok('--yellow'), n: tok('--cyan'), s: tok('--lav'), m: tok('--mag') };
+const HALO_RGB = { a: [255,122,61], o: [245,255,59], n: [0,240,255], s: [199,125,255], m: [255,0,255] };
 const NODES = N.map(([x, y, r, k, label], i) => ({ hx: x, hy: y, x, y, vx: 0, vy: 0, r, k, label, pinned: i === 0,
   ph1: Math.random() * 6.28, ph2: Math.random() * 6.28, amp: k === 'o' ? 3 : 5 + Math.random() * 7, sp: .6 + Math.random() * .8 }));
 document.querySelector('.graph .count').textContent = NODES.length + ' notes';
@@ -512,7 +503,6 @@ function makeHalo(n) {
 function sizeGraph() {
   gc.width = gc.offsetWidth; gc.height = gc.offsetHeight;
   gs = Math.min(gc.width / 320, gc.height / 250); gox = (gc.width - 320 * gs) / 2; goy = (gc.height - 250 * gs) / 2;
-  NODES.forEach(n => { n.halo = n.k === 'u' ? null : makeHalo(n); });
 }
 // canvas pixel to graph units and back
 const toWorld = (px, py) => [cam.x + ((px - gox) / gs - 160) / cam.z, cam.y + ((py - goy) / gs - 125) / cam.z];
@@ -532,7 +522,7 @@ gc.addEventListener('dblclick', () => { cam.x = 160; cam.y = 125; cam.z = 1; });
 function stepGraph(t) {
   const r = gc.getBoundingClientRect(), k = gc.width / r.width;
   const [mx, my] = toWorld((mouse.x - r.left) * k, (mouse.y - r.top) * k);
-  let best = null, bd = 10 / cam.z;
+  let best = null, bd = 14 / cam.z;
   NODES.forEach(n => {
     const dx = n.x - mx, dy = n.y - my, d = Math.hypot(dx, dy) || 1;
     if (d < bd && n.k !== 'u') { bd = d; best = n; }
@@ -540,7 +530,10 @@ function stepGraph(t) {
     const tx = n.hx + n.amp * Math.sin(t * .00045 * n.sp + n.ph1), ty = n.hy + n.amp * Math.cos(t * .00038 * n.sp + n.ph2);
     let ax = (tx - n.x) * .03, ay = (ty - n.y) * .03;
     const R0 = 64 / cam.z;
-    if (!drag.on && d < R0) { const f = Math.pow(1 - d / R0, 2) * (.8 + mouse.speed * .12) / cam.z; ax += dx / d * f; ay += dy / d * f; }
+    // only a fast sweep pushes; a slow or resting pointer lets you reach and pick a node
+    const push = Math.max(0, mouse.speed - 6) * .07;
+    if (!drag.on && push > 0 && d < R0) { const f = Math.pow(1 - d / R0, 2) * push / cam.z; ax += dx / d * f; ay += dy / d * f; }
+    if (n === hover) { ax = ay = 0; n.vx *= .5; n.vy *= .5; }
     n.vx = (n.vx + ax) * .86; n.vy = (n.vy + ay) * .86; n.x += n.vx; n.y += n.vy;
   });
   hover = best; gc.style.cursor = drag.on ? 'grabbing' : best ? 'pointer' : 'grab';
@@ -548,7 +541,16 @@ function stepGraph(t) {
 function drawGraph() {
   gx.clearRect(0, 0, gc.width, gc.height); gx.imageSmoothingEnabled = false;
   const z = cam.z, P = n => toScreen(n.x, n.y);
-  NODES.forEach(n => { if (!n.halo) return; const [x, y] = P(n), w = Math.round(n.halo.width * Math.sqrt(z)); gx.drawImage(n.halo, x - (w >> 1), y - (w >> 1), w, w); });
+  // each node pours its halo colour into the background field; fast nodes make their own ripples
+  const gr = gc.getBoundingClientRect(), gk = gr.width / gc.width, sz = Math.sqrt(z);
+  NODES.forEach(n => {
+    if (n.k === 'u') return;
+    const [x, y] = P(n), cx = (gr.left + x * gk) / BG.CELL, cy = (gr.top + y * gk) / BG.CELL;
+    const rad = (n.k === 'a' ? 13 : n.k === 'o' ? 8 : n.r > 3 ? 4.5 : 2.6) * sz, amt = n.k === 'a' ? .05 : n.k === 'o' ? .07 : n.r > 3 ? .06 : .045;
+    BG.ink(cx, cy, HALO_RGB[n.k], rad, amt);
+    const sp = Math.hypot(n.vx, n.vy);
+    if (animate && sp > .6) { BG.splash(cx, cy, Math.min(1.5, sp * .5), 1.5); BG.push(cx, cy, n.vx * .15, n.vy * .15, 2); }
+  });
   gx.lineWidth = Math.max(1, gs * .7);
   E.forEach(([a, b]) => {
     const A = NODES[a], Bn = NODES[b], lit = hover && (A === hover || Bn === hover);
@@ -571,25 +573,105 @@ function drawGraph() {
     }
   });
 }
-/* background: a small parallax against the mouse gives the dot field depth */
-const bgEl = document.getElementById('bg'); let pxv = 0, pyv = 0;
-function parallax() {
-  const tx = mouse.x > -1e3 ? -(mouse.x / 1440 * 2 - 1) * 10 : 0, ty = mouse.y > -1e3 ? -(mouse.y / 900 * 2 - 1) * 7 : 0;
-  pxv += (tx - pxv) * .08; pyv += (ty - pyv) * .08;
-  bgEl.style.transform = `translate(${pxv.toFixed(1)}px, ${pyv.toFixed(1)}px) scale(1.02)`;
-}
-
+/* living background: a dot field with ripples, a flow that carries colour, and the graph's halos poured into it */
+const BG = (() => {
+  const W = 120, H = 75, SUB = 4, S = W * H, CELL = 1440 / W;
+  const cv = document.getElementById('bg'); cv.width = W * SUB; cv.height = H * SUB;
+  const g = cv.getContext('2d'), img = g.createImageData(W * SUB, H * SUB), px = new Uint32Array(img.data.buffer);
+  let h0 = new Float32Array(S), h1 = new Float32Array(S);
+  const vx = new Float32Array(S), vy = new Float32Array(S);
+  let ir = new Float32Array(S), ig = new Float32Array(S), ib = new Float32Array(S);
+  let tr = new Float32Array(S), tg = new Float32Array(S), tb = new Float32Array(S);
+  const baseA = new Float32Array(S), rr = new Uint8Array(S), rgc = new Uint8Array(S), rb = new Uint8Array(S), thr = new Float32Array(S);
+  const ramp = [[255,122,61],[255,0,60],[255,0,255],[199,125,255],[0,240,255]];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x, u = x / W, v = y / H;
+    let n = .5 + .22 * Math.sin(u * 9 + Math.sin(v * 5) * 2) + .18 * Math.sin(v * 13 - u * 4) + .12 * Math.sin((u + v) * 23);
+    n *= .25 + .9 * Math.pow(u, 1.3) * (.4 + .6 * v);
+    thr[i] = (bayer[(y % 4) * 4 + (x % 4)] + .5) / 16;
+    baseA[i] = n > thr[i] ? .2 : .035;
+    const t = Math.min(.999, u * .6 + v * .4) * (ramp.length - 1), k = Math.floor(t);
+    [rr[i], rgc[i], rb[i]] = ramp[k];
+  }
+  const near = (cx, cy, rad, fn) => {
+    const x0 = Math.max(1, Math.floor(cx - rad)), x1 = Math.min(W - 2, Math.ceil(cx + rad)), y0 = Math.max(1, Math.floor(cy - rad)), y1 = Math.min(H - 2, Math.ceil(cy + rad));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) { const d = Math.hypot(x - cx, y - cy) / rad; if (d < 1) fn(y * W + x, 1 - d); }
+  };
+  const api = {
+    CELL,
+    splash(cx, cy, amt, rad = 2) { near(cx, cy, rad, (i, f) => { h1[i] += amt * f; }); },
+    push(cx, cy, dx, dy, rad = 4) { near(cx, cy, rad, (i, f) => { vx[i] += dx * f; vy[i] += dy * f; }); },
+    ink(cx, cy, col, rad, amt) { near(cx, cy, rad, (i, f) => { const a = amt * f; ir[i] += col[0] * a; ig[i] += col[1] * a; ib[i] += col[2] * a; }); },
+    step() {
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x;
+        h0[i] = ((h1[i - 1] + h1[i + 1] + h1[i - W] + h1[i + W]) * .5 - h0[i]) * .968;
+      }
+      [h0, h1] = [h1, h0];
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x;
+        vx[i] *= .9; vy[i] *= .9;
+        // the colour rides the flow and the ripple slope
+        let sx = x - vx[i] - (h1[i + 1] - h1[i - 1]) * .6, sy = y - vy[i] - (h1[i + W] - h1[i - W]) * .6;
+        sx = Math.max(0, Math.min(W - 1.001, sx)); sy = Math.max(0, Math.min(H - 1.001, sy));
+        const x0 = sx | 0, y0 = sy | 0, fx = sx - x0, fy = sy - y0, j = y0 * W + x0;
+        const w00 = (1 - fx) * (1 - fy), w10 = fx * (1 - fy), w01 = (1 - fx) * fy, w11 = fx * fy;
+        tr[i] = (ir[j] * w00 + ir[j + 1] * w10 + ir[j + W] * w01 + ir[j + W + 1] * w11) * .92;
+        tg[i] = (ig[j] * w00 + ig[j + 1] * w10 + ig[j + W] * w01 + ig[j + W + 1] * w11) * .92;
+        tb[i] = (ib[j] * w00 + ib[j + 1] * w10 + ib[j + W] * w01 + ib[j + W + 1] * w11) * .92;
+      }
+      [ir, tr] = [tr, ir]; [ig, tg] = [tg, ig]; [ib, tb] = [tb, ib];
+    },
+    draw() {
+      px.fill(0xFF090A0B);
+      const RW = W * SUB;
+      for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const i = y * W + x, h = h1[i];
+        let r, gg, b;
+        const m = Math.max(ir[i], ig[i], ib[i]), lum = m / 255;
+        if (lum > thr[i] * .7) {
+          // the halo colour, dithered, brightened by the wave
+          const k = Math.min(1, .35 + lum * 1.2 + Math.abs(h) * .25) * 255 / (m || 1);
+          r = ir[i] * k; gg = ig[i] * k; b = ib[i] * k;
+        } else {
+          const a = Math.min(.75, baseA[i] * (1 + h * .8) + Math.abs(h) * .14);
+          if (a < .03) continue;
+          r = rr[i] * a; gg = rgc[i] * a; b = rb[i] * a;
+        }
+        r = Math.min(255, r + 11) | 0; gg = Math.min(255, gg + 10) | 0; b = Math.min(255, b + 9) | 0;
+        const c = 0xFF000000 | (b << 16) | (gg << 8) | r;
+        const ox = Math.max(-1, Math.min(1, Math.round((h1[i + 1] - h1[i - 1]) * 2))), oy = Math.max(-1, Math.min(1, Math.round((h1[i + W] - h1[i - W]) * 2)));
+        const p = (y * SUB + 1 + oy) * RW + x * SUB + 1 + ox;
+        px[p] = c; px[p + 1] = c; px[p + RW] = c; px[p + RW + 1] = c;
+      }
+      g.putImageData(img, 0, 0);
+    }
+  };
+  return api;
+})();
+// the mouse stirs the field; a click on empty space drops a big ripple
+let lastPX = -1, lastPY = -1;
+addEventListener('pointermove', e => {
+  if (!animate) return;
+  const cx = e.clientX / BG.CELL, cy = e.clientY / BG.CELL;
+  if (lastPX >= 0) { const dx = cx - lastPX, dy = cy - lastPY; BG.push(cx, cy, dx * .5, dy * .5, 4); BG.splash(cx, cy, Math.min(1, Math.hypot(dx, dy) * .3), 2); }
+  lastPX = cx; lastPY = cy;
+});
+addEventListener('pointerdown', e => {
+  if (!animate || e.target.closest('.w, button, #berry, .hint, .titlebar')) return;
+  BG.splash(e.clientX / BG.CELL, e.clientY / BG.CELL, 14, 3);
+});
 /* one loop, at most 30 frames a second, paused while the window is hidden */
 let last = 0;
 function frame(t) {
   requestAnimationFrame(frame);
   if (document.hidden || t - last < 33) return;
   last = t; mouse.speed *= .88;
-  drawBerry(t); stepGraph(t); drawGraph(); parallax();
+  BG.step(); drawBerry(t); stepGraph(t); drawGraph(); BG.draw();
 }
 document.fonts.ready.then(() => {
   sizeGraph(); addEventListener('resize', () => { sizeGraph(); if (!animate) drawGraph(); });
-  if (animate) requestAnimationFrame(frame); else { drawBerry(performance.now()); drawGraph(); }
+  if (animate) requestAnimationFrame(frame); else { for (let i = 0; i < 60; i++) { drawGraph(); BG.step(); } drawBerry(performance.now()); BG.draw(); }
 });
 document.fonts.ready.then(() => { document.title = 'ready'; });
 </script>
