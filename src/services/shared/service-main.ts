@@ -2,6 +2,7 @@ import type { Envelope } from '@hsos/contracts/bus';
 import type { ServiceId } from '@hsos/contracts/ids';
 import type { Logger, ServiceContext } from '@hsos/contracts/module';
 import type { DataPaths } from '@hsos/contracts/paths';
+import { createRemoteSettingsReader } from '../../modules/settings/service/remote-settings';
 import { loadModules } from '../../modules/shell/loader/load-modules';
 import type { ModuleEntry } from '../../modules/shell/loader/load-modules';
 import {
@@ -92,6 +93,8 @@ export function runService(
         store,
         logFor: (module) => log.forModule(module),
         onStop: runtime.onStop,
+        // SET-10: sections come from main over the bus.
+        registerSettings: (section) => createRemoteSettingsReader(runtime.bus, section, log.forModule(id)),
       }),
     log,
   );

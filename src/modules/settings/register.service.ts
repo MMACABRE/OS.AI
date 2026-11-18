@@ -15,6 +15,8 @@ import { terminalSection } from '@hsos/contracts/channels/terminal';
 import type { ExtensionPoint, ServiceContext, SettingsSection } from '@hsos/contracts/module';
 import { err, ok } from '@hsos/contracts/result';
 import type { SettingsStore } from './service/settings-store';
+import { watchSettingsFiles } from './service/settings-watcher';
+import type { SettingsFileKind } from './service/settings-watcher';
 
 /**
  * main fills this with the settings store it created before any module registered, so every module's
@@ -61,4 +63,26 @@ export function register(ctx: ServiceContext): void {
     ctx.bus.emit(settingsChannels.sectionChanged, { moduleId, value }),
   );
   store.onProblemsChanged((problems) => ctx.bus.emit(settingsChannels.problemsChanged, problems));
+
+  // SET-8: edits on disk apply within a second; the files are re-read, never the event data (P-16).
+  const reload: Record<SettingsFileKind, () => Promise<void>> = {
+    settings: () => store.load(),
+    keybindings: () => Promise.resolve(),
+    themes: () => Promise.resolve(),
+  };
+  const stopWatching = watchSettingsFiles({
+    settingsFile: ctx.paths.settingsFile,
+    keybindingsFile: ctx.paths.keybindingsFile,
+    themesDir: ctx.paths.themesDir,
+    clock: ctx.clock,
+    log: ctx.log,
+    onChange: (kind) =>
+      void reload[kind]().catch((error: unknown) =>
+        ctx.log.log('warn', 'settings.reload_failed', { kind, message: String(error) }),
+      ),
+  });
+  ctx.onStop(() => {
+    stopWatching();
+    return Promise.resolve();
+  });
 }

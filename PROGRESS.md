@@ -136,3 +136,11 @@ Did: `readJson` and `writeJsonAtomic` (`write-file-atomic` plus a `.bak` copy, P
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
 Deviations: Tests not written (owner's rule), plan in `untested.md`. main validates every contract section, since a zod schema cannot cross the bus to main for sections registered in utility processes (SET-10). The store reaches the module through the extension point `settings.store`, filled by main through its module list. `settings.openFolder` is left to the settings screen card. Files outside the list: `src/main/index.ts`.
 Next: 017
+
+## 017 Settings live reload
+Status: done (untested)
+Date: 2026-11-18
+Did: `watchSettingsFiles` watches the folders of settings.json and keybindings.json and the themes folder, and reports each kind after a 200 ms quiet period; the settings module re-reads the store on a change (SET-8, P-16), and the store notifies only changed sections (SET-9). `createRemoteSettingsReader` gives modules in utility processes a reader fed by `getSection` and `sectionChanged` (SET-10); `runService` uses it for `registerSettings`.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, e2e not run
+Deviations: Tests not written (owner's rule), plan in `untested.md`. Folders are watched instead of files because an atomic write replaces the file. Key binding and theme reloads are no-ops until cards 018 and 019.
+Next: 018
