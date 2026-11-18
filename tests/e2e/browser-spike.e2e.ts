@@ -6,7 +6,9 @@ test.skip('card 006: a WebContentsView returns a screenshot through the DevTools
   let log = '';
   app.process().stdout?.on('data', (data: Buffer) => (log += String(data)));
   await app.firstWindow();
-  await expect.poll(() => /browser-spike screenshot (\d+)/.exec(log)?.[1] ?? '0', { timeout: 10_000 }).not.toBe('0');
+  await expect
+    .poll(() => /browser-spike screenshot (\d+)/.exec(log)?.[1] ?? '0', { timeout: 10_000 })
+    .not.toBe('0');
   const length = Number(/browser-spike screenshot (\d+)/.exec(log)?.[1]);
   await app.close();
   expect(length).toBeGreaterThan(1_000);
