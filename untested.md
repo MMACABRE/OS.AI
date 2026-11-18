@@ -179,3 +179,23 @@ Code: `src/modules/ui-kit/components/` (`Button`, `IconButton`, `TextField`, `Nu
 `tests/ui-kit/no-raw-css.test.ts`:
 
 - UI-1: `findRawValues` on `tests/fixtures/css/raw-values.module.css` reports exactly 3 problems (hex on line 2, `rgba(` on line 3, `4px` on line 4) and nothing for `2px 1px 0`, the comment, or `var(--size-row)`; running the script over `src` exits 0.
+
+## 021 Panel frame, lists and trees
+
+Code: `src/modules/ui-kit/components/` `PanelFrame` (with `PanelViewState`), `EmptyState`, `ErrorState`, `Skeleton` (`SKELETON_DELAY_MS`), `List`, `Tree`, `Tabs`, `SplitView`, `ProgressBar`, shared `PanelStates.module.css`, `virtual-rows.ts` (`useVirtualRows`, `useTypeAhead`, `VIRTUALISE_ABOVE`), `ui-kit-actions.ts` (`UiKitActionsContext` for "Show log"); exports in `src/modules/ui-kit/index.ts`.
+
+`tests/ui-kit/panel-frame.ui.test.tsx`:
+
+- P-40: `PanelFrame` with each state. `loading` shows nothing for 150 ms, then the loading line (fake timers); `empty` shows the title, message and action button; `error` shows the message, Retry calls `onRetry`, "Show log" calls `openLog` from a provided `UiKitActionsContext`, and the frame gets the error class; `ready` renders the children, and the children are absent in the other three states.
+
+`tests/ui-kit/list.ui.test.tsx`:
+
+- UI-7: with 1 000 rows of height 26 in a 260 px container, fewer than 60 `option` elements are in the DOM; with 150 rows, all 150 are.
+- Keyboard: ArrowDown, ArrowUp, Home, End move `onSelect`; Enter calls `onActivate` with the selected id.
+- Type-ahead: typing `b` then `e` quickly selects the first row whose text starts with "be".
+
+`tests/ui-kit/tree.ui.test.tsx`:
+
+- Right on a collapsed folder calls `onToggle`; Right on an expanded folder selects its first child; Left on an expanded folder calls `onToggle`; Left on a child selects its parent; rows carry `aria-level` and `aria-expanded`.
+
+Also worth tests: `Tabs` arrow keys change and focus the tab; `SplitView` arrow keys on the separator change `aria-valuenow` and respect `minSizes`; `ProgressBar` clamps 1.4 to `aria-valuenow` 100.

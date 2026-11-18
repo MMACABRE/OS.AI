@@ -1,0 +1,37 @@
+.bar {
+  position: relative;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--color-bg-raised);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transition: transform var(--motion-normal) var(--motion-ease-out);
+}
+
+.ok {
+  background: var(--color-state-ok);
+  box-shadow: var(--glow-live);
+}
+
+.warn {
+  background: var(--color-state-warn);
+  box-shadow: var(--glow-accent);
+}
+
+.danger {
+  background: var(--color-state-danger);
+  box-shadow: var(--glow-danger);
+}
+
+.info {
+  background: var(--color-state-info);
+}
+
+:global([data-motion='reduced']) .fill {
+  transition: none;
+}

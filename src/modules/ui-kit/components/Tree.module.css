@@ -1,0 +1,33 @@
+.tree {
+  composes: list from './List.module.css';
+}
+
+.inner {
+  composes: inner from './List.module.css';
+}
+
+.row {
+  composes: row from './List.module.css';
+  gap: 0.25rem;
+}
+
+.selected {
+  composes: selected from './List.module.css';
+}
+
+.twisty {
+  display: inline-flex;
+  justify-content: center;
+  width: 0.75rem;
+  flex: none;
+  color: var(--color-structure);
+  transition: transform var(--motion-quick) var(--motion-ease-out);
+}
+
+.open {
+  transform: rotate(90deg);
+}
+
+:global([data-motion='reduced']) .twisty {
+  transition: none;
+}

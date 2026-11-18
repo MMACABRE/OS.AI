@@ -1,0 +1,123 @@
+/* The four panel states (visual-direction.md "Panel states", P-40). */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-display);
+  font-size: var(--font-size-number);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.line {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.error {
+  composes: empty;
+}
+
+.errorTitle {
+  composes: emptyTitle;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-state-danger);
+  text-shadow: var(--glow-danger);
+}
+
+.link {
+  composes: focusRing from '../motion/lift.module.css';
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-text-primary);
+}
+
+/* Loading: a cyan pixel bar, one line, rows filling in. No spinner. */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  animation: show var(--motion-quick) var(--motion-ease-out);
+}
+
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+}
+
+.bar {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--color-bg-raised);
+}
+
+.barFill {
+  width: 30%;
+  height: 100%;
+  background: var(--color-live);
+  box-shadow: var(--glow-live);
+  animation: sweep calc(var(--motion-quick) * 10) steps(12) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+.skeletonRow {
+  height: 0.75rem;
+  border-radius: 1px;
+  background: var(--color-bg-raised);
+}
+
+.skeletonRow:nth-child(3n) {
+  width: 62%;
+}
+
+.skeletonRow:nth-child(3n + 1) {
+  width: 84%;
+}
+
+.skeletonRow:nth-child(3n + 2) {
+  width: 46%;
+}
+
+:global([data-motion='reduced']) .barFill {
+  animation: none;
+  width: 100%;
+  opacity: 0.6;
+}

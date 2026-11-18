@@ -1,0 +1,30 @@
+.tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+  min-height: var(--size-tab);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.tab {
+  composes: lift focusRing from '../motion/lift.module.css';
+  padding: 0 0.75rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+}
+
+.active {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-accent);
+  text-shadow: var(--glow-accent);
+}
