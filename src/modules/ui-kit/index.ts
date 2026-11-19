@@ -97,5 +97,7 @@ export type { DiffRow } from './components/diff-rows';
 export { MarkdownView } from './components/MarkdownView';
 export type { MarkdownViewProps } from './components/MarkdownView';
 export { CodeView } from './components/CodeView';
+export { pasteToTerminal, registerTerminalPaste, sanitizePaste } from './components/terminal-paste';
+export type { PasteOutcome, TerminalPaste } from './components/terminal-paste';
 export type { CodeViewProps } from './components/CodeView';
 export type { PopoverProps } from './components/Popover';

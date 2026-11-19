@@ -330,3 +330,11 @@ Did: Added `DiffView` (the `diff` package, inline and split, folds, F7 and Shift
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok
 Deviations: `CodeView` takes `language` but no CodeMirror language packages are in the stack, so every file shows without syntax colours (FILE-70 asks for them); for the spec author. `CodeView` and `DiffView` have props beyond ui-kit.md: `revealLine` and `label` on CodeView (FILE-78 and an accessible name), `label`, `lineActionLabel` and `renderBelow` on DiffView (REV-23, REV-24). Wiki links in a preview wait for the graph module. The split switch is not saved with the panel.
 Next: more lane B fixes
+
+## Lead fixes after the lane B merge: feedback paste
+Status: done (untested)
+Date: 2026-11-19
+Did: "Send to Claude" (REV-33) no longer writes its own bracketed paste markers through `terminal.write`. The ui-kit holds a paste registry (`registerTerminalPaste`, `pasteToTerminal`, `sanitizePaste`); each terminal panel registers xterm's `paste` for its terminal id, after removing escape and other control characters (P-6), so a comment holding `ESC[201~` cannot end the paste early and run the rest as typed input. When the program has not turned on bracketed paste and the text has line breaks, the paste is refused and the tray says to use Copy, because each line would run on its own. A terminal with no panel open gets a toast.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed
+Deviations: TERM-43 (ask before a long paste) and the rest of TERM-46 are terminal cards still to come; until then this path refuses instead of asking. Files outside any card: `src/modules/ui-kit/components/terminal-paste.ts`, `src/modules/ui-kit/index.ts`, `src/modules/terminal/panel/TerminalPanel.tsx`.
+Next: more lane B fixes

@@ -5,8 +5,7 @@ import { reviewChannels } from '@hsos/contracts/channels/review';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import type { ProjectId } from '@hsos/contracts/ids';
-import { Button, ConfirmDialog, Select, TextField, useToast } from '@hsos/ui-kit';
-import { pasteBracketed } from './data';
+import { Button, ConfirmDialog, Select, TextField, useToast, pasteToTerminal } from '@hsos/ui-kit';
 import { relativeTo } from './helpers';
 import styles from './FeedbackTray.module.css';
 
@@ -58,11 +57,17 @@ export function FeedbackTray({ bus, projectId, root, comments, sessions }: Feedb
         toast.show({ message: composed.error.message, tone: 'error' });
         return;
       }
-      // REV-33: pasted, not run; the owner reads it and presses Enter.
-      void pasteBracketed(bus, terminal, composed.value).then((written) => {
-        if (written.ok) setSent(true);
-        else toast.show({ message: written.error.message, tone: 'error' });
-      });
+      // REV-33: pasted through the terminal's paste, not run; the owner reads it and presses Enter.
+      const outcome = pasteToTerminal(terminal, composed.value);
+      if (outcome === 'pasted') setSent(true);
+      else
+        toast.show({
+          tone: 'error',
+          message:
+            outcome === 'no-terminal'
+              ? "Open that session's terminal, then send again."
+              : 'That terminal is not ready for a paste. Use Copy instead.',
+        });
     });
   };
 

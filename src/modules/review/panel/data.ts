@@ -3,7 +3,6 @@ import { sessionsChannels } from '@hsos/contracts/channels/sessions';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import { terminalChannels } from '@hsos/contracts/channels/terminal';
 import type { ProjectInfo } from '@hsos/contracts/channels/workspace';
-import type { TerminalId } from '@hsos/contracts/ids';
 import type { AppError, Result } from '@hsos/contracts/result';
 
 /** The sessions of a project with the ids of their live terminals (SESS-30). A copy of the sessions module's helper. */
@@ -29,9 +28,4 @@ export function gitMessage(error: AppError): string | null {
     default:
       return error.message;
   }
-}
-
-/** Sends text to a terminal the way a paste does: bracketed, and without pressing Enter (REV-33). */
-export function pasteBracketed(bus: Bus, id: TerminalId, text: string) {
-  return bus.call(terminalChannels.write, { id, data: `\u001b[200~${text}\u001b[201~`, source: 'owner' });
 }

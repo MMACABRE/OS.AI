@@ -7,7 +7,7 @@ import { workspaceChannels } from '@hsos/contracts/channels/workspace';
 import type { AbsPath, TerminalId } from '@hsos/contracts/ids';
 import type { Logger, PanelProps } from '@hsos/contracts/module';
 import { zAbsPath, zTerminalId } from '@hsos/contracts/schemas';
-import { Button, ErrorState, usePageVisible } from '@hsos/ui-kit';
+import { Button, ErrorState, registerTerminalPaste, sanitizePaste, usePageVisible } from '@hsos/ui-kit';
 import { createXterm } from './create-xterm';
 import type { XtermView } from './create-xterm';
 import { HeaderSlot } from './header-slot';
@@ -219,6 +219,20 @@ export function createTerminalPanel(deps: TerminalPanelDeps) {
     useEffect(() => {
       if (isFocused) view.current?.terminal.focus();
     }, [isFocused]);
+
+    // REV-33: other modules paste through xterm's paste, so bracketed paste applies. Without bracketed
+    // paste each line would run on its own, so text with line breaks is refused (TERM-43 asks first).
+    useEffect(() => {
+      if (terminalId === null) return undefined;
+      return registerTerminalPaste(terminalId, (text) => {
+        const terminal = view.current?.terminal;
+        if (terminal === undefined) return 'needs-bracketed-paste';
+        const clean = sanitizePaste(text);
+        if (!terminal.modes.bracketedPasteMode && /[\r\n]/.test(clean)) return 'needs-bracketed-paste';
+        terminal.paste(clean);
+        return 'pasted';
+      });
+    }, [terminalId]);
 
     const restart = () => {
       idRef.current = null;

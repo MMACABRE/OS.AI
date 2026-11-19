@@ -655,3 +655,14 @@ Code: `src/modules/ui-kit/components/DiffView.tsx`, `diff-rows.ts` (`diffRows`, 
 `tests/files/viewer.ui.test.tsx`: FILE-70 (a `.md` file opens in preview when `markdownPreviewFirst`, Ctrl+Shift+V shows the source), FILE-74 (Compare shows a diff of disk against the buffer, nothing is saved), FILE-79 (a link `../b.md` from `C:\p\docs\a.md` opens `C:\p\b.md`; an https link calls `shell.openExternal`), a double Ctrl+S sends one `files.save`.
 
 `tests/history/timeline.ui.test.tsx`: HIST-41 (with Compare on, the diff's left side is the selected snapshot's text and the right side is the current file).
+
+## Lead fixes after the lane B merge: feedback paste
+
+Code: `src/modules/ui-kit/components/terminal-paste.ts`, `src/modules/terminal/panel/TerminalPanel.tsx` (the registering effect), `src/modules/review/panel/FeedbackTray.tsx` (`send`).
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| P-6 | `sanitizePaste` | text `a\x1b[201~\rb\tc\n` | returns `a[201~\rb\tc\n` without the escape |
+| REV-33 | a terminal panel whose xterm has bracketed paste on, and a comment holding `\x1b[201~rm -rf x\r` | "Send to Claude" | xterm's `paste` got the text without `\x1b`; `terminal.write` was not called by the tray; no carriage return outside the markers |
+| REV-33b | bracketed paste off, composed text with two lines | "Send to Claude" | nothing is pasted; an error toast suggests Copy |
+| REV-33c | no panel for the chosen terminal | "Send to Claude" | a toast says to open the terminal; nothing is written |
