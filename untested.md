@@ -353,3 +353,39 @@ jsdom has no `document.startViewTransition`, so component rows exercise the dire
 | WS-41  | the demo on `code` | Dashboard for 3 s and back | the code section is the same node |
 
 Also worth a test: `repoName('https://github.com/a/b')` is `a/b`, and `null` for a bad URL; the repo button is absent when `webUrl` is null; the side tabs list registered side views in order with Settings last.
+
+## 029 Terminal panel, ribbon and mascot
+
+Code: `src/modules/terminal/panel/` (`TerminalPanel.tsx` with `createTerminalPanel`, `create-xterm.ts`, `xterm-theme.ts` with `xtermTheme`, `terminalAlpha` and `withAlpha`, `header-slot.tsx`), `src/modules/terminal/register.ui.ts`, `src/modules/hud/panel/ribbon/` (`Ribbon.tsx` with `createRibbon`, `shortFolder`, `listedAgents`, `elapsedSince`; `hud-data.ts` with `useHudData`, `sessionForTerminal`, `startHudData`), `src/modules/hud/panel/mascot/` (`Mascot.tsx`, `mascot-sheet.ts` with `loadMascotSheet`, `mascotStateFor`, `frameAt`), `src/modules/hud/register.ui.ts`, `src/modules/ui-kit/components/contributions.ts`. Feature F-067.
+
+xterm needs a canvas; in jsdom mock `@xterm/xterm` with a fake `Terminal` that records its options and `write` calls, and mock `@xterm/addon-webgl` to throw (the fallback path). Use `FakeBus` for the bus.
+
+`tests/terminal/header-slot.ui.test.tsx`:
+
+| Rule   | Given | When | Then |
+| ------ | ----- | ---- | ---- |
+| TERM-75 | a contribution (through `contributeUi(terminalHeader, ...)`) returning a 28 px element for `t1`, then a 64 px one | the panel renders | `onHeightChange` is called with 28, then 64, and the panel refits (a `terminal.resize` call follows each) |
+| TERM-75 | two contributions, the first returning null | the slot renders | the second one's content shows |
+| TERM-76 | `--surface-terminal-alpha: 0.9`, `--surface-text-minAlpha: 0.78` on the root | the terminal is created | the fake `Terminal` got `allowTransparency: true` and a theme background `rgba(..., 0.9)`; with alpha 0.3 it is 0.78 |
+
+`tests/hud/ribbon.ui.test.tsx` (seed `useHudData` directly):
+
+| Rule   | Given | When | Then |
+| ------ | ----- | ---- | ---- |
+| HUD-80 | a session bound to `t1` with activity `working`, and one bound to `t2` that `ended` | the ribbon renders for each | `t1` shows a ribbon inside a `[data-surface="ribbon"]`; `t2` renders nothing |
+| HUD-80 | the `t1` session becomes `needs-you` | the ribbon re-renders | `data-activity` is `needs-you` and the steam source colour is `color.brand` (spy on `addBackdropSource` or read the source registry) |
+| HUD-81 | a session with title, model, effort `high`, mode `plan`, cwd under `C:\Users\x`, context 72 | it renders | the parts read in order: mascot, title, "Opus 5.5 · high", "Plan", `~\...`, repo, context bar and "72%" toned warn |
+| HUD-82 | two running subagents and one that ended 30 s ago, another 90 s ago | the mascot button is pressed | three rows show, the 30 s one with "done"; with none, "No subagents running." |
+| HUD-83 | the context goes from 41 to 42 | it re-renders | only the last digit of the percentage has the roll spans |
+
+`tests/hud/mascot.ui.test.tsx` (fake timers):
+
+| Rule   | Given | When | Then |
+| ------ | ----- | ---- | ---- |
+| HUD-90 | `mascotStateFor` | each activity on `code`, `notes`, `other` | working, background give `working`, `reading`, `dancing`; needs-you `waving`; done `cheering`; idle `resting`; ended and null `sleeping` |
+| HUD-91 | a mascot `working` | the activity becomes `needs-you` | the strip shows row 5 (turn) for 3 frames at 12 fps, then row 1 |
+| HUD-91 | `loadMascotSheet('not json')` | it runs | `kind` is `placeholder` with a problem; the component draws the two blocks and the reporter is called once |
+| HUD-92 | seven running subagents | the ribbon renders | five mini mascots and `+2` |
+| HUD-93 | `data-motion="reduced"` | a dancing mascot renders and 2 s pass | the strip stays at frame 0 of its row; the mascot has `aria-hidden` |
+
+Also worth a test: `frameAt` for `from 4` (0 to 5, then 4, 5, 4) and `loop, hold frame 0` (frame 0 for `fps * 3` steps, then 1, 2, 3); `shortFolder` cuts the middle; `sessionForTerminal` picks the newest non-ended session; `elapsedSince` gives `42s`, `12m`, `3h 05m`.

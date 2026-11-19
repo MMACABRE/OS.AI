@@ -88,11 +88,15 @@ export function DockHost({ label, panels, log, onReady, emptyActions }: DockHost
           return;
         }
         nextPanel += 1;
+        // Layout C stacks panels of one kind full width: a second terminal goes below the first.
+        const sameKind = dock.panels.filter((panel) => (panel.params as { type?: string }).type === type);
+        const below = sameKind[sameKind.length - 1];
         dock.addPanel({
           id: `${type}-${nextPanel}`,
           component: type,
           title: definition.title,
           params: { type, state: state ?? definition.initialState },
+          ...(below === undefined ? {} : { position: { referencePanel: below, direction: 'below' as const } }),
         });
       },
     });

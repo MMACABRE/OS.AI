@@ -1,0 +1,54 @@
+/* The mascot (HUD-90): one 16 by 16 cell of the sheet, scaled by a whole number with pixelated scaling.
+   The frame moves by transform only (MOT-1). */
+.mascot {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+}
+
+.small {
+  width: 1rem;
+  height: 1rem;
+}
+
+.large {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* The whole sheet, 6 cells across and 8 down, scaled so one cell fills the box. */
+.strip1,
+.strip2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  image-rendering: pixelated;
+  user-select: none;
+  pointer-events: none;
+}
+
+.strip1 {
+  width: 6rem;
+  height: 8rem;
+}
+
+.strip2 {
+  width: 12rem;
+  height: 16rem;
+}
+
+/* A missing sheet draws plain coloured blocks (HUD-91). */
+.placeholder {
+  display: inline-grid;
+  grid-template-rows: 1fr 1fr;
+}
+
+.blockA {
+  background: var(--color-brand);
+}
+
+.blockB {
+  background: var(--color-live);
+}

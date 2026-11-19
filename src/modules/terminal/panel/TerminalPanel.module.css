@@ -1,0 +1,58 @@
+/*
+ * The terminal panel (TERM-75, TERM-76): a frame with corner brackets around the header slot and the
+ * rows. xterm draws its own see-through background, so the panel paints none; the background scene
+ * shows through the tint. Terminal text never animates (MOT-10): nothing here transitions the rows.
+ */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+}
+
+/* The focused terminal's frame turns color.accent (visual-direction.md "Focus"). */
+.panel:focus-within {
+  border-color: var(--color-accent);
+}
+
+.header {
+  flex: none;
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  padding: 0.25rem 0.5rem;
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.screen :global(.xterm-viewport) {
+  background-color: transparent;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.loading {
+  position: absolute;
+  top: 2.5rem;
+  left: 0.75rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.exited {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+}
+
+
+.error {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg-panel) calc(var(--surface-panel-alpha) * 100%), transparent);
+}

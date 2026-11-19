@@ -88,3 +88,4 @@ export { Backdrop, backdropStats } from './backdrop/Backdrop';
 export { useBackdropSource } from './backdrop/sources';
 export { SCENES, sceneFor } from './backdrop/scenes';
 export { PageVisibleContext, usePageVisible } from './components/page-visible';
+export { contributeUi, uiContributions, useUiContributions } from './components/contributions';

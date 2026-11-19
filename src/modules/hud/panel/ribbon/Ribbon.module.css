@@ -1,0 +1,192 @@
+/*
+ * The session ribbon (HUD-80 to HUD-83): a solid strip above the terminal, 32 px collapsed. Parts that
+ * do not fit drop from the right in a fixed order (container queries); the chat name shrinks first.
+ */
+.ribbon {
+  container-type: inline-size;
+  border-bottom: 1px solid var(--color-border-hairline);
+  color: var(--color-text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-small);
+}
+
+.ribbon[data-activity='needs-you'] {
+  border-bottom-color: var(--color-brand);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 2rem;
+  padding: 0 0.5rem 0 0.25rem;
+  white-space: nowrap;
+}
+
+.part {
+  composes: lift focusRing from '../../../ui-kit/motion/lift.module.css';
+  padding: 0 0.25rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mascotButton {
+  composes: part;
+  display: inline-flex;
+  padding: 0;
+}
+
+.chat {
+  composes: part;
+  min-width: 4rem;
+  max-width: 24rem;
+  flex-shrink: 1;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  text-overflow: ellipsis;
+}
+
+.model {
+  color: var(--color-structure);
+}
+
+.effort {
+  color: var(--color-text-muted);
+}
+
+.mode {
+  composes: part;
+  color: var(--color-knowledge);
+}
+
+.folder {
+  composes: part;
+  color: var(--color-text-secondary);
+}
+
+.repo {
+  composes: part;
+  color: var(--color-structure);
+}
+
+.branch {
+  color: var(--color-live);
+}
+
+.grow {
+  flex: 1;
+}
+
+.context {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.contextBar {
+  display: inline-block;
+  width: 2.5rem;
+}
+
+.ok {
+  color: var(--color-live);
+}
+
+.warn {
+  color: var(--color-state-warn);
+}
+
+.danger {
+  color: var(--color-state-danger);
+}
+
+.agents {
+  composes: part;
+  color: var(--color-live);
+}
+
+.more {
+  color: var(--color-text-muted);
+}
+
+/* HUD-83: the extra rows slide open with clip-path over motion.normal. */
+.rows {
+  margin: 0;
+  padding: 0.25rem 0.5rem 0.375rem 2.5rem;
+  list-style: none;
+  animation: open var(--motion-normal) var(--motion-ease-out);
+}
+
+@keyframes open {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+.row {
+  composes: enter from '../../../ui-kit/motion/motion.module.css';
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 1.375rem;
+}
+
+.agentType {
+  color: var(--color-text-primary);
+}
+
+.description {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool {
+  color: var(--color-live);
+}
+
+.elapsed {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.none {
+  color: var(--color-text-muted);
+}
+
+/* Parts drop from the right in this order as the ribbon narrows: context bar, folder, repo, mode. */
+@container (max-width: 52rem) {
+  .contextBar {
+    display: none;
+  }
+}
+
+@container (max-width: 44rem) {
+  .dropFolder {
+    display: none;
+  }
+}
+
+@container (max-width: 38rem) {
+  .dropRepo {
+    display: none;
+  }
+}
+
+@container (max-width: 32rem) {
+  .dropMode {
+    display: none;
+  }
+}
+
+:global([data-motion='reduced']) .rows {
+  animation: none;
+}
