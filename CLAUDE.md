@@ -2,11 +2,11 @@
 
 Spec of HSOS (Windows 11 desktop app built around a terminal running Claude Code), and later the app built from it.
 
-**Status (2026-11-18):** spec complete (20 modules, 118 cards). Build order look first: stage 0, Stage U (demo data, ends at owner approval in card 037), then stages 1 to 9 (JOURNAL 36, 37). Built: cards 001 to 010 (see `PROGRESS.md`). Handoff: `docs/handoff.md`.
+**Status (2026-11-19):** spec complete (20 modules, 118 cards). Build order look first: stage 0, Stage U (demo data, ends at owner approval in card 037), then stages 1 to 9 (JOURNAL 36, 37). Built on `main`: cards 001 to 029 and 031, untested by owner's rule (see `PROGRESS.md`, `untested.md`). Cards 030, 032, 033 on branch `lane-b-030-033`, not merged. Handoff: `docs/handoff.md`.
 
 **Look profile: Phosphor** (`spec/design/visual-direction.md`, JOURNAL 38; mockups in `design-round/`, start at `index.html`, decisions in `design-round/design-rounds.md`). CRT pixel art; one colour per job (orange `#FF7A3D` structure, yellow `#F5FF3B` values and focus, red `#FF003C` attention and brand, cyan `#00F0FF` live, lavender `#C77DFF` knowledge, magenta `#FF00FF` memory); breathing HSOS and cyan clock top left; corner boxes; floating zoomable graph with CLAUDE.md pinned centre; strawberry mascot; dust-and-steam background; every button lifts in 3D. Screens without a mockup (settings, palette, file viewer, diff, browser, git changes, history) get their own layout, shown to the owner as options first. Phosphor is the only built-in theme.
 
-**Next:** card 011 (Supervisor) in `tasks/stage-0.md`, then 012 to 014 to finish round 2 of the hsdevloop run.
+**Next:** first the owner's two fixes in `docs/handoff.md` (Skills repo row above the skills search; Ctrl+wheel font size in the terminal), then review and merge lane B (030, 032, 033), then cards 034 to 036, then stop at the 037 gate.
 
 ## Before any work
 
@@ -79,4 +79,5 @@ Gotchas: working copies are CRLF (`core.autocrlf true`), so strip `\r` before sc
 ## /hsdevloop amendments
 
 - 2026-11-18, before round 1: the owner asked for an hsdevloop run over cards 001 to 037, stopping at the 037 gate. This replaces "one card, then stop" for that run only. Each card still gets its own commit and `PROGRESS.md` entry. Why: owner's instruction.
-- 2026-11-18, round 2: run paused by the owner after card 010. Tester budget for the run: 5 uses, 1 used (batch 1, cards 001 to 007). Resume with `docs/handoff.md`.
+- 2026-11-18, round 2: run paused by the owner after card 010. Resumed at 011 with a new owner rule: implementers write no tests; test plans go to `untested.md` for a later testing agent (replaces the Tester batches).
+- 2026-11-19: run paused by the owner after card 031. Lane B (030, 032, 033) built by a Haiku coder on `lane-b-030-033`, awaiting Lead review and merge. Owner fixes to do first are in `docs/handoff.md`. Resume with `docs/handoff.md`.
