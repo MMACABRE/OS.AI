@@ -132,3 +132,10 @@ Owner asked to finish the UI. Everything the brief lists for the chosen directio
 - Background (brief item 4): the live pages are the preview (dust and steam, described in Dashboard round 6).
 - Not covered: the motion stage does not show the Dashboard mini graph turning into the Notes graph (the shared element of MOT-6), and in the stack the graph's steam goes to each page's own background, which is off, so the shared background shows none. In the app the graph inks the one shared background.
 - Open points for the spec author, beyond those of earlier rounds: `surface.text.minAlpha` 0.74 against P-45's 0.85; VT323 in xterm and its fallback for box-drawing characters; the barrel filter's cost against UI-32 (all in `glass-map.md`); the empty state's buttons "New note" and "Set vault folder" are new to the graph module.
+
+## Settings screen (2026-11-19): layout A
+
+Settings had no mockup, so three options were shown in `design-round/settings/phosphor-settings.html?layout=a|b|c`: A Ledger (search and the section list on the left, one section on the right, the problems banner on top), B One scroll (one centred column with jump chips) and C With preview (A plus a live miniature on the right).
+
+- Owner chose A, Ledger (2026-11-19). It is the settings.md layout as written, in the Phosphor look: corner-box section list with counts, the selected section in yellow, rows with a hint line under the label, a dot after a changed label and a lavender Reset link.
+

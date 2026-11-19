@@ -154,15 +154,41 @@ export function SettingsScreen({ bus }: { readonly bus: Bus }) {
 
   return (
     <div className={styles.screen}>
-      <header className={styles.header}>
-        <h1 className={styles.heading}>Settings</h1>
+      {/* Layout A, Ledger (owner, 2026-11-19): search and sections on the left, the section on the right. */}
+      <div className={styles.side}>
         <TextField
           value={filter}
           onChange={setFilter}
           placeholder="Search settings"
           label="Search settings"
         />
-      </header>
+        <nav className={styles.nav} aria-label="Settings sections">
+          {[
+            ...SCREEN_SECTIONS.map((section) => ({
+              id: section.moduleId as SectionId,
+              title: section.title,
+              count: keysOf(section).length as number | null,
+            })),
+            { id: 'keybindings' as SectionId, title: 'Key bindings', count: null },
+            { id: 'themes' as SectionId, title: 'Themes', count: null },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={styles.navItem}
+              aria-current={item.id === current && text === '' ? 'page' : undefined}
+              onClick={() => {
+                setCurrent(item.id);
+                setFilter('');
+              }}
+            >
+              <span>{item.title}</span>
+              {item.count === null ? null : <span className={styles.count}>{item.count}</span>}
+            </button>
+          ))}
+        </nav>
+      </div>
+      <div className={styles.main}>
       {problems.length === 0 ? null : (
         <div className={styles.banner} role="alert">
           <strong className={styles.bannerTitle}>
@@ -184,30 +210,6 @@ export function SettingsScreen({ bus }: { readonly bus: Bus }) {
           </ul>
         </div>
       )}
-      <div className={styles.body}>
-        <nav className={styles.nav} aria-label="Settings sections">
-          {[
-            ...SCREEN_SECTIONS.map((section) => ({
-              id: section.moduleId as SectionId,
-              title: section.title,
-            })),
-            { id: 'keybindings' as SectionId, title: 'Key bindings' },
-            { id: 'themes' as SectionId, title: 'Themes' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={styles.navItem}
-              aria-current={item.id === current && text === '' ? 'page' : undefined}
-              onClick={() => {
-                setCurrent(item.id);
-                setFilter('');
-              }}
-            >
-              {item.title}
-            </button>
-          ))}
-        </nav>
         <main className={styles.content}>
           {load.kind === 'loading' ? <Skeleton rows={6} label="Reading settings" /> : null}
           {load.kind === 'ready' && current === 'keybindings' && text === '' ? (
@@ -233,8 +235,13 @@ export function SettingsScreen({ bus }: { readonly bus: Bus }) {
                         const defaults = section.defaults as Values;
                         const changed = JSON.stringify(value) !== JSON.stringify(defaults[key]);
                         return (
-                          <div key={key} className={styles.row}>
-                            <span className={styles.label}>{keyLabel(key)}</span>
+                          <div key={key} className={styles.row} data-changed={changed || undefined}>
+                            <span className={styles.label}>
+                              <span className={styles.labelText}>{keyLabel(key)}</span>
+                              {schema.description === undefined ? null : (
+                                <span className={styles.hintLine}>{schema.description}</span>
+                              )}
+                            </span>
                             <span className={styles.control}>
                               <SchemaControl
                                 settingKey={key}
@@ -244,6 +251,8 @@ export function SettingsScreen({ bus }: { readonly bus: Bus }) {
                                 pickFolder={pickFolder}
                                 onValid={(next) => save(section.moduleId, key, next)}
                               />
+                            </span>
+                            <span className={styles.resetCell}>
                               {changed ? (
                                 <button
                                   type="button"
