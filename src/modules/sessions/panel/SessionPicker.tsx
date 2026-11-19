@@ -3,7 +3,8 @@ import type { Bus } from '@hsos/contracts/bus';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import { Badge, Button, Dialog, EmptyState, ErrorState, List, Skeleton, TextField, useToast } from '@hsos/ui-kit';
 import type { Tone } from '@hsos/ui-kit';
-import { copyResumeCommand, loadSessions, matchesSearch, resumeInNewTerminal, titleOf } from './actions';
+import { copyResumeCommand, loadSessions, matchesSearch, resumeAndOpen, titleOf } from './actions';
+import type { OpenTerminal } from './actions';
 import { cls, relativeTime } from './format';
 import { useProject } from './use-project';
 import styles from './SessionPicker.module.css';
@@ -25,10 +26,11 @@ export type SessionPickerProps = {
   readonly bus: Bus;
   readonly onClose: () => void;
   readonly openTranscript: (item: SessionListItem) => void;
+  readonly openTerminal: OpenTerminal;
 };
 
 /** Find Claude Session (command `sessions.find`, SESS-31, SESS-32): a dialog over the open project's sessions. */
-export function SessionPicker({ bus, onClose, openTranscript }: SessionPickerProps) {
+export function SessionPicker({ bus, onClose, openTranscript, openTerminal }: SessionPickerProps) {
   const project = useProject(bus);
   const toast = useToast();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -55,18 +57,21 @@ export function SessionPicker({ bus, onClose, openTranscript }: SessionPickerPro
   const rows = filtered.map((item) => ({ id: item.sessionId, text: titleOf(item), item }));
 
   const resume = (item: SessionListItem) => {
-    if (project === undefined || project === null) return;
-    void resumeInNewTerminal(bus, project, item).then((result) => {
-      if (result.ok) {
-        toast.show({ message: `Resumed "${titleOf(item)}" in a new terminal.`, tone: 'ok' });
-        onClose();
-      } else toast.show({ message: result.error.message, tone: 'error' });
+    void resumeAndOpen(bus, project, item, openTerminal).then((failure) => {
+      if (failure !== null) {
+        toast.show({ message: failure, tone: 'error' });
+        return;
+      }
+      // The toast provider outlives the dialog (register.ui.ts), so this toast stays after the close.
+      toast.show({ message: `Resumed "${titleOf(item)}" in a new terminal.`, tone: 'ok' });
+      onClose();
     });
   };
 
   const copy = (item: SessionListItem) => {
     void copyResumeCommand(bus, item).then((result) => {
       if (result.ok) toast.show({ message: 'Copied the resume command.', tone: 'ok' });
+      else toast.show({ message: result.error.message, tone: 'error' });
     });
   };
 

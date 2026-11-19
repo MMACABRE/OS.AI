@@ -4,6 +4,7 @@ import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import { terminalChannels } from '@hsos/contracts/channels/terminal';
 import type { ProjectInfo } from '@hsos/contracts/channels/workspace';
+import type { TerminalId } from '@hsos/contracts/ids';
 import { ok } from '@hsos/contracts/result';
 import type { Result } from '@hsos/contracts/result';
 import type { MenuItem } from '@hsos/ui-kit';
@@ -33,7 +34,7 @@ export async function resumeInNewTerminal(
   bus: Bus,
   project: ProjectInfo,
   target: ResumeTarget,
-): Promise<Result<{ readonly terminalId: string }>> {
+): Promise<Result<{ readonly terminalId: TerminalId }>> {
   if (!target.hasOriginal) {
     const restored = await bus.call(sessionsChannels.restoreTranscript, { sessionId: target.sessionId });
     if (!restored.ok) return restored;
@@ -61,10 +62,34 @@ export async function resumeInNewTerminal(
   return ok({ terminalId: created.value.id });
 }
 
+/** Escapes what PowerShell expands inside double quotes: the backtick, $ and the quote itself. */
+export const escapePowerShell = (text: string): string => text.replace(/[`$"]/g, (char) => '`' + char);
+
 /** SESS-32 "Copy resume command": the folder change and the resume, ready to paste in any shell. */
 export function copyResumeCommand(bus: Bus, item: Pick<SessionListItem, 'sessionId' | 'cwd'>) {
-  return bus.call(shellChannels.writeClipboard, { text: `cd "${item.cwd}"; claude --resume ${item.sessionId}` });
+  const text = `cd "${escapePowerShell(item.cwd)}"; ${resumeCommand(item.sessionId)}`;
+  return bus.call(shellChannels.writeClipboard, { text });
 }
+
+/** Resumes a session and opens a terminal panel on its shell. Resolves the error text, or null on success. */
+export async function resumeAndOpen(
+  bus: Bus,
+  project: ProjectInfo | null | undefined,
+  item: ResumeTarget,
+  openTerminal: OpenTerminal,
+): Promise<string | null> {
+  if (project === undefined || project === null) return NO_PROJECT_MESSAGE;
+  const result = await resumeInNewTerminal(bus, project, item);
+  if (!result.ok) return result.error.message;
+  openTerminal(result.value.terminalId, item.cwd);
+  return null;
+}
+
+/** Opens the terminal panel that shows a created shell (SESS-32). */
+export type OpenTerminal = (terminalId: TerminalId, cwd: string) => void;
+
+/** The open project is the only project id the renderer knows; a session from elsewhere still runs in it (SESS-32 is silent). */
+export const NO_PROJECT_MESSAGE = 'Open a project first, then resume the session.';
 
 /** The actions a session row offers. Each caller supplies the ones it can run. */
 export type RowHandlers = {
@@ -111,3 +136,7 @@ export function matchesSearch(text: string, query: string): boolean {
     .filter((word) => word !== '')
     .every((word) => haystack.includes(word));
 }
+
+/** Newest activity first (SESS-72). */
+export const newestFirst = (a: Pick<SessionListItem, 'lastActiveAt'>, b: Pick<SessionListItem, 'lastActiveAt'>): number =>
+  b.lastActiveAt - a.lastActiveAt;

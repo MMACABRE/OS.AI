@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { sessionsChannels } from '@hsos/contracts/channels/sessions';
+import { terminalChannels } from '@hsos/contracts/channels/terminal';
 import type { SessionListItem, TranscriptItem } from '@hsos/contracts/channels/sessions';
 import { Button, PanelFrame, usePageVisible, useToast } from '@hsos/ui-kit';
 import type { PanelViewState } from '@hsos/ui-kit';
-import { loadSessions, resumeInNewTerminal, titleOf } from './actions';
+import { loadSessions, resumeAndOpen, titleOf } from './actions';
+import type { OpenTerminal } from './actions';
 import { cls } from './format';
 import { SessionDialogs } from './SessionDialogs';
 import type { SessionDialog } from './SessionDialogs';
@@ -24,13 +26,37 @@ type LoadState =
   | { readonly status: 'ready'; readonly items: readonly TranscriptItem[]; readonly total: number }
   | { readonly status: 'error'; readonly message: string };
 
+const lastIndex = (items: readonly TranscriptItem[]): number => items[items.length - 1]?.index ?? -1;
+
+/**
+ * The newest items after `known`, with nothing missing between: when more than a page arrived since the last
+ * check, older pages are read until the new items join the old ones (SESS-50).
+ */
+async function withoutGap(
+  bus: Bus,
+  sessionId: SessionListItem['sessionId'],
+  tail: readonly TranscriptItem[],
+  known: number,
+): Promise<readonly TranscriptItem[]> {
+  let items = tail;
+  for (let round = 0; round < 100; round += 1) {
+    const first = items[0];
+    if (first === undefined || first.index <= known + 1) break;
+    const older = await bus.call(sessionsChannels.readTranscript, { sessionId, beforeIndex: first.index, limit: PAGE });
+    if (!older.ok || older.value.items.length === 0) break;
+    items = [...older.value.items, ...items];
+  }
+  return items.filter((item) => item.index > known);
+}
+
 export type SessionReaderProps = {
   readonly bus: Bus;
   readonly session: ReaderSession;
+  readonly openTerminal: OpenTerminal;
 };
 
 /** The transcript reader (dock panel `sessions.transcript`, SESS-50, SESS-51). Text is data: rendered as plain text (P-6). */
-export function SessionReader({ bus, session }: SessionReaderProps) {
+export function SessionReader({ bus, session, openTerminal }: SessionReaderProps) {
   const project = useProject(bus);
   const toast = useToast();
   const visible = usePageVisible();
@@ -42,6 +68,38 @@ export function SessionReader({ bus, session }: SessionReaderProps) {
   latest.current = state;
   const scroll = useRef<HTMLDivElement>(null);
   const sessionId = meta.sessionId;
+  // The scroll height before older items are put on top, so the view can stay where it was.
+  const anchor = useRef<number | null>(null);
+  const projectRef = useRef(project);
+  projectRef.current = project;
+
+  /** Takes the title, note and live terminal from the session list again. */
+  const refreshMeta = useCallback(() => {
+    void loadSessions(bus, projectRef.current ?? null, true).then((result) => {
+      const updated = result.ok ? result.value.find((item) => item.sessionId === sessionId) : undefined;
+      if (updated !== undefined)
+        setMeta((current) => ({
+          ...current,
+          title: updated.title,
+          note: updated.note,
+          liveTerminalId: updated.liveTerminalId,
+        }));
+    });
+  }, [bus, sessionId]);
+
+  // SESS-32, SESS-43: Resume follows the session's live state, so it hides while a shell runs it.
+  useEffect(() => {
+    const offs = [
+      bus.on(sessionsChannels.recordChanged, (record) => {
+        if (record.sessionId === sessionId) refreshMeta();
+      }),
+      bus.on(terminalChannels.created, refreshMeta),
+      bus.on(terminalChannels.exited, refreshMeta),
+    ];
+    return () => {
+      for (const off of offs) off();
+    };
+  }, [bus, sessionId, refreshMeta]);
 
   useEffect(() => {
     let live = true;
@@ -67,21 +125,31 @@ export function SessionReader({ bus, session }: SessionReaderProps) {
       if (current.status !== 'ready') return;
       void bus.call(sessionsChannels.readTranscript, { sessionId, beforeIndex: null, limit: PAGE }).then((result) => {
         if (!result.ok || result.value.total <= current.total) return;
-        const tail = result.value.items;
-        const first = tail[0]?.index ?? 0;
-        setState((previous) =>
-          previous.status === 'ready'
-            ? {
-                status: 'ready',
-                items: [...previous.items.filter((item) => item.index < first), ...tail],
-                total: result.value.total,
-              }
-            : previous,
+        const total = result.value.total;
+        void withoutGap(bus, sessionId, result.value.items, current.items[current.items.length - 1]?.index ?? -1).then(
+          (fresh) => {
+            setState((previous) =>
+              previous.status === 'ready'
+                ? {
+                    status: 'ready',
+                    items: [...previous.items.filter((item) => item.index <= lastIndex(current.items)), ...fresh],
+                    total,
+                  }
+                : previous,
+            );
+          },
         );
       });
     }, GROWTH_MS);
     return () => window.clearInterval(timer);
   }, [bus, sessionId, visible]);
+
+  // Older items put on top keep the view where it was.
+  useLayoutEffect(() => {
+    if (anchor.current === null || scroll.current === null) return;
+    scroll.current.scrollTop += scroll.current.scrollHeight - anchor.current;
+    anchor.current = null;
+  }, [state]);
 
   // A fresh transcript opens at its end.
   useEffect(() => {
@@ -97,6 +165,7 @@ export function SessionReader({ bus, session }: SessionReaderProps) {
         toast.show({ message: result.error.message, tone: 'error' });
         return;
       }
+      anchor.current = scroll.current?.scrollHeight ?? null;
       setState((previous) =>
         previous.status === 'ready' ? { ...previous, items: [...result.value.items, ...previous.items] } : previous,
       );
@@ -104,20 +173,14 @@ export function SessionReader({ bus, session }: SessionReaderProps) {
   };
 
   const resume = () => {
-    if (project === undefined || project === null) return;
-    void resumeInNewTerminal(bus, project, meta).then((result) => {
-      if (result.ok) toast.show({ message: `Resumed "${titleOf(meta)}" in a new terminal.`, tone: 'ok' });
-      else toast.show({ message: result.error.message, tone: 'error' });
+    void resumeAndOpen(bus, project, meta, openTerminal).then((failure) => {
+      if (failure === null) toast.show({ message: `Resumed "${titleOf(meta)}" in a new terminal.`, tone: 'ok' });
+      else toast.show({ message: failure, tone: 'error' });
     });
   };
 
   /** Rename and note change the header: the list is read again to take the new values. */
-  const changed = () => {
-    void loadSessions(bus, project ?? null, true).then((result) => {
-      const updated = result.ok ? result.value.find((item) => item.sessionId === sessionId) : undefined;
-      if (updated !== undefined) setMeta({ ...meta, title: updated.title, note: updated.note });
-    });
-  };
+  const changed = refreshMeta;
 
   const frame: PanelViewState =
     state.status === 'loading'
