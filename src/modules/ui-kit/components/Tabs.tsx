@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { KeyboardEvent } from 'react';
+import { useLift } from '../motion/motion';
 import { cx } from './cx';
 import styles from './Tabs.module.css';
 
@@ -37,6 +38,7 @@ export function Tabs({ tabs, activeId, onChange, label }: TabsProps) {
     event.preventDefault();
     go(target);
   };
+  const lift = useLift();
   return (
     <div className={styles.tabs} role="tablist" aria-label={label} onKeyDown={onKeyDown}>
       {tabs.map((tab) => {
@@ -54,6 +56,7 @@ export function Tabs({ tabs, activeId, onChange, label }: TabsProps) {
             tabIndex={active ? 0 : -1}
             className={cx(styles.tab, active && styles.active)}
             onClick={() => onChange(tab.id)}
+            {...lift}
           >
             {tab.label}
           </button>

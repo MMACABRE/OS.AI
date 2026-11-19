@@ -69,3 +69,21 @@ export type { CommandRegistry, PaletteItem, PaletteMode } from './palette/comman
 export { matchScore, rankCommands } from './palette/rank-commands';
 export { CommandsContext, useCommands } from './palette/command-context';
 export type { CommandsView } from './palette/command-context';
+export { Surface } from './components/Surface';
+export type { SurfaceProps } from './components/Surface';
+export { raiseReadingAlphas } from './components/surface-alpha';
+export type { SurfaceProblem, SurfaceRole } from './components/surface-alpha';
+export { RollingNumber } from './components/RollingNumber';
+export type { RollingNumberProps } from './components/RollingNumber';
+export {
+  isReducedMotion,
+  staggerDelayMs,
+  staggerStyle,
+  tiltToward,
+  useEntering,
+  useLift,
+  useReducedMotion,
+} from './motion/motion';
+export { Backdrop, backdropStats } from './backdrop/Backdrop';
+export { useBackdropSource } from './backdrop/sources';
+export { SCENES, sceneFor } from './backdrop/scenes';

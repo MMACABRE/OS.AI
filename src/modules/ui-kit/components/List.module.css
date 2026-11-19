@@ -15,6 +15,11 @@
   width: 100%;
 }
 
+/* MOT-3: rows fade in from below with a 20 ms stagger when the list first appears. */
+.rowEnter {
+  composes: enter from '../motion/motion.module.css';
+}
+
 .row {
   position: absolute;
   left: 0;

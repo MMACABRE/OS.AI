@@ -6,6 +6,11 @@
   composes: inner from './List.module.css';
 }
 
+/* MOT-3: rows fade in from below with a 20 ms stagger when the tree first appears. */
+.rowEnter {
+  composes: enter from '../motion/motion.module.css';
+}
+
 .row {
   composes: row from './List.module.css';
   gap: 0.25rem;

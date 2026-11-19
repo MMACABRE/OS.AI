@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
+import { staggerStyle, useEntering } from '../motion/motion';
 import { cx } from './cx';
 import styles from './List.module.css';
 import { useTypeAhead, useVirtualRows } from './virtual-rows';
@@ -33,6 +34,7 @@ export function List<Row extends ListRow>({
 }: ListProps<Row>) {
   const baseId = useId();
   const virtual = useVirtualRows(rows.length, rowHeight);
+  const entering = useEntering();
   const selectedIndex = rows.findIndex((row) => row.id === selectedId);
   const choose = (index: number) => {
     const row = rows[Math.min(rows.length - 1, Math.max(0, index))];
@@ -89,8 +91,8 @@ export function List<Row extends ListRow>({
               role="option"
               aria-selected={selected}
               aria-label={row.text}
-              className={cx(styles.row, selected && styles.selected)}
-              style={{ top: index * rowHeight, height: rowHeight }}
+              className={cx(styles.row, entering && styles.rowEnter, selected && styles.selected)}
+              style={{ top: index * rowHeight, height: rowHeight, ...(entering ? staggerStyle(offset) : {}) }}
               onClick={() => onSelect(row.id)}
               onDoubleClick={() => onActivate(row.id)}
             >

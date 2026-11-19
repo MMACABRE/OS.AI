@@ -37,6 +37,7 @@
 
 :global([data-motion='reduced']) .palette {
   animation-name: fade;
+  animation-duration: var(--motion-quick);
 }
 
 @keyframes fade {

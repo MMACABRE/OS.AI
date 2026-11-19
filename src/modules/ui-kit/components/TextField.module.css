@@ -16,7 +16,6 @@
   color: var(--color-text-primary);
   font-family: var(--font-ui);
   font-size: var(--font-size-body);
-  transition: border-color var(--motion-instant) var(--motion-ease-out);
 }
 
 .input::placeholder {

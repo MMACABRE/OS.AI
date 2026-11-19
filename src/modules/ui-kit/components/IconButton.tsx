@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useLift } from '../motion/motion';
 import { cx } from './cx';
 import styles from './IconButton.module.css';
 import { Tooltip } from './Tooltip';
@@ -17,6 +18,7 @@ export type IconButtonProps = {
 
 /** A 24 by 24 icon-only button with an accessible name and a tooltip (UI-3). */
 export function IconButton({ icon, label, onPress, pressed, keyBinding, disabled = false }: IconButtonProps) {
+  const lift = useLift();
   return (
     <Tooltip text={label} keyBinding={keyBinding ?? null}>
       <button
@@ -26,6 +28,7 @@ export function IconButton({ icon, label, onPress, pressed, keyBinding, disabled
         aria-pressed={pressed}
         disabled={disabled}
         onClick={onPress}
+        {...lift}
       >
         <span className={styles.icon} aria-hidden="true">
           {icon}

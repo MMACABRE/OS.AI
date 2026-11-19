@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { useLift } from '../motion/motion';
 import styles from './NumberField.module.css';
 
 export type NumberFieldProps = {
@@ -56,6 +57,7 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
     } else if (event.key === 'Enter') commitText();
   };
 
+  const lift = useLift();
   return (
     <span className={styles.field}>
       <input
@@ -77,6 +79,7 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
         <button
           type="button"
           className={styles.step}
+          {...lift}
           tabIndex={-1}
           aria-label="Increase"
           disabled={disabled || value >= max}
@@ -87,6 +90,7 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
         <button
           type="button"
           className={styles.step}
+          {...lift}
           tabIndex={-1}
           aria-label="Decrease"
           disabled={disabled || value <= min}

@@ -1,5 +1,6 @@
 import { useId, useMemo } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
+import { staggerStyle, useEntering } from '../motion/motion';
 import { cx } from './cx';
 import styles from './Tree.module.css';
 import { useTypeAhead, useVirtualRows } from './virtual-rows';
@@ -59,6 +60,7 @@ export function Tree({
   const baseId = useId();
   const flat = useMemo(() => flatten(nodes, expandedIds), [nodes, expandedIds]);
   const virtual = useVirtualRows(flat.length, rowHeight);
+  const entering = useEntering();
   const selectedIndex = flat.findIndex((item) => item.node.id === selectedId);
   const choose = (index: number) => {
     const item = flat[Math.min(flat.length - 1, Math.max(0, index))];
@@ -116,8 +118,9 @@ export function Tree({
               aria-selected={selected}
               aria-expanded={isFolder ? expanded : undefined}
               aria-label={item.node.text}
-              className={cx(styles.row, selected && styles.selected)}
+              className={cx(styles.row, entering && styles.rowEnter, selected && styles.selected)}
               style={{
+                ...(entering ? staggerStyle(offset) : {}),
                 top: index * rowHeight,
                 height: rowHeight,
                 paddingLeft: `${0.5 + item.depth * 0.875}rem`,

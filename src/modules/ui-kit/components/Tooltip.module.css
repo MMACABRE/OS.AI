@@ -1,4 +1,6 @@
 .content {
+  composes: pop from '../motion/motion.module.css';
+  --hsos-origin: var(--radix-tooltip-content-transform-origin);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -11,23 +13,4 @@
   font-size: var(--font-size-small);
   box-shadow: var(--shadow-overlay);
   z-index: 50;
-  transform-origin: var(--radix-tooltip-content-transform-origin);
-  animation: appear var(--motion-quick) var(--motion-ease-out);
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-}
-
-:global([data-motion='reduced']) .content {
-  animation-name: fade;
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
 }

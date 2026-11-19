@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useLift } from '../motion/motion';
 import { cx } from './cx';
 import styles from './Button.module.css';
 
@@ -21,12 +22,14 @@ export function Button({
   onPress,
   children,
 }: ButtonProps) {
+  const lift = useLift();
   return (
     <button
       type="button"
       className={cx(styles.button, styles[variant], styles[size])}
       disabled={disabled}
       onClick={onPress}
+      {...lift}
     >
       {icon === undefined ? null : (
         <span className={styles.icon} aria-hidden="true">

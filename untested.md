@@ -275,3 +275,51 @@ Code: `src/demo/demo-transport.ts` (`createDemoTransport`, `buildFixtureTable`),
 - An event fixture with `everyMs` fires on the clock.
 
 Also: `parseReplay` reads the records of `terminal-claude.bin` and stops at a truncated record; `npm run demo` opens the window with demo data (not launched in this run).
+
+## 027 Motion, glass and the background
+
+Code: `src/modules/ui-kit/motion/` (`motion.ts`, `motion.module.css`, `lift.module.css`), `src/modules/ui-kit/components/Surface.tsx`, `surface-alpha.ts` (`raiseReadingAlphas`), `RollingNumber.tsx` (`changedDigits`), `src/modules/ui-kit/backdrop/` (`Backdrop.tsx`, `backdrop-client.ts` with `startBackdrop` and `readBackdropSettings`, `backdrop.worker.ts`, `protocol.ts`, `sources.ts`, `scenes/`), `src/modules/settings/panel/apply-theme.ts`, `eslint-rules/no-layout-animation.js` (`findLayoutAnimations`, rule `hsos/no-layout-animation`). Feature F-065.
+
+jsdom computes no CSS animations from CSS modules, so motion rows check the classes and inline delays, or run in Playwright against the built renderer. `startBackdrop` takes `createWorker`, so backdrop rows pass a fake worker that records `postMessage`; jsdom has no `transferControlToOffscreen`, so stub it on the canvas prototype to return a plain object.
+
+`tests/ui-kit/motion.ui.test.tsx`:
+
+| Rule   | Given                                                   | When                    | Then                                                                                                     |
+| ------ | ------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| MOT-2  | a `Button`                                              | pointer down, then up   | it has `data-released` after pointer up, and its class composes `lift` (scale 0.96 on `:active`)       |
+| MOT-2  | `tiltToward` with a 100 by 30 box, pointer at the right edge, max 18 | it runs     | `ry` is 18 and `rx` is 0; the same box 300 wide gives 9                                                 |
+| MOT-3  | a `List` of 12 rows                                     | it renders              | rows 0 to 7 have `animation-delay` 0 to 140 ms and rows 8 to 11 have 140 ms; after 360 ms the enter class is gone |
+| MOT-4  | a `Dialog`                                              | it opens                | the dialog composes `dialogIn` (scale 0.94 to 1 over `motion.slow`) and the dim composes `dimIn`         |
+| MOT-8  | a `RollingNumber` with value 41                         | it re-renders with 42   | only the last cell has the `in` and `out` spans; `changedDigits('41 %', '42 %')` is `[false, true, false, false]` |
+| MOT-12 | `data-motion="reduced"` on the root                     | `useReducedMotion` runs | it returns true, and false again when the attribute becomes `full`                                       |
+
+`tests/ui-kit/backdrop.ui.test.tsx` (fake worker):
+
+| Rule  | Given                                                       | When                                        | Then                                                                                         |
+| ----- | ----------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| UI-30 | `--backdrop-scene: unknown` on the root                     | `sceneFor('unknown')`, and `Backdrop` mounts | the scene is `still`; one canvas exists under `[data-hsos-backdrop]`                         |
+| UI-33 | the `Backdrop`                                              | the accessibility tree is read              | no node comes from it (`aria-hidden` on the backdrop and the CRT overlay)                    |
+| UI-33 | the pointer moves three times in one frame and clicks empty space | one animation frame passes          | the worker received one `pointer` and one `puff`; a click on a `button` sends no puff; a click after a 10 px drag sends none |
+| UI-34 | the `Backdrop`                                              | it renders                                  | `[data-hsos-crt]` has `pointer-events: none` and no animation; no element has a `filter` with `url(` |
+| UI-35 | two sources, one inside a `display: none` parent            | 1 000 ms pass (fake timers)                 | at most 10 `sources` messages, each holding only the visible source                          |
+
+`tests/ui-kit/phosphor-dust.test.ts`:
+
+| Rule  | Given                                                                       | When                       | Then                                                                    |
+| ----- | --------------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------- |
+| UI-34 | `createPhosphorDustScene` with Phosphor's colours and three sources at strength 1 | 300 frames are stepped and rendered | no pixel's `luminance` is above `brightnessLimit(color.accent)` |
+
+`tests/ui-kit/surface.test.ts`:
+
+| Rule  | Given                                                               | When                       | Then                                                                    |
+| ----- | ------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------- |
+| UI-31 | tokens with `surface.terminal.alpha: 0.3`, `surface.text.minAlpha: 0.85` | `raiseReadingAlphas` runs | the terminal alpha is `0.85` and one problem names `surface.terminal.alpha` |
+
+`tests/lint/no-layout-animation.test.ts`:
+
+| Rule  | Given                                                           | When                         | Then                    |
+| ----- | --------------------------------------------------------------- | ---------------------------- | ----------------------- |
+| MOT-1 | `.a { transition: width 1s }`, `@keyframes k { to { height: 0 } }`, `transition: all 1s` | `findLayoutAnimations` runs | three problems |
+| MOT-1 | `transition: transform var(--motion-quick) var(--motion-ease-spring), filter 1s` | `findLayoutAnimations` runs | no problem |
+
+Also worth a test: the worker draws no frame while `visibility` is hidden and draws exactly one under `reduced` (UI-32, needs the app, e2e); `applyTheme` sets `--surface-terminal-alpha` to the raised value.

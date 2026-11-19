@@ -1,0 +1,62 @@
+/*
+ * Glass surfaces over the background (UI-31, visual-direction.md "Glass map"). Each role mixes its colour
+ * token at surface.<role>.alpha with the background behind it; blur is applied only when the theme sets
+ * one above 0 (Phosphor sets 0 everywhere). Terminal and reading surfaces keep surface.text.minAlpha.
+ */
+.surface {
+  --hsos-alpha-raw: 1;
+  --hsos-alpha: var(--hsos-alpha-raw);
+  --hsos-blur: 0;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: color-mix(
+    in srgb,
+    var(--hsos-surface-colour) calc(var(--hsos-alpha) * 100%),
+    transparent
+  );
+  backdrop-filter: blur(calc(var(--hsos-blur) * 1px));
+}
+
+.app {
+  --hsos-surface-colour: var(--color-bg-app);
+  --hsos-alpha-raw: var(--surface-app-alpha);
+  --hsos-blur: 0;
+  backdrop-filter: none;
+}
+
+.panel {
+  --hsos-surface-colour: var(--color-bg-panel);
+  --hsos-alpha-raw: var(--surface-panel-alpha);
+  --hsos-blur: var(--surface-panel-blur);
+}
+
+.widget {
+  --hsos-surface-colour: var(--color-bg-panel);
+  --hsos-alpha-raw: var(--surface-widget-alpha);
+  --hsos-blur: var(--surface-widget-blur);
+}
+
+.overlay {
+  --hsos-surface-colour: var(--color-bg-overlay);
+  --hsos-alpha-raw: var(--surface-overlay-alpha);
+  --hsos-blur: var(--surface-overlay-blur);
+}
+
+.ribbon {
+  --hsos-surface-colour: var(--color-bg-raised);
+  --hsos-alpha-raw: var(--surface-ribbon-alpha);
+  --hsos-blur: var(--surface-ribbon-blur);
+}
+
+.terminal {
+  --hsos-surface-colour: var(--color-term-background);
+  --hsos-alpha-raw: var(--surface-terminal-alpha);
+  --hsos-blur: var(--surface-terminal-blur);
+}
+
+/* Terminal and reading text never sit on a surface thinner than the floor (P-45). */
+.terminal,
+.reading {
+  --hsos-alpha: max(var(--hsos-alpha-raw), var(--surface-text-minAlpha));
+}

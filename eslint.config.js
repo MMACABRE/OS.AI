@@ -2,6 +2,7 @@ import './scripts/typescript6.mjs';
 
 const { default: tseslint } = await import('typescript-eslint');
 const { default: boundaries } = await import('eslint-plugin-boundaries');
+const { default: hsos } = await import('./eslint-rules/no-layout-animation.js');
 
 const nodeBuiltins = ['node:*', 'fs', 'path', 'os', 'child_process', 'crypto', 'net', 'http', 'https', 'url', 'util', 'stream', 'events', 'worker_threads'];
 
@@ -15,6 +16,12 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
     },
+  },
+  {
+    // MOT-1: CSS modules a component imports animate only opacity, transform, filter and clip-path.
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { hsos },
+    rules: { 'hsos/no-layout-animation': 'error' },
   },
   {
     files: ['src/**/*.{ts,tsx}'],

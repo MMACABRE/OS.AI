@@ -1,0 +1,51 @@
+/*
+ * The background layer (UI-30) and the old-monitor overlay (UI-34). Neither takes pointer input, and
+ * neither ever animates in CSS: the scene moves inside its worker, the overlay is still.
+ */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--color-bg-app);
+  pointer-events: none;
+}
+
+/* The scene is drawn small and scaled up with nearest-neighbour pixels (background.md "Grid"). The
+   approved preview shows it at 0.8 opacity over color.bg.app. */
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: 0.8;
+}
+
+/* One still element over the whole window: scanlines and the corner vignette (UI-34). */
+.crt {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 0.125rem,
+    color-mix(in srgb, var(--color-bg-app) calc(var(--crt-scanlines) * 100%), transparent) 0.125rem
+      0.1875rem
+  );
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 75% 70% at 50% 50%,
+    transparent 62%,
+    color-mix(in srgb, var(--color-bg-app) calc(var(--crt-vignette) * 100%), transparent) 100%
+  );
+}

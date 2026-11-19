@@ -30,8 +30,9 @@
   background: var(--color-text-muted);
 }
 
+/* MOT-9: three pulses over 1 200 ms, then the dot holds. */
 .pulse {
-  animation: pulse var(--motion-slow) var(--motion-ease-out) 2;
+  animation: pulse calc(1200ms / 3) var(--motion-ease-out) 3;
 }
 
 @keyframes pulse {

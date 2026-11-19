@@ -1,0 +1,61 @@
+/* MOT-8: changed digits roll over motion.quick with tabular figures. Only transform and opacity animate. */
+.number {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cell {
+  position: relative;
+  display: inline-block;
+  clip-path: inset(0);
+}
+
+.in {
+  display: inline-block;
+  animation: rollIn var(--motion-quick) var(--motion-ease-out) both;
+}
+
+.out {
+  position: absolute;
+  inset: 0;
+  animation: rollOut var(--motion-quick) var(--motion-ease-in) both;
+}
+
+@keyframes rollIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes rollOut {
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* MOT-12: the new digit only fades in, the old one is gone at once. */
+:global([data-motion='reduced']) .in {
+  animation-name: fadeIn;
+}
+
+:global([data-motion='reduced']) .out {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}

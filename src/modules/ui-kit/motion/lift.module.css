@@ -7,10 +7,17 @@
   --hsos-rx: 0deg;
   --hsos-ry: 0deg;
   transform: perspective(20rem) rotateX(var(--hsos-rx)) rotateY(var(--hsos-ry));
+  /* The stepped edge (box-shadow) changes at once: only transform and filter animate (MOT-1). */
   transition:
     transform var(--motion-instant) var(--motion-ease-out),
-    filter var(--motion-instant) var(--motion-ease-out),
-    box-shadow var(--motion-instant) var(--motion-ease-out);
+    filter var(--motion-instant) var(--motion-ease-out);
+}
+
+/* Release springs back over motion.quick (MOT-2); useLift sets data-released on pointer up. */
+.lift[data-released] {
+  transition:
+    transform var(--motion-quick) var(--motion-ease-spring),
+    filter var(--motion-quick) var(--motion-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {

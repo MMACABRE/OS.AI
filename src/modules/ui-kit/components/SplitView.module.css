@@ -47,7 +47,6 @@
   content: '';
   position: absolute;
   background: var(--color-border-hairline);
-  transition: background-color var(--motion-instant) var(--motion-ease-out);
 }
 
 .horizontal > .divider::after {
