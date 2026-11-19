@@ -94,6 +94,8 @@ export function List<Row extends ListRow>({
               className={cx(styles.row, entering && styles.rowEnter, selected && styles.selected)}
               style={{ top: index * rowHeight, height: rowHeight, ...(entering ? staggerStyle(offset) : {}) }}
               onClick={() => onSelect(row.id)}
+              // A right click selects its row first, so a context menu acts on the row under the pointer.
+              onContextMenu={() => onSelect(row.id)}
               onDoubleClick={() => onActivate(row.id)}
             >
               {renderRow(row, { selected })}

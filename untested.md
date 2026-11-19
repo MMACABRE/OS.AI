@@ -744,3 +744,11 @@ Suggested files and rows (the testing agent may group them differently):
 | BROW-1 | a panel with `tabId` null and `url` empty | it mounts | `browser.openTab` is called with the home URL from settings and the tab id is saved in the panel state |
 
 Not in this plan: the demo fixture screenshot (not built, see progress), BROW-3 screenshot overlay, BROW-9 crash state (no channel in the contract), and the e2e rows of `browser.md`.
+
+## Lead fixes after the lane B merge: right click selects its row
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| UI-LIST-1 | a `Tree` with rows a and b, a selected | right click on b | `onSelect` was called with b |
+| UI-LIST-2 | a `List` with rows a and b, a selected | right click on b | `onSelect` was called with b |
+| FILE-64 | the Files view with a.txt selected | right click on b.txt, then Delete, then confirm | `files.trash` got b.txt |

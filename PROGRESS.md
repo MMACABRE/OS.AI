@@ -393,3 +393,11 @@ Blocked questions:
 Anything that looks wrong: `graphology-types` missing from the lockfile (see Deviations). `npm run test` prints a node-pty "AttachConsole failed" stack from `conpty_console_list_agent.js` before the tests pass; it is environmental, and the run still exits 0.
 Merge: written by a Haiku coder on `lane-c-034`, merged by the Lead on 2026-11-19. The Lead fixed a crash on open (the node reducer read `sigma` before the constructor returned), paused the drift loop on a hidden page (WS-41), and set the label colour and font through sigma 4's `styles`. The Notes page does not yet match the approved layout C mockup (`design-round/notes/phosphor-notes.html?layout=c`); the Lead brings it there in the next commit.
 Next: 034 look pass
+
+## Lead fixes after the lane B merge: right click selects its row
+Status: done (untested)
+Date: 2026-11-19
+Did: `List` and `Tree` in the ui-kit now select a row on right click as well as on click. The Files tree, Changes, Activity and Artifacts open their context menus on the selected row, so before this a right click on another row ran Delete, Restore or Pin on the row selected earlier.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed
+Deviations: none. Files: `src/modules/ui-kit/components/List.tsx`, `Tree.tsx`.
+Next: 034 look pass

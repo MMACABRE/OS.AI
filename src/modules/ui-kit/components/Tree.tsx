@@ -130,6 +130,8 @@ export function Tree({
                 if (isFolder) onToggle(item.node.id);
               }}
               onDoubleClick={() => onActivate(item.node.id)}
+              // A right click selects its row first, so a context menu acts on the row under the pointer.
+              onContextMenu={() => onSelect(item.node.id)}
             >
               <span className={cx(styles.twisty, expanded && styles.open)} aria-hidden="true">
                 {isFolder ? '›' : ''}
