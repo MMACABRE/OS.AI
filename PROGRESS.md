@@ -322,3 +322,11 @@ Deviations:
 - Shared files: `src/ui/module-list.ts` was edited (the Lead asked for it), though the card's file list does not name it.
 Merge: written by a Haiku coder on `lane-b-030-033`, merged by the Lead on 2026-11-19; gap fixes follow in their own commits.
 Next: the card after 033 (the 037 gate is later; the coordinator decides)
+
+## Lead fixes after the lane B merge: ui-kit views
+Status: done (untested)
+Date: 2026-11-19
+Did: Added `DiffView` (the `diff` package, inline and split, folds, F7 and Shift+F7, a line action and content under a line), `CodeView` (CodeMirror 6 with a token theme, Ctrl+S, reveal line, reload that keeps the cursor line and scroll) and `MarkdownView` (`micromark`, raw HTML escaped, links handed to the caller) to the ui-kit (ui-kit.md). History and review now use the one `DiffView`; their copies and both `line-diff.ts` files are gone. The review diff panel keeps the diff on screen while it refreshes (REV-20), has a "Side by side" switch, and keeps its comment box and comments under the line through `renderBelow`. The file viewer uses `CodeView`; markdown files get a Preview switch and Ctrl+Shift+V and start in preview when `markdownPreviewFirst` (FILE-70); links follow FILE-79 (relative paths open a viewer, https opens externally); the changed-on-disk bar has Compare (FILE-74); a silent reload keeps the cursor line and scroll (FILE-73) and keeps the clean buffer if the reload fails; a second Ctrl+S while a save is in flight is ignored. History's "Compare with current file" now diffs the selected version against the file (HIST-41).
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok
+Deviations: `CodeView` takes `language` but no CodeMirror language packages are in the stack, so every file shows without syntax colours (FILE-70 asks for them); for the spec author. `CodeView` and `DiffView` have props beyond ui-kit.md: `revealLine` and `label` on CodeView (FILE-78 and an accessible name), `label`, `lineActionLabel` and `renderBelow` on DiffView (REV-23, REV-24). Wiki links in a preview wait for the graph module. The split switch is not saved with the panel.
+Next: more lane B fixes

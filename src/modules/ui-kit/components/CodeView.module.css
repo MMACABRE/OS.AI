@@ -1,0 +1,7 @@
+/* The CodeMirror host fills its panel; the editor theme itself comes from tokens in CodeView.tsx. */
+.code {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}

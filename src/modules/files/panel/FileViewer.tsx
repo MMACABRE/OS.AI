@@ -5,7 +5,7 @@ import { filesChannels } from '@hsos/contracts/channels/files';
 import type { FileContent, FileVersion } from '@hsos/contracts/channels/files';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import type { AbsPath } from '@hsos/contracts/ids';
-import { Button, PanelFrame, StatusDot, useToast } from '@hsos/ui-kit';
+import { Button, CodeView, DiffView, MarkdownView, PanelFrame, StatusDot, Switch, useToast } from '@hsos/ui-kit';
 import type { PanelViewState } from '@hsos/ui-kit';
 import { baseName, formatBytes } from './helpers';
 import styles from './FileViewer.module.css';
@@ -24,10 +24,17 @@ export type FileViewerProps = {
   /** Places the cursor on this line and centres it (FILE-78). */
   readonly line: number | null;
   readonly openHistory: (path: AbsPath) => void;
+  /** FILE-79: a markdown link was activated. */
+  readonly openLink: (href: string, from: AbsPath) => void;
+  /** FILE-70: markdown files start in preview when this is on. */
+  readonly markdownPreviewFirst: boolean;
 };
 
+const isMarkdown = (path: string) => /\.mdx?$/i.test(path);
+const extensionOf = (path: string) => path.slice(path.lastIndexOf('.') + 1).toLowerCase();
+
 /** The file viewer (dock panel `files.viewer`): one file, edited in place and saved with Ctrl+S (FILE-70 to FILE-75). */
-export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
+export function FileViewer({ bus, path, line, openHistory, openLink, markdownPreviewFirst }: FileViewerProps) {
   const toast = useToast();
   const name = baseName(path);
   const [view, setView] = useState<View>({ status: 'loading' });
@@ -35,17 +42,26 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
   const [saved, setSaved] = useState('');
   const [version, setVersion] = useState<FileVersion | null>(null);
   const [conflict, setConflict] = useState<Conflict>(null);
-  const editor = useRef<HTMLTextAreaElement>(null);
+  const [preview, setPreview] = useState(markdownPreviewFirst && isMarkdown(path));
+  /** FILE-74 "Compare": the text on disk, shown against the buffer until closed. */
+  const [diskText, setDiskText] = useState<string | null>(null);
+  const [revealLine, setRevealLine] = useState<number | null>(null);
   const placedLine = useRef<number | null>(null);
+  const saving = useRef(false);
+  const pathRef = useRef(path);
+  pathRef.current = path;
   const dirty = draft !== saved;
   const dirtyRef = useRef(dirty);
   dirtyRef.current = dirty;
 
   const read = (silent: boolean) => {
     if (!silent) setView({ status: 'loading' });
+    const asked = path;
     void bus.call(filesChannels.read, { path }).then((result) => {
+      if (asked !== pathRef.current) return;
       if (!result.ok) {
-        setView({ status: 'error', message: result.error.message });
+        // A failed silent reload keeps the clean buffer on screen.
+        if (!silent) setView({ status: 'error', message: result.error.message });
         return;
       }
       const content = result.value;
@@ -56,6 +72,7 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
         setSaved(content.text);
       }
       setConflict(null);
+      setDiskText(null);
     });
   };
 
@@ -82,23 +99,17 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
   // FILE-78: a line from the caller puts the cursor there and centres it, once per open.
   useEffect(() => {
     if (view.status !== 'ready' || line === null || placedLine.current === line) return;
-    const area = editor.current;
-    if (area === null) return;
     placedLine.current = line;
-    const start = area.value
-      .split('\n')
-      .slice(0, Math.max(0, line - 1))
-      .reduce((sum, text) => sum + text.length + 1, 0);
-    area.focus();
-    area.setSelectionRange(start, start);
-    const lineHeight = Number.parseFloat(getComputedStyle(area).lineHeight) || 18;
-    area.scrollTop = Math.max(0, (line - 1) * lineHeight - area.clientHeight / 2);
+    setPreview(false);
+    setRevealLine(line);
   }, [view.status, line]);
 
   const save = (options: { readonly overwrite: boolean; readonly recreate?: boolean }) => {
     if (view.status !== 'ready') return;
     const content = view.content;
     if (content.kind !== 'text') return;
+    if (saving.current) return;
+    saving.current = true;
     const text = draft;
     void bus.call(filesChannels.save, {
       path,
@@ -107,6 +118,7 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
       baseHash: options.recreate === true ? null : (version?.hash ?? null),
       overwrite: options.overwrite,
     }).then((result) => {
+      saving.current = false;
       if (result.ok) {
         setSaved(text);
         setVersion(result.value);
@@ -122,12 +134,19 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
     });
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-      event.preventDefault();
-      save({ overwrite: false });
-    }
+  // FILE-70: Ctrl+Shift+V switches a markdown file between preview and source.
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!isMarkdown(path) || !event.ctrlKey || !event.shiftKey || event.key.toLowerCase() !== 'v') return;
+    event.preventDefault();
+    setPreview((current) => !current);
   };
+
+  const compare = () =>
+    void bus.call(filesChannels.read, { path }).then((result) => {
+      if (!result.ok) toast.show({ message: result.error.message, tone: 'error' });
+      else if (result.value.kind !== 'text') toast.show({ message: 'The file on disk is not text.', tone: 'info' });
+      else setDiskText(result.value.text);
+    });
 
   const reveal = () => void bus.call(shellChannels.revealInExplorer, { path });
 
@@ -150,6 +169,9 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
       actions={
         <>
           {dirty ? <StatusDot tone="warn" label="Unsaved changes" /> : null}
+          {content?.kind === 'text' && isMarkdown(path) ? (
+            <Switch checked={preview} onChange={setPreview} label="Preview" />
+          ) : null}
           {content?.kind === 'text' && dirty ? (
             <Button size="small" onPress={() => save({ overwrite: false })}>
               Save
@@ -162,7 +184,7 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
       }
     >
       {content === null ? null : content.kind === 'text' ? (
-        <div className={styles.body}>
+        <div className={styles.body} onKeyDown={onKeyDown}>
           {conflict === null ? null : (
             <div role="alert" className={styles.bar}>
               {conflict === 'deleted' ? (
@@ -178,6 +200,15 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
               ) : (
                 <>
                   <span>This file changed on disk.</span>
+                  {diskText === null ? (
+                    <Button size="small" onPress={compare}>
+                      Compare
+                    </Button>
+                  ) : (
+                    <Button size="small" variant="ghost" onPress={() => setDiskText(null)}>
+                      Back to editor
+                    </Button>
+                  )}
                   <Button size="small" onPress={() => read(false)}>
                     Reload from disk
                   </Button>
@@ -188,15 +219,21 @@ export function FileViewer({ bus, path, line, openHistory }: FileViewerProps) {
               )}
             </div>
           )}
-          <textarea
-            ref={editor}
-            className={styles.editor}
-            aria-label={`Edit ${name}`}
-            spellCheck={false}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={onKeyDown}
-          />
+          {diskText !== null ? (
+            <DiffView before={diskText} after={draft} label={`${name} on disk against your changes`} />
+          ) : preview ? (
+            <MarkdownView source={draft} onLinkActivate={(href) => openLink(href, path)} />
+          ) : (
+            <CodeView
+              value={draft}
+              language={extensionOf(path)}
+              readOnly={false}
+              onChange={setDraft}
+              onSave={() => save({ overwrite: false })}
+              revealLine={revealLine}
+              label={`Edit ${name}`}
+            />
+          )}
         </div>
       ) : (
         <div className={styles.notice}>

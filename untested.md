@@ -627,3 +627,31 @@ The component rows are the ones `review.md` and `activity.md` list under "compon
 | state  | `listTimeline` returns `[]` | the timeline renders | "No changes recorded yet. Changes to files in this project appear here." |
 | state  | `listArtifacts` returns `[]` with an empty query | the artifacts view renders | "Pages, PDFs and images Claude makes in this project appear here." |
 | state  | `listTimeline` fails | the timeline renders | "Activity could not be read. <reason>" with Retry |
+
+## Lead fixes after the lane B merge: ui-kit views
+
+Code: `src/modules/ui-kit/components/DiffView.tsx`, `diff-rows.ts` (`diffRows`, `foldRows`, `pairRows`), `CodeView.tsx`, `MarkdownView.tsx`; their users `src/modules/history/panel/Timeline.tsx`, `src/modules/review/panel/DiffPanel.tsx` (`targetOf`), `src/modules/files/panel/FileViewer.tsx`, `src/modules/files/register.ui.ts` (`openLink`).
+
+`tests/ui-kit/diff-rows.test.ts` (pure):
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| UI-DIFF-1 | `a\nb\nc` and `a\nB\nc` | `diffRows` | rows same 1/1, removed 2/null, added null/2, same 3/3 |
+| REV-22 | 20 unchanged lines between two changes | `foldRows` with nothing expanded | one fold of 20; with its start expanded, 20 rows |
+| UI-DIFF-2 | removed, removed, added | `pairRows` | pairs [r1,a1], [r2,null] |
+
+`tests/ui-kit/views.ui.test.tsx` (jsdom):
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| UI-5 | `MarkdownView` with source `<img src=x onerror=alert(1)>` | it renders | no `img` element; the text is shown |
+| UI-5b | `MarkdownView` with `[x](javascript:alert(1))` and `[y](notes/a.md)` | click each link | `onLinkActivate` is never called with a `javascript:` href; it gets `notes/a.md` |
+| REV-20 | `DiffView` scrolled to 400 px | `after` changes | the same element is in the DOM and `scrollTop` is still 400 |
+| REV-21 | `DiffView` with three changes | F7 three times, then Shift+F7 | focus moves to change 1, 2, 3, then 2 |
+| REV-23 | `DiffView` with `onLineAction` | C on a focused added line | `onLineAction` gets that row; Ctrl+C does nothing |
+| FILE-73 | `CodeView` with the cursor on line 40 | `value` changes | the cursor is on line 40 and the scroll is unchanged |
+| FILE-72 | `CodeView` with `onSave` | Ctrl+S inside the editor | `onSave` runs once and the browser save does not |
+
+`tests/files/viewer.ui.test.tsx`: FILE-70 (a `.md` file opens in preview when `markdownPreviewFirst`, Ctrl+Shift+V shows the source), FILE-74 (Compare shows a diff of disk against the buffer, nothing is saved), FILE-79 (a link `../b.md` from `C:\p\docs\a.md` opens `C:\p\b.md`; an https link calls `shell.openExternal`), a double Ctrl+S sends one `files.save`.
+
+`tests/history/timeline.ui.test.tsx`: HIST-41 (with Compare on, the diff's left side is the selected snapshot's text and the right side is the current file).

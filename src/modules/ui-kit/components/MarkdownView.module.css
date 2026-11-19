@@ -1,0 +1,49 @@
+/* Reading text: the UI font, headings in the value colour, code in mono, links in the accent. */
+.markdown {
+  padding: 0.75rem 1rem;
+  overflow: auto;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  line-height: 1.6;
+}
+
+.markdown :is(h1, h2, h3, h4) {
+  margin: 1em 0 0.5em;
+  color: var(--color-text-value);
+  font-family: var(--font-display);
+  line-height: 1.3;
+}
+
+.markdown :is(p, ul, ol, pre, blockquote) {
+  margin: 0 0 0.75em;
+}
+
+.markdown a {
+  color: var(--color-accent);
+}
+
+.markdown a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.markdown code {
+  font-family: var(--font-mono);
+}
+
+.markdown pre {
+  padding: 0.5rem 0.75rem;
+  overflow: auto;
+  border-left: 2px solid var(--color-border-hairline);
+}
+
+.markdown blockquote {
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--color-border-hairline);
+  color: var(--color-text-secondary);
+}
+
+.markdown img {
+  max-width: 100%;
+}

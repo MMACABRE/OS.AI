@@ -20,31 +20,6 @@
   font-size: var(--font-size-body);
 }
 
-/* A text editor: monospace, no box of its own, the caret in the accent colour (UI-2). */
-.editor {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  border: 0;
-  outline: none;
-  resize: none;
-  background: transparent;
-  color: var(--color-text-primary);
-  caret-color: var(--color-accent);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-body);
-  line-height: 1.5;
-  white-space: pre;
-  overflow: auto;
-  tab-size: 4;
-}
-
-.editor:focus-visible {
-  box-shadow: inset 0 0 0 1px var(--color-accent);
-}
-
 .notice {
   display: flex;
   flex-direction: column;

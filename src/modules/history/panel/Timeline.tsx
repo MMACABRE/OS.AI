@@ -4,10 +4,9 @@ import { filesChannels } from '@hsos/contracts/channels/files';
 import { historyChannels } from '@hsos/contracts/channels/history';
 import type { Snapshot, SnapshotSource } from '@hsos/contracts/channels/history';
 import type { AbsPath, SnapshotId } from '@hsos/contracts/ids';
-import { Button, ConfirmDialog, ErrorState, Icon, List, PanelFrame, Skeleton, Switch, useToast } from '@hsos/ui-kit';
+import { Button, ConfirmDialog, DiffView, ErrorState, Icon, List, PanelFrame, Skeleton, Switch, useToast } from '@hsos/ui-kit';
 import type { IconName, PanelViewState } from '@hsos/ui-kit';
 import { absoluteTime, cls, relativeTime, signedBytes } from './format';
-import { DiffView } from './DiffView';
 import styles from './Timeline.module.css';
 
 /** The word and icon of each source (HIST-40). */
@@ -110,8 +109,9 @@ export function Timeline({ bus, path, selectedId, onSelect }: TimelineProps) {
     if (selectedKey === null) return undefined;
     let live = true;
     setDiff({ status: 'loading' });
+    // HIST-41: "Compare with current file" sets the selected version beside the file as it is now.
+    const before = compare ? snapshotText(bus, selectedKey) : previousText(bus, selectedKey);
     const after = compare ? currentText(bus, path) : snapshotText(bus, selectedKey);
-    const before = previousText(bus, selectedKey);
     void Promise.all([before, after]).then(([previous, current]) => {
       if (live) setDiff(combine(previous, current));
     });
@@ -170,7 +170,7 @@ export function Timeline({ bus, path, selectedId, onSelect }: TimelineProps) {
     ) : diff.status === 'error' ? (
       <ErrorState message={`This diff could not be shown. ${diff.message}`} />
     ) : (
-      <DiffView before={diff.before} after={diff.after} />
+      <DiffView before={diff.before} after={diff.after} label={`Changes in ${name}`} />
     );
 
   return (
