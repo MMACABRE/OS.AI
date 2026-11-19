@@ -461,3 +461,45 @@ Blocked questions:
 Anything that looks wrong: the dashboard's Ctrl+PageDown/Ctrl+PageUp commands run even when another page is visible (they are not gated on the page being shown). `npm run test` prints the node-pty "AttachConsole failed" stack before passing; it is environmental.
 Merge: written by a Haiku coder on `lane-f-035`, merged by the Lead on 2026-11-19. The Dashboard works but does not yet match the approved mockup (`design-round/dashboard/phosphor.html`): widgets have no corner boxes, the layout puts the graph on the right instead of the centre, and the mini graph is a placeholder with round nodes. The Lead brings it there in a look pass.
 Next: 035 look pass, then 036 part 2
+
+## Lead handoff note, 2026-11-19 (docs/handoff.md and CLAUDE.md are read-only for the implementer; this entry supersedes their "Next")
+Status: note
+
+Updated 2026-11-19, later the same day: the run resumed after card 031 and reached card 036. Read this, then `CLAUDE.md`, then the last entries of `PROGRESS.md`.
+
+### Where the run stands
+
+- `main` holds cards 001 to 035 and part 1 of 036, all "done (untested)". Lane B (030, 032, 033) and lanes C to F (034, sessions fixes, 030 and 033 fixes, 035) are merged; no lane branches are open.
+- Owner amendments done: the Skills repo row sits above the skills search; Ctrl + wheel sizes the terminal font; the strawberry logo is the app icon (`resources/icon.ico`, `resources/art/strawberry-logo.png`).
+- Lead fixes after the lane B review: ui-kit `DiffView`, `CodeView` (CodeMirror) and `MarkdownView` (micromark), one diff for files, history and review; the feedback paste goes through the terminal's own paste with control characters removed (`pasteToTerminal`); `List` and `Tree` select a row on right click; the sessions, files, history, git, review and activity findings fixed (see their PROGRESS entries).
+- Notes page: brought to the approved layout C (graph as a page layer centred on CLAUDE.md, square pixel nodes with halos, note on the right). Gaps for the 037 review are listed in the "034 look pass" entry.
+- Settings: the owner chose layout A, Ledger (`design-round/settings/phosphor-settings.html`, recorded in `design-round/design-rounds.md`); built. Welcome view (WS-5, WS-44) built.
+
+### Next
+
+1. **035 look pass (Lead).** The Dashboard works but does not match `design-round/dashboard/phosphor.html` (render it with headless Edge, `?still=1`): widgets need corner boxes in their colours, the graph belongs free in the centre with the session boxes on the left edge, usage and context bottom right, the mascot top right and the quick bar under the graph; the mini graph should reuse the Notes graph's square nodes and CLAUDE.md halo.
+2. **036 part 2:** `src/demo/gallery.tsx`, opened by `npm run demo -- --gallery`: every registered panel and widget in its loading, empty, error and ready states. Idea: load the modules four times with buses that never answer, answer empty, answer errors, and answer from the fixtures.
+3. Then card 037: the owner gate. Stop and wait.
+
+Open gaps not yet fixed: the git title bar button (needs a title bar slot in workspace), "Go to terminal" (SESS-32), `graph.open` opening a second graph as a dock tab, page switching from a module (dashboard widgets that go to Notes or Code), the demo transport not emitting `projectChanged` null on "Close project".
+
+### Subagents (owner rules, 2026-11-19)
+
+- Ask the owner before spawning any subagent. Reuse a subagent with SendMessage for later tasks until it has had 7 prompts from the Lead, then replace it (memory `subagent-reuse-seven-prompts`).
+- This session used: a Haiku coder (034, 035; 2 prompts) and a Sonnet agent (lane B review, sessions fixes, 030 and 033 fixes; 3 prompts). Their ids do not carry over to a new session.
+- Coders work in a worktree beside the repo (`C:\Users\H.2\Desktop\OS.AI-lane-x`) with `node_modules` as a junction to the main checkout, write `lane-notes/<card>-progress.md` and `-untested.md`, commit on their branch and do not push. The Lead merges, folds the lane notes into `PROGRESS.md` and `untested.md`, and deletes `lane-notes/`.
+- **Removing a worktree:** delete the junction first with `[System.IO.Directory]::Delete("<worktree>\node_modules")` (non-recursive), then `git worktree remove`. A recursive delete can follow the junction into the main `node_modules`.
+
+### The run's rules
+
+- Owner's instruction: build cards 001 to 037 and stop at the 037 gate.
+- No tests from implementers (owner, 2026-11-18): each card's test plan goes to `untested.md`; features stay `passes: false`.
+- The Lead does the delicate look work; coders build the rest; only the Lead writes `PROGRESS.md`, `features.json` and `untested.md`.
+- Screens without a mockup are shown to the owner as options first.
+
+### Environment on this device
+
+- No `pwsh`: `powershell -ExecutionPolicy Bypass -File scripts/init.ps1`. It runs `npm ci` without the env fix and fails at node-pty; after it, run `env -u NoDefaultCurrentDirectoryInExePath npm ci`.
+- Screenshots of the app: `npm run build`, then Playwright `_electron.launch({ args: ['.', '--hsos-demo'] })`; a script that clicks page names and runs palette commands works well. Mockups: headless Edge (`msedge --headless=new --screenshot=... --window-size=1600,950 <file url>?still=1`).
+- Write files with backslashes or backticks with the Write or Edit tool. Agents have mangled non-ASCII characters (a § became a backtick); check merged diffs for that.
+- Skills disabled on this device and skipped on the owner's word: interview-me, idea-refine, context-engineering, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, surgical-patch, verify-and-stop, babysit.
