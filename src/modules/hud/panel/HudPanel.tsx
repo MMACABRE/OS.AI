@@ -27,7 +27,7 @@ export function searchSkills(): void {
   requestAnimationFrame(focusSkillSearch);
 }
 
-/** The HUD side view (`hud.panel`): the quick bar, then Sessions, Usage, Skills and Skills repo. */
+/** The HUD side view (`hud.panel`): the quick bar, then Sessions, Usage and Skills (repo row first). */
 export function HudPanel({ state, setState }: PanelProps<HudPanelState>) {
   const deps = useHudDeps();
   const toast = useToast();
@@ -67,10 +67,9 @@ export function HudPanel({ state, setState }: PanelProps<HudPanelState>) {
         tools={<IconButton icon={<Icon name="folder-open" />} label="Open skills folder" onPress={() => void openSkillsFolder()} />}
         log={deps.log}
       >
-        <SkillsDeck />
-      </Section>
-      <Section title="Skills repo" collapsed={collapsed.includes('repo')} onToggle={() => toggle('repo')} log={deps.log}>
+        {/* Owner, 2026-11-19: the repo row sits above the skills search. */}
         <SkillsRepoRow />
+        <SkillsDeck />
       </Section>
     </div>
   );

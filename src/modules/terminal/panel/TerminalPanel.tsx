@@ -36,6 +36,10 @@ export const ACK_BYTES = 100_000;
 export const FIT_DEBOUNCE_MS = 50;
 /** The loading line shows after this wait (visual-direction.md "Panel states"). */
 export const LOADING_DELAY_MS = 150;
+/** Ctrl+wheel font size stays inside the settings range (`TerminalSettings.fontSize`, 8 to 32). */
+export const MIN_FONT_SIZE = 8;
+export const MAX_FONT_SIZE = 32;
+const clampFontSize = (size: number) => Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, size));
 
 export type TerminalPanelDeps = {
   readonly bus: Bus;
@@ -61,6 +65,8 @@ export function createTerminalPanel(deps: TerminalPanelDeps) {
     const screen = useRef<HTMLDivElement>(null);
     const view = useRef<XtermView | null>(null);
     const idRef = useRef<TerminalId | null>(state.terminalId);
+    const stateRef = useRef(state);
+    stateRef.current = state;
     const fitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
     const [showLoading, setShowLoading] = useState(false);
@@ -90,6 +96,23 @@ export function createTerminalPanel(deps: TerminalPanelDeps) {
       const loadingTimer = setTimeout(() => setShowLoading(true), LOADING_DELAY_MS);
       const xterm = createXterm(element, deps.settings(), log);
       view.current = xterm;
+      // Owner, 2026-11-19: Ctrl+wheel changes the font size, kept as `fontSizeDelta` over the setting.
+      const baseFontSize = deps.settings().fontSize;
+      xterm.terminal.options.fontSize = clampFontSize(baseFontSize + stateRef.current.fontSizeDelta);
+      const onWheel = (event: WheelEvent) => {
+        if (!event.ctrlKey) return;
+        // Stops the page zoom and xterm's own scrolling.
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.deltaY === 0) return;
+        const current = xterm.terminal.options.fontSize ?? baseFontSize;
+        const next = clampFontSize(current + (event.deltaY < 0 ? 1 : -1));
+        if (next === current) return;
+        xterm.terminal.options.fontSize = next;
+        setState({ ...stateRef.current, fontSizeDelta: next - baseFontSize });
+        fitNow();
+      };
+      element.addEventListener('wheel', onWheel, { capture: true, passive: false });
       let lastSeq = 0;
       let undrawnAck = 0;
       let alive = true;
@@ -181,6 +204,7 @@ export function createTerminalPanel(deps: TerminalPanelDeps) {
         input.dispose();
         resize.disconnect();
         theme.disconnect();
+        element.removeEventListener('wheel', onWheel, { capture: true });
         xterm.dispose();
         view.current = null;
       };

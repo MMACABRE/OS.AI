@@ -436,3 +436,15 @@ Seed `useHudData.setState` directly in component tests and wrap them in `HudDeps
 | HUD-55 | `errors` with one file | it renders | "Could not read <file>: <message>" in the warn class; focus after 11 s calls `getSetup` again |
 
 Also worth a test: a section that throws shows its error state while the others render (Section boundary); `tokensText(41000, 200000)` is `41k of 200k tokens`; `firstSentence` cuts at 160 characters on a word boundary.
+
+## Owner amendments 2026-11-19
+
+Code: `src/modules/hud/panel/HudPanel.tsx`, `src/modules/terminal/panel/TerminalPanel.tsx` (`MIN_FONT_SIZE`, `MAX_FONT_SIZE`, the wheel listener). No rule ids in the spec yet; name the tests `OWNER-1` and `OWNER-2`.
+
+| Test | Given | When | Then |
+| --- | --- | --- | --- |
+| OWNER-1 | the HUD panel with skills and a repo state | it renders | the Skills section holds the repo row before the search field, and no "Skills repo" section title exists |
+| OWNER-2a | a terminal panel with font size 13 and delta 0 | a wheel event with `ctrlKey` and `deltaY < 0` | xterm's `fontSize` is 14, `setState` got `fontSizeDelta: 1`, `terminal.resize` was called, and the event's `defaultPrevented` is true |
+| OWNER-2b | font size 32 | Ctrl+wheel up | the size stays 32 and `setState` is not called; at 8, Ctrl+wheel down likewise stays 8 |
+| OWNER-2c | any size | a wheel event without `ctrlKey` | the size is unchanged and the default is not prevented (normal scrollback) |
+| OWNER-2d | saved state with `fontSizeDelta: 3` and font size 13 | the panel opens | xterm starts at 16 |
