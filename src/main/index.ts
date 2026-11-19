@@ -36,6 +36,8 @@ import { registerSystemChannels } from './system/system-channels';
 import { createMainWindow, loadRenderer } from './window/main-window';
 
 const SERVICES: readonly ServiceName[] = ['pty-host', 'workspace-service', 'link-service'];
+/** `npm run demo` (card 026): `HSOS_DEMO=1` or the `--hsos-demo` flag. */
+const DEMO = process.env['HSOS_DEMO'] === '1' || process.argv.includes('--hsos-demo');
 const RENDERER_LOSS_WINDOW_MS = 60_000;
 const RENDERER_LOSSES_BEFORE_DIALOG = 3;
 const UNRESPONSIVE_RELOAD_MS = 10_000;
@@ -251,7 +253,8 @@ app.on('second-instance', () => {
 void app.whenReady().then(async () => {
   const look = await loadMainModules();
   registerSystem();
-  supervisor.start();
+  // Demo mode (card 026): no service process; the renderer answers every channel from fixtures.
+  if (!DEMO) supervisor.start();
   const created = await createMainWindow({
     appStateFile: paths.appStateFile,
     bus,
@@ -273,7 +276,9 @@ void app.whenReady().then(async () => {
   });
   broker.connect('ui', { send: (envelope) => created.webContents.send('hsos-bus', envelope) });
   watchRenderer(created);
-  loadRenderer(created);
+  // In demo mode `uiReady` goes to the demo transport, so the window shows as soon as it can paint.
+  if (DEMO) created.once('ready-to-show', () => created.show());
+  loadRenderer(created, { demo: DEMO });
 });
 
 // Stop the services before quitting (SHELL-7, architecture §7 step 4).

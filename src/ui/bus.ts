@@ -79,3 +79,21 @@ export function createRendererBus(preload: PreloadBus, clock: Clock, log: Logger
     on: (channel, listener) => busFor(channel.owner).on(channel, listener),
   };
 }
+
+/** True when main loaded the renderer for `npm run demo` (card 026). */
+export function isDemoMode(): boolean {
+  return new URLSearchParams(window.location.search).get('demo') === '1';
+}
+
+/**
+ * The renderer's bus in demo mode: every channel is answered by the demo transport from fixtures
+ * (Stage U rules). The fixtures are loaded only in demo mode.
+ */
+export async function createDemoRendererBus(clock: Clock, log: Logger): Promise<Bus> {
+  const [{ createDemoTransport }, { ALL_FIXTURES }] = await Promise.all([
+    import('../demo/demo-transport'),
+    import('../demo/fixtures'),
+  ]);
+  const transport = createDemoTransport({ fixtures: ALL_FIXTURES, clock, log });
+  return createBus({ process: 'ui', transport, clock, log, owns: () => false });
+}

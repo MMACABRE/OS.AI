@@ -14,7 +14,7 @@ import type { PaletteControl } from './app-root';
 import { createModuleLogger, uiModules } from './module-list';
 import { pingChannel } from '../modules/shell/bus/ping-channel';
 import { systemClock } from '../modules/shell/system-clock';
-import { createRendererBus } from './bus';
+import { createDemoRendererBus, createRendererBus, isDemoMode } from './bus';
 import type { PreloadBus } from './bus';
 
 function preloadBus(): PreloadBus | null {
@@ -117,10 +117,16 @@ function loadUiModules(bus: Bus, palette: PaletteControl): UiRegistry {
   return registry;
 }
 
-if (root !== null) {
+/** The bus: the demo transport for `npm run demo` (card 026), else main and the services. */
+async function chooseBus(): Promise<Bus | null> {
+  if (isDemoMode()) return createDemoRendererBus(systemClock, log);
+  return preload === null ? null : createRendererBus(preload, systemClock, log);
+}
+
+async function start(root: HTMLElement): Promise<void> {
   const message = createMessageControl();
   const palette = createPaletteControl();
-  const bus = preload === null ? null : createRendererBus(preload, systemClock, log);
+  const bus = await chooseBus();
   const registry = bus === null ? null : loadUiModules(bus, palette);
   const keyFor = bus === null || registry === null ? () => null : startKeys(bus, registry);
   createRoot(root).render(
@@ -141,3 +147,5 @@ if (root !== null) {
     setTimeout(() => void pingAll(), 500);
   }
 }
+
+if (root !== null) void start(root);

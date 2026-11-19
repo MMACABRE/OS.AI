@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  assetsInclude: ['**/*.bin'],
   resolve: {
     alias: {
       '@hsos/contracts': resolve(import.meta.dirname, 'spec/contracts'),

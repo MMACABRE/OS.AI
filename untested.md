@@ -257,3 +257,21 @@ Code: `electron-builder.yml` (app id `local.hsos.app`, product `HSOS`, NSIS with
 5. `npm run dist` produces an installer `dist/HSOS Setup 0.1.0.exe` (check once, outside the e2e run).
 
 Also F-005 (move the window, restart, same place), F-006 (edit settings.json on disk, the change applies within a second) and F-004 (kill workspace-service, a crash file appears in `%LOCALAPPDATA%\HSOS\crash`, the service is ready again within 5 s) can join this file.
+
+## 026 Demo backend
+
+Code: `src/demo/demo-transport.ts` (`createDemoTransport`, `buildFixtureTable`), `src/demo/all-channels.ts`, `src/demo/mock-from-schema.ts` (`mockFromSchema`, `DEMO_NOW`), `src/demo/terminal-replay.ts` (`parseReplay`, `createTerminalReplay`, `bytesFromDataUrl`), `src/demo/fixtures/` (one file per module, `world.ts`, `index.ts`, `terminal-claude.bin`), demo mode in `src/ui/bus.ts` (`isDemoMode`, `createDemoRendererBus`), `src/ui/index.tsx` and `src/main/index.ts`, the `demo` script.
+
+`tests/demo/fixtures.test.ts`:
+
+- `buildFixtureTable(ALL_FIXTURES, false)` reports no problems: every hand-written fixture parses with its channel's schema.
+- With `generateMissing` on, every request channel in `REQUEST_CHANNELS` has an entry and there are no problems (155 channels at this commit).
+- Every function fixture, called with a request built by `mockFromSchema` and parsed with the request schema, returns a value that parses with the response schema. A one-off check at this commit found none failing.
+
+`tests/demo/demo-transport.test.ts` (`createFakeClock`, `random: () => 0`):
+
+- A request for a channel with no fixture (`generateMissing: false`, a declared channel left out) answers `INTERNAL` with "No demo data".
+- A request is answered after 80 ms with `random` 0 and 400 ms with `random` 1, not before.
+- An event fixture with `everyMs` fires on the clock.
+
+Also: `parseReplay` reads the records of `terminal-claude.bin` and stops at a truncated record; `npm run demo` opens the window with demo data (not launched in this run).

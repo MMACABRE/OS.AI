@@ -36,6 +36,8 @@ export default defineConfig({
     root: resolve(import.meta.dirname, 'src/ui'),
     resolve: { alias },
     plugins: [react()],
+    // The demo's recorded terminal session is a binary asset imported with ?inline (card 026).
+    assetsInclude: ['**/*.bin'],
     build: {
       rollupOptions: { input: { index: resolve(import.meta.dirname, 'src/ui/index.html') } },
     },
