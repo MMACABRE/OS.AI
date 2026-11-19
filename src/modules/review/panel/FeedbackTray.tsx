@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import type { CommentTarget, PinnedComment } from '@hsos/contracts/channels/review';
 import { reviewChannels } from '@hsos/contracts/channels/review';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import type { ProjectId } from '@hsos/contracts/ids';
-import { Button, ConfirmDialog, Select, TextField, useToast, pasteToTerminal } from '@hsos/ui-kit';
+import { Button, ConfirmDialog, Select, useToast, pasteToTerminal } from '@hsos/ui-kit';
 import { relativeTo } from './helpers';
 import styles from './FeedbackTray.module.css';
 
@@ -42,6 +42,10 @@ export function FeedbackTray({ bus, projectId, root, comments, sessions }: Feedb
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [clearing, setClearing] = useState(false);
+
+  // REV-34: "Sent. Clear comments?" speaks of the comments that were sent, so any change to them ends it.
+  const signature = comments.map((comment) => `${comment.id}:${comment.text}`).join('\n');
+  useEffect(() => setSent(false), [signature]);
 
   const clearAll = () => {
     void bus.call(reviewChannels.clearComments, { projectId }).then((result) => {
@@ -110,7 +114,21 @@ export function FeedbackTray({ bus, projectId, root, comments, sessions }: Feedb
               <span className={styles.target}>{`${index + 1}. ${targetLabel(comment.target, root)}`}</span>
               {editing === comment.id ? (
                 <div className={styles.editor}>
-                  <TextField value={draft} onChange={setDraft} label="Comment text" />
+                  <textarea
+                    className={styles.field}
+                    aria-label="Comment text"
+                    value={draft}
+                    rows={3}
+                    spellCheck={false}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Escape') setEditing(null);
+                      else if (event.key === 'Enter' && event.ctrlKey) {
+                        event.preventDefault();
+                        saveEdit(comment.id);
+                      }
+                    }}
+                  />
                   <div className={styles.actions}>
                     <Button size="small" onPress={() => saveEdit(comment.id)}>
                       Save

@@ -2,6 +2,7 @@ import type { Bus } from '@hsos/contracts/bus';
 import { gitChannels } from '@hsos/contracts/channels/git';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import { workspaceChannels } from '@hsos/contracts/channels/workspace';
+import type { RepoStatus } from '@hsos/contracts/channels/git';
 import type { AppError } from '@hsos/contracts/result';
 
 /** The owner's sentence for a git error (git.md "UI"). Null when no message is shown (GIT_OFFLINE). */
@@ -22,6 +23,13 @@ export function gitMessage(error: AppError): string | null {
   }
 }
 
+/** What the status item and the notice say while a merge, rebase or cherry-pick is open (GIT-26). */
+export const OPERATION_WORD = {
+  merge: 'Merge in progress',
+  rebase: 'Rebase in progress',
+  'cherry-pick': 'Cherry-pick in progress',
+} as const satisfies Record<Exclude<Extract<RepoStatus, { kind: 'repo' }>['operation'], 'none'>, string>;
+
 /**
  * Runs `sync` or `fetch` on the open project (GIT-23). Commands run outside the React tree, so their
  * outcome goes to a Windows notification rather than a toast.
@@ -33,6 +41,16 @@ export async function runGitCommand(bus: Bus, action: 'sync' | 'fetch'): Promise
     return;
   }
   const root = project.value.path;
+  // GIT-26: while an operation is open HSOS runs no command and says why.
+  const current = await bus.call(gitChannels.getStatus, { root });
+  if (current.ok && current.value.kind === 'repo' && current.value.operation !== 'none') {
+    await bus.call(shellChannels.notify, {
+      title: 'Git',
+      body: `${OPERATION_WORD[current.value.operation]}. Finish it in a terminal, then sync again.`,
+      focusPanel: null,
+    });
+    return;
+  }
   const result =
     action === 'sync' ? await bus.call(gitChannels.sync, { root }) : await bus.call(gitChannels.fetch, { root });
   if (result.ok) {

@@ -1,11 +1,10 @@
 import { createElement } from 'react';
-import type { AbsPath } from '@hsos/contracts/ids';
 import type { UiContext } from '@hsos/contracts/module';
 import { runGitCommand } from './panel/actions';
 import { ChangesStatus } from './panel/ChangesStatus';
 
-/** The review diff panel's type, opened from the status item. Defined by the review module. */
-const REVIEW_DIFF = 'review.diff';
+/** The Changes side view, opened from the status item. Defined by the review module. */
+const REVIEW_CHANGES = 'review.changes';
 
 /** The git renderer side: the changes status item and the sync and fetch commands (git.md "UI"). Card 033. */
 export function register(ctx: UiContext): void {
@@ -16,7 +15,7 @@ export function register(ctx: UiContext): void {
     component: () =>
       createElement(ChangesStatus, {
         bus: ctx.bus,
-        openDiff: (path: AbsPath) => ctx.openPanel(REVIEW_DIFF, { path, base: { kind: 'last-commit' }, mode: 'inline' }),
+        openChanges: () => ctx.openPanel(REVIEW_CHANGES),
       }),
   });
 

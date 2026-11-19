@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
+import { claudeLinkChannels } from '@hsos/contracts/channels/claude-link';
 import { gitChannels } from '@hsos/contracts/channels/git';
 import type { PinnedComment, ReviewBase, ReviewFile } from '@hsos/contracts/channels/review';
 import { reviewChannels } from '@hsos/contracts/channels/review';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import type { AbsPath, ProjectId } from '@hsos/contracts/ids';
 import { zClaudeSessionId } from '@hsos/contracts/schemas';
-import { Button, List, Menu, PanelFrame, Select, TextField, useToast } from '@hsos/ui-kit';
+import { Button, EmptyState, ErrorState, List, Menu, PanelFrame, Select, Skeleton, TextField, useToast } from '@hsos/ui-kit';
 import type { PanelViewState } from '@hsos/ui-kit';
-import { CHANGE, absoluteFrom, baseKey, cls, countsOf } from './helpers';
+import { CHANGE, absoluteFrom, baseKey, cls, countsOf, repoRelative } from './helpers';
 import { gitMessage, loadSessions } from './data';
 import { FeedbackTray } from './FeedbackTray';
 import { useRepo } from './use-repo';
@@ -34,7 +35,10 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
   const root = project?.path ?? null;
   const [base, setBase] = useState<ReviewBase>({ kind: 'last-commit' });
   const [sessions, setSessions] = useState<readonly SessionListItem[]>([]);
+  const [editors, setEditors] = useState<ReadonlySet<string>>(new Set());
   const [changes, setChanges] = useState<ChangesState>({ status: 'loading' });
+  const loadedFor = useRef<string | null>(null);
+  const committing = useRef(false);
   const [reload, setReload] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -44,6 +48,18 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
   const repoRoot = status?.kind === 'repo' ? status.root : null;
 
   // The sessions of the project, for the base select and the feedback target (REV-10, REV-33).
+  // A different project starts again: base, selection, sessions and the list are dropped.
+  useEffect(() => {
+    setBase({ kind: 'last-commit' });
+    setSelected(null);
+    setSessions([]);
+    setEditors(new Set());
+    setChanges({ status: 'loading' });
+    loadedFor.current = null;
+    messageTouched.current = false;
+    setMessage('');
+  }, [projectId]);
+
   useEffect(() => {
     if (project === undefined || project === null) return undefined;
     let live = true;
@@ -55,13 +71,41 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
     };
   }, [bus, project]);
 
+  // REV-10: only sessions that edited files are offered as a base. Read again when the changes move.
+  useEffect(() => {
+    if (sessions.length === 0) return undefined;
+    let live = true;
+    void Promise.all(
+      sessions.map(async (item) => {
+        const events = await bus.call(claudeLinkChannels.getSessionEvents, { sessionId: item.sessionId, since: null });
+        return events.ok && events.value.some((event) => event.kind === 'file-edit') ? item.sessionId : null;
+      }),
+    ).then((ids) => {
+      if (live) setEditors(new Set(ids.filter((id): id is NonNullable<typeof id> => id !== null)));
+    });
+    return () => {
+      live = false;
+    };
+  }, [bus, sessions, reload]);
+
   useEffect(() => {
     if (projectId === null) return undefined;
     let live = true;
-    setChanges({ status: 'loading' });
+    // The list shows "loading" only for the first read of a project and base; a refresh keeps the old files on screen.
+    const scope = `${projectId}|${key}`;
+    if (loadedFor.current !== scope) {
+      loadedFor.current = scope;
+      setChanges({ status: 'loading' });
+    }
     void bus.call(reviewChannels.listChanges, { projectId, base }).then((result) => {
       if (!live) return;
-      setChanges(result.ok ? { status: 'ready', files: result.value } : { status: 'error', message: result.error.message });
+      setChanges((current) =>
+        result.ok
+          ? { status: 'ready', files: result.value }
+          : current.status === 'ready'
+            ? current
+            : { status: 'error', message: result.error.message },
+      );
     });
     return () => {
       live = false;
@@ -106,10 +150,13 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
   }, [bus, repoRoot, key, fileCount]);
 
   const commit = (andSync: boolean) => {
-    if (repoRoot === null || changes.status !== 'ready') return;
-    const paths = changes.files.map((file) => file.relPath);
+    if (repoRoot === null || root === null || changes.status !== 'ready' || committing.current) return;
+    committing.current = true;
+    // Git takes paths relative to the repo root; the project may be a subfolder of it.
+    const paths = changes.files.map((file) => repoRelative(repoRoot, root, file.relPath));
     const text = message.trim();
     void bus.call(gitChannels.commit, { root: repoRoot, message: text, paths }).then((result) => {
+      committing.current = false;
       if (!result.ok) {
         const shown = gitMessage(result.error);
         if (shown !== null) toast.show({ message: shown, tone: 'error' });
@@ -135,7 +182,9 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
 
   const baseOptions = [
     { value: 'last-commit', label: 'Since last commit' },
-    ...sessions.map((item) => ({
+    ...sessions
+      .filter((item) => editors.has(item.sessionId) || (base.kind === 'session-start' && base.sessionId === item.sessionId))
+      .map((item) => ({
       value: `session:${item.sessionId}`,
       label: `Session: ${item.title.trim() === '' ? 'Untitled session' : item.title}`,
     })),
@@ -183,30 +232,21 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
     },
   ];
 
+  // Only the project itself decides the frame. Loading, empty and error of the list show inside the body, so the
+  // base select and the commit box stay on screen (P-40).
   const frame: PanelViewState =
     project === undefined
       ? { kind: 'loading', label: 'Reading changes' }
       : project === null
         ? { kind: 'empty', title: 'No project open', message: 'Open a project to see its changes.' }
-        : changes.status === 'loading'
-          ? { kind: 'loading', label: 'Reading changes' }
-          : changes.status === 'error'
-          ? {
-              kind: 'error',
-              message: `Changes could not be read. ${changes.message}`,
-              onRetry: () => setReload((count) => count + 1),
-            }
-          : files.length === 0
-            ? {
-                kind: 'empty',
-                message:
-                  base.kind === 'last-commit'
-                    ? status?.kind === 'not-a-repo'
-                      ? 'This folder is not a git repository. Choose a Claude session to see its changes.'
-                      : 'No changes since the last commit.'
-                    : 'This session has not changed any files.',
-              }
-            : { kind: 'ready' };
+        : { kind: 'ready' };
+
+  const emptyMessage =
+    base.kind === 'last-commit'
+      ? status?.kind === 'not-a-repo'
+        ? 'This folder is not a git repository. Choose a Claude session to see its changes.'
+        : 'No changes since the last commit.'
+      : 'This session has not changed any files.';
 
   return (
     <PanelFrame title="Changes" state={frame}>
@@ -215,6 +255,11 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
         <p className={styles.summary}>
           {`${files.length} file${files.length === 1 ? '' : 's'} · +${added} −${removed}`}
         </p>
+        {changes.status === 'loading' ? <Skeleton rows={4} label="Reading changes" /> : null}
+        {changes.status === 'error' ? (
+          <ErrorState message={`Changes could not be read. ${changes.message}`} onRetry={() => setReload((count) => count + 1)} />
+        ) : null}
+        {changes.status === 'ready' && files.length === 0 ? <EmptyState message={emptyMessage} /> : null}
         <Menu kind="context" items={menuItems}>
           <div className={styles.list}>
             <List
@@ -223,7 +268,7 @@ export function ChangesView({ bus, openFile, openDiff, openHistory }: ChangesVie
               selectedId={selected}
               onSelect={setSelected}
               onActivate={(id) => {
-                if (root !== null) openFile(absoluteFrom(root, id));
+                if (root !== null) openDiff(absoluteFrom(root, id), base);
               }}
               label="Changed files"
               renderRow={(row, rowState) => {

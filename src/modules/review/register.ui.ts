@@ -25,6 +25,14 @@ export function register(ctx: UiContext): void {
   const openHistory = (path: AbsPath) => ctx.openPanel('history.timeline', { path, selectedId: null });
   const openDiff = (path: AbsPath, base: ReviewBase) => ctx.openPanel(DIFF_PANEL, { path, base, mode: 'inline' });
 
+  ctx.registerCommand({
+    id: 'review.showChanges',
+    title: 'Show Changes',
+    defaultKey: 'Ctrl+Shift+G',
+    global: false,
+    run: () => ctx.openPanel(CHANGES_PANEL),
+  });
+
   ctx.registerPanel({
     type: CHANGES_PANEL,
     kind: 'side',

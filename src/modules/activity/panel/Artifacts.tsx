@@ -17,6 +17,9 @@ type ListState =
   | { readonly status: 'ready'; readonly items: readonly Artifact[] }
   | { readonly status: 'error'; readonly message: string };
 
+/** How long the search waits after the last key (ACT-33). */
+const SEARCH_DEBOUNCE_MS = 300;
+
 /** The icon of each kind; images have no thumbnail until the app serves local files (ACT-30). */
 const KIND_ICON: Record<Artifact['kind'], IconName> = { html: 'file-code', pdf: 'file', image: 'file-image', video: 'play' };
 
@@ -31,28 +34,46 @@ export function Artifacts({ bus, openFile }: ArtifactsProps) {
   const project = useProject(bus);
   const projectId: ProjectId | null = project?.id ?? null;
   const [query, setQuery] = useState('');
+  // ACT-33: the list filters as typed, but asks 300 ms after the last key.
+  const [asked, setAsked] = useState('');
   const [state, setState] = useState<ListState>({ status: 'loading' });
   const [reload, setReload] = useState(0);
   const [pinning, setPinning] = useState<CommentTarget | null>(null);
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setAsked(query), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  // A different project starts empty: no old tiles, search or open menu dialog.
+  useEffect(() => {
+    setQuery('');
+    setAsked('');
+    setState({ status: 'loading' });
+    setPinning(null);
+  }, [projectId]);
+
+  useEffect(() => {
     if (projectId === null) return undefined;
     let live = true;
-    void bus.call(activityChannels.listArtifacts, { projectId, query }).then((result) => {
+    void bus.call(activityChannels.listArtifacts, { projectId, query: asked }).then((result) => {
       if (!live) return;
       setState(result.ok ? { status: 'ready', items: result.value } : { status: 'error', message: result.error.message });
     });
     return () => {
       live = false;
     };
-  }, [bus, projectId, query, reload]);
+  }, [bus, projectId, asked, reload]);
 
   useEffect(() => bus.on(activityChannels.artifactsChanged, () => setReload((count) => count + 1)), [bus]);
 
   // ACT-31: an image opens in a file viewer; a page, PDF or video opens in the system's program.
   const open = (artifact: Artifact) => {
     if (artifact.kind === 'image') openFile(artifact.path);
-    else void bus.call(shellChannels.openPath, { path: artifact.path });
+    else
+      void bus.call(shellChannels.openPath, { path: artifact.path }).then((result) => {
+        if (!result.ok) toast.show({ message: result.error.message, tone: 'error' });
+      });
   };
 
   const menuFor = (artifact: Artifact): MenuItem[] => [
