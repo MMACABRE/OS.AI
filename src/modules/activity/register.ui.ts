@@ -13,6 +13,22 @@ export function register(ctx: UiContext): void {
   const openFile = (path: AbsPath) => ctx.openPanel('files.viewer', { path, line: null });
   const openHistory = (path: AbsPath, snapshotId: string) => ctx.openPanel('history.timeline', { path, selectedId: snapshotId });
 
+  // ACT commands (activity.md "Commands"): the side views are routed by the workspace.
+  ctx.registerCommand({
+    id: 'activity.showTimeline',
+    title: 'Show Activity',
+    defaultKey: null,
+    global: false,
+    run: () => ctx.openPanel(TIMELINE_VIEW),
+  });
+  ctx.registerCommand({
+    id: 'activity.showArtifacts',
+    title: 'Show Artifacts',
+    defaultKey: null,
+    global: false,
+    run: () => ctx.openPanel(ARTIFACTS_VIEW),
+  });
+
   ctx.registerPanel({
     type: TIMELINE_VIEW,
     kind: 'side',

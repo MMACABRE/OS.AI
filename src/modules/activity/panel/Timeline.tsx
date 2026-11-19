@@ -5,8 +5,8 @@ import type { ActivityCause, ActivityEntry } from '@hsos/contracts/channels/acti
 import { historyChannels } from '@hsos/contracts/channels/history';
 import type { CommentTarget } from '@hsos/contracts/channels/review';
 import type { AbsPath, ProjectId, SnapshotId } from '@hsos/contracts/ids';
-import { zClaudeSessionId } from '@hsos/contracts/schemas';
-import { Button, ConfirmDialog, Icon, Menu, PanelFrame, Select, useToast } from '@hsos/ui-kit';
+import { zClaudeSessionId, zEpochMs } from '@hsos/contracts/schemas';
+import { Button, ConfirmDialog, EmptyState, ErrorState, Icon, Menu, PanelFrame, Select, Skeleton, useToast } from '@hsos/ui-kit';
 import type { IconName, MenuItem, PanelViewState } from '@hsos/ui-kit';
 import { clockOf, cls, countsOf, dayLabel, splitPath } from './format';
 import { PinDialog } from './PinDialog';
@@ -71,10 +71,15 @@ function causeOf(entry: ActivityEntry): { readonly icon: IconName; readonly word
 }
 
 /** The sessions in a list, for the session select (ACT-12). */
-function sessionOptions(entries: readonly ActivityEntry[]): { readonly value: string; readonly label: string }[] {
+function sessionOptions(
+  entries: readonly ActivityEntry[],
+  selected: string,
+): { readonly value: string; readonly label: string }[] {
   const seen = new Map<string, string>();
   for (const entry of entries)
     if (entry.sessionId !== null && !seen.has(entry.sessionId)) seen.set(entry.sessionId, entry.sessionTitle ?? 'Untitled session');
+  // The chosen session stays an option even when no loaded entry names it.
+  if (selected !== 'all' && !seen.has(selected)) seen.set(selected, 'Selected session');
   return [...seen].map(([value, title]) => ({ value, label: title.slice(0, 24) }));
 }
 
@@ -101,21 +106,31 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
   const [pinning, setPinning] = useState<CommentTarget | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const loadingMore = useRef(false);
+  const loadedFor = useRef<string | null>(null);
+  // The sessions of the whole project, read without the filters, so the select keeps its options (ACT-12).
+  const [allEntries, setAllEntries] = useState<readonly ActivityEntry[]>([]);
   const cause = causeFilter === 'all' ? null : causeFilter;
   const session = sessionFilter === 'all' ? null : zClaudeSessionId.parse(sessionFilter);
 
   useEffect(() => {
     if (projectId === null) return undefined;
     let live = true;
-    setState({ status: 'loading' });
+    // "Loading" shows for the first read of a project and filter; a refresh keeps the old entries on screen.
+    const scope = `${projectId}|${causeFilter}|${sessionFilter}`;
+    if (loadedFor.current !== scope) {
+      loadedFor.current = scope;
+      setState({ status: 'loading' });
+    }
     void bus
       .call(activityChannels.listTimeline, { projectId, limit: PAGE, before: null, cause, sessionId: session })
       .then((result) => {
         if (!live) return;
-        setState(
+        setState((current) =>
           result.ok
             ? { status: 'ready', entries: result.value, more: result.value.length === PAGE }
-            : { status: 'error', message: result.error.message },
+            : current.status === 'ready'
+              ? current
+              : { status: 'error', message: result.error.message },
         );
       });
     return () => {
@@ -123,6 +138,27 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
     };
     // `cause` and `session` derive from the filters listed here.
   }, [bus, projectId, causeFilter, sessionFilter, reload]);
+
+  useEffect(() => {
+    if (projectId === null) return undefined;
+    let live = true;
+    void bus
+      .call(activityChannels.listTimeline, { projectId, limit: 200, before: null, cause: null, sessionId: null })
+      .then((result) => {
+        if (live && result.ok) setAllEntries(result.value);
+      });
+    return () => {
+      live = false;
+    };
+  }, [bus, projectId, reload]);
+
+  // A different project starts with no filter.
+  useEffect(() => {
+    setCauseFilter('all');
+    setSessionFilter('all');
+    setAllEntries([]);
+    setPending(0);
+  }, [projectId]);
 
   // ACT-15: a new entry goes to the top, unless the list is scrolled away; then a chip counts it.
   useEffect(
@@ -150,7 +186,8 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
     if (last === undefined) return;
     loadingMore.current = true;
     void bus
-      .call(activityChannels.listTimeline, { projectId, limit: PAGE, before: last.time, cause, sessionId: session })
+      // `before` is exclusive and entries can share a millisecond, so ask from one past the boundary; known ids are dropped.
+      .call(activityChannels.listTimeline, { projectId, limit: PAGE, before: zEpochMs.parse(last.time + 1), cause, sessionId: session })
       .then((result) => {
         loadingMore.current = false;
         if (!result.ok) {
@@ -161,7 +198,7 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
           if (current.status !== 'ready') return current;
           const known = new Set(current.entries.map((item) => item.snapshotId));
           const added = result.value.filter((item) => !known.has(item.snapshotId));
-          return { status: 'ready', entries: [...current.entries, ...added], more: result.value.length === PAGE };
+          return { status: 'ready', entries: [...current.entries, ...added], more: added.length > 0 && result.value.length === PAGE };
         });
       });
   };
@@ -212,22 +249,17 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
     );
   };
 
+  // The project decides the frame; loading, empty and error of the list show inside, under the filters (P-40).
   const frame: PanelViewState =
     project === undefined
       ? { kind: 'loading' }
       : project === null
         ? { kind: 'empty', title: 'No project open', message: 'Open a project to see its activity.' }
-        : state.status === 'loading'
-          ? { kind: 'loading', label: 'Reading activity' }
-          : state.status === 'error'
-            ? { kind: 'error', message: `Activity could not be read. ${state.message}`, onRetry: () => setReload((count) => count + 1) }
-            : state.entries.length === 0
-              ? { kind: 'empty', message: 'No changes recorded yet. Changes to files in this project appear here.' }
-              : { kind: 'ready' };
+        : { kind: 'ready' };
 
   const entries = state.status === 'ready' ? state.entries : [];
   const sections = sectionsOf(entries);
-  const sessions = sessionOptions(entries);
+  const sessions = sessionOptions([...entries, ...allEntries], sessionFilter);
 
   return (
     <>
@@ -266,6 +298,19 @@ export function Timeline({ bus, openFile, openHistory }: TimelineProps) {
               {`${pending} new changes`}
             </Button>
           )}
+          {state.status === 'loading' ? <Skeleton rows={4} label="Reading activity" /> : null}
+          {state.status === 'error' ? (
+            <ErrorState message={`Activity could not be read. ${state.message}`} onRetry={() => setReload((count) => count + 1)} />
+          ) : null}
+          {state.status === 'ready' && entries.length === 0 ? (
+            <EmptyState
+              message={
+                causeFilter === 'all' && sessionFilter === 'all'
+                  ? 'No changes recorded yet. Changes to files in this project appear here.'
+                  : 'No change matches these filters.'
+              }
+            />
+          ) : null}
           <div ref={list} className={styles.list} onScroll={onScroll} aria-label="Activity">
             {sections.map((section) => (
               <section key={section.label} className={styles.section}>

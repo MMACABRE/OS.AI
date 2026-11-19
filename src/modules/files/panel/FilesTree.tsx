@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { filesChannels } from '@hsos/contracts/channels/files';
 import type { DirEntry } from '@hsos/contracts/channels/files';
@@ -48,18 +48,32 @@ export function FilesTree({ bus, confirmTrash, openFile, showHistory }: FilesTre
   const [creatingIn, setCreatingIn] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
 
+  // Counts project switches, so a listing that arrives after a switch is dropped.
+  const epoch = useRef(0);
+  const known = useRef<ReadonlySet<string>>(new Set());
+  known.current = new Set(listings.keys());
+
+  /** Reads a folder. A folder already shown keeps its entries while it is read again, so the tree never blinks. */
   const load = (dir: string) => {
-    setListings((current) => new Map(current).set(dir, { status: 'loading' }));
+    const mine = epoch.current;
+    setListings((current) =>
+      current.get(dir)?.status === 'ready' ? current : new Map(current).set(dir, { status: 'loading' }),
+    );
     void bus.call(filesChannels.listDir, { dir: toAbsPath(dir) }).then((result) => {
-      const listing: Listing = result.ok
-        ? { status: 'ready', entries: result.value }
-        : { status: 'error', message: result.error.message };
-      setListings((current) => new Map(current).set(dir, listing));
+      if (mine !== epoch.current) return;
+      setListings((current) => {
+        if (!result.ok && current.get(dir)?.status === 'ready') return current;
+        const listing: Listing = result.ok
+          ? { status: 'ready', entries: result.value }
+          : { status: 'error', message: result.error.message };
+        return new Map(current).set(dir, listing);
+      });
     });
   };
 
   // A new project starts with its root folder loaded and nothing expanded.
   useEffect(() => {
+    epoch.current += 1;
     setExpanded(new Set());
     setSelected(null);
     setListings(new Map());
@@ -71,9 +85,10 @@ export function FilesTree({ bus, confirmTrash, openFile, showHistory }: FilesTre
     () =>
       bus.on(filesChannels.changed, ({ changes }) => {
         const dirs = new Set(changes.map((change) => parentOf(change.path)));
-        for (const dir of dirs) if (dir === root || expanded.has(dir)) load(dir);
+        // Every folder that has been read is read again, collapsed or not, so none shows stale entries.
+        for (const dir of dirs) if (dir === root || known.current.has(dir)) load(dir);
       }),
-    [bus, root, expanded],
+    [bus, root],
   );
 
   const { nodes, index } = useMemo(() => {
@@ -90,7 +105,7 @@ export function FilesTree({ bus, confirmTrash, openFile, showHistory }: FilesTre
       return;
     }
     setExpanded(new Set(expanded).add(id));
-    if (!listings.has(id)) load(id);
+    load(id);
   };
 
   const activate = (id: string) => {

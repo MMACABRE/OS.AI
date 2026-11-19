@@ -28,5 +28,13 @@ export const baseKey = (base: ReviewBase): string => (base.kind === 'last-commit
 /** A project-relative path with forward slashes, as the feedback prompt shows it (REV-31). */
 export const relativeTo = (root: string, path: string): string => path.slice(root.length + 1).replace(/\\/g, '/');
 
+/** A project-relative path as git wants it: relative to the repo root, which may sit above the project folder. */
+export function repoRelative(repoRoot: string, projectRoot: string, relPath: string): string {
+  const from = repoRoot.replace(/[\\/]+$/, '');
+  const to = projectRoot.replace(/[\\/]+$/, '');
+  if (to.length <= from.length || to.slice(0, from.length).toLowerCase() !== from.toLowerCase()) return relPath;
+  return `${to.slice(from.length + 1).replace(/\\/g, '/')}/${relPath}`;
+}
+
 /** An absolute path from a project root and a relative path. */
 export const absoluteFrom = (root: string, relPath: string): AbsPath => toAbsPath(`${root}\\${relPath.replace(/\//g, '\\')}`);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { filesChannels } from '@hsos/contracts/channels/files';
 import { historyChannels } from '@hsos/contracts/channels/history';
@@ -79,13 +79,25 @@ export function Timeline({ bus, path, selectedId, onSelect }: TimelineProps) {
   const [compare, setCompare] = useState(false);
   const [diff, setDiff] = useState<DiffState>({ status: 'loading' });
   const [confirming, setConfirming] = useState<Snapshot | null>(null);
+  const listedFor = useRef<string | null>(null);
+  const diffFor = useRef<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    setList({ status: 'loading' });
+    // "Loading" shows for the first read of a file; a new snapshot or a restore refreshes the list in place.
+    if (listedFor.current !== path) {
+      listedFor.current = path;
+      setList({ status: 'loading' });
+    }
     void bus.call(historyChannels.listForFile, { path }).then((result) => {
       if (!live) return;
-      setList(result.ok ? { status: 'ready', snapshots: result.value } : { status: 'error', message: result.error.message });
+      setList((current) =>
+        result.ok
+          ? { status: 'ready', snapshots: result.value }
+          : current.status === 'ready'
+            ? current
+            : { status: 'error', message: result.error.message },
+      );
     });
     return () => {
       live = false;
@@ -108,7 +120,11 @@ export function Timeline({ bus, path, selectedId, onSelect }: TimelineProps) {
   useEffect(() => {
     if (selectedKey === null) return undefined;
     let live = true;
-    setDiff({ status: 'loading' });
+    const scope = `${path}|${selectedKey}|${compare}`;
+    if (diffFor.current !== scope) {
+      diffFor.current = scope;
+      setDiff({ status: 'loading' });
+    }
     // HIST-41: "Compare with current file" sets the selected version beside the file as it is now.
     const before = compare ? snapshotText(bus, selectedKey) : previousText(bus, selectedKey);
     const after = compare ? currentText(bus, path) : snapshotText(bus, selectedKey);
@@ -123,8 +139,30 @@ export function Timeline({ bus, path, selectedId, onSelect }: TimelineProps) {
   const restore = (snapshot: Snapshot) => {
     void bus.call(historyChannels.restore, { id: snapshot.id }).then((result) => {
       if (result.ok) {
-        toast.show({ message: `${name} is back at the version from ${relativeTime(snapshot.time)}.`, tone: 'ok' });
         setReload((count) => count + 1);
+        // HIST-42: Undo restores the version that was current before. HSOS saved it first (HIST-20), so it is the
+        // row just under the new "restore" row.
+        void bus.call(historyChannels.listForFile, { path }).then((after) => {
+          const newest = after.ok ? after.value[0] : undefined;
+          const undo = after.ok && newest?.source === 'restore' ? after.value[1] : undefined;
+          toast.show({
+            message: `${name} is back at the version from ${relativeTime(snapshot.time)}.`,
+            tone: 'ok',
+            ...(undo === undefined
+              ? {}
+              : {
+                  action: {
+                    label: 'Undo',
+                    onPress: () => {
+                      void bus.call(historyChannels.restore, { id: undo.id }).then((undone) => {
+                        if (undone.ok) setReload((count) => count + 1);
+                        else toast.show({ message: undone.error.message, tone: 'error' });
+                      });
+                    },
+                  },
+                }),
+          });
+        });
       } else toast.show({ message: result.error.message, tone: 'error' });
     });
   };

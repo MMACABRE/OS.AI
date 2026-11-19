@@ -409,3 +409,19 @@ Did: Brought the Notes page toward the approved layout C mockup (`design-round/n
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, demo screenshot of the Notes page with a note open
 Deviations: Still short of the mockup, for the 037 review: graph nodes are not yet steam sources for the background (GRAPH-52; the ui-kit backdrop source hook takes DOM elements); no Kinds, Roots and Tags filters; labels are smaller than the mockup's; the note sheet sizes to its content instead of filling the column; the graph's hover card shows plain text, not `MarkdownView`; `graph.open` still opens a second graph as a dock tab. Files outside the card: `src/modules/workspace/panel/Pages.tsx`, `Frame.module.css`, `src/modules/ui-kit/components/Button.tsx`.
 Next: 035
+
+## Lead fixes after the lane B merge: files, history, git, review, activity
+Status: done (untested)
+Date: 2026-11-19
+Did: Refreshes keep the old data on screen in Changes, Activity, the history timeline and the Files tree (loading shows only for a first read or a project or file switch). The controls stay visible when a list is empty. Changes opens diffs on activation, offers only sessions that edited files, resets on a project switch, guards commit and maps paths to repo-relative. Git status is one shared subscription per module; git.sync stops during a merge, rebase or cherry-pick; the status item shows the operation and "Offline" and opens the Changes view. The Files tree no longer shows stale or late listings; Activity pages without skipping entries; Artifacts debounce, show open errors and reset per project; the tray edits in a textarea and clears "Sent"; the restore toast has Undo; show Changes, Activity and Artifacts commands are registered.
+Checks: typecheck ok, lint ok, deps ok, test not run (implementer rule), e2e not run
+Deviations:
+- History still shows the size change in bytes: `Snapshot` has no line count (HIST-40 asks for lines).
+- Undo on the restore toast restores the row under the new "restore" row of `listForFile`; the contract has no call that returns the pre-restore snapshot id.
+- `review.nextChange`, `review.previousChange`, `review.commentOnLine`, `review.sendFeedback` and `activity.pinActiveFile` are still not registered (they need the focused diff or active file, which a module cannot read).
+- Activity paging asks `before = last.time + 1` and drops known ids, because `before` takes only a time. It stops paging when a page adds nothing new.
+- The session list for the Changes base reads `link.getSessionEvents` for every session of the project, on each refresh.
+- The ChangesView and git hooks are two copies of one store, one per module, because a module may not import another.
+- `review.showChanges` has no shortcut conflict check against other modules (`Ctrl+Shift+G` is the spec's).
+Merge: written by the Sonnet agent on `lane-e-030-033-fixes`, merged by the Lead on 2026-11-19.
+Next: 035
