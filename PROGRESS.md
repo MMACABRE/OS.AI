@@ -338,3 +338,11 @@ Did: "Send to Claude" (REV-33) no longer writes its own bracketed paste markers 
 Checks: typecheck ok, lint ok, deps ok, test 27 passed
 Deviations: TERM-43 (ask before a long paste) and the rest of TERM-46 are terminal cards still to come; until then this path refuses instead of asking. Files outside any card: `src/modules/ui-kit/components/terminal-paste.ts`, `src/modules/ui-kit/index.ts`, `src/modules/terminal/panel/TerminalPanel.tsx`.
 Next: more lane B fixes
+
+## Owner amendment 2026-11-19: strawberry app icon
+Status: done
+Date: 2026-11-19
+Did: The owner's strawberry logo (2048 px pixel art, kept as `resources/art/strawberry-logo.png`) is now the app icon. `resources/icon.ico` holds 16 to 256 px sizes (nearest-neighbour up to 64 px so the pixels stay sharp, bicubic above to keep the glow) and is used by electron-builder for the exe, installer, uninstaller and shortcuts; `resources/icon.png` is a 512 px copy. In development the window and taskbar take `resources/icon.ico` too.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed
+Deviations: Owner's request, outside any card. Files: `resources/icon.ico`, `resources/icon.png`, `resources/art/strawberry-logo.png`, `src/main/window/main-window.ts`.
+Next: more lane B fixes

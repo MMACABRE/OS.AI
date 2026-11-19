@@ -60,6 +60,8 @@ export async function createMainWindow(options: MainWindowOptions): Promise<Brow
       height: TITLE_BAR_HEIGHT,
     },
     backgroundColor: background,
+    // The strawberry logo. A packaged build takes its icon from the exe (electron-builder.yml).
+    ...(app.isPackaged ? {} : { icon: join(app.getAppPath(), 'resources', 'icon.ico') }),
     webPreferences: {
       preload: join(import.meta.dirname, '../preload/index.cjs'),
       sandbox: true,
