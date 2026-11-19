@@ -852,3 +852,11 @@ Suggested files and rows (from dashboard.md "Tests"; the testing agent may regro
 | DASH-13 | a `hud.ribbon` widget for a session in terminal `t1` | it is activated | the Code page shows with `t1` focused (`focusTerminal`), through one view transition. NOTE: the view transition is not built (MOT-6); expect the focus check to pass only. |
 
 Not in this plan (no channel or not built): DASH-20 (save and load over the service, integration; the service side is card 116), the swipe gesture of DASH-1, the drag-from-sheet of DASH-8, the edge hold of DASH-6.
+
+## 035 look pass
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| DASH-4 | a `box` widget and a `free` widget | the grid renders | the box one has the frame, four corner elements and a title row with the type's title; the free one has none |
+| DASH-12 | `hud.mascot` at 2 by 2 cells of 360 by 320 px | it renders | the sprite's wrapper has `scale(4)` (at most 4, at least 1) |
+| DASH-12b | `hud.context` with 22 percent | it renders | the number reads 22% and 4 of 20 segments are on |

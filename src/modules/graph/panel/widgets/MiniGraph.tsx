@@ -8,6 +8,8 @@ import { useGraphData } from '../graph-store';
 import styles from './MiniGraph.module.css';
 
 const RADIUS = 80;
+const NODE = 10;
+const CENTRE = 22;
 
 /** The `graph.mini` widget (dashboard.md catalog): the local graph around the last opened note. Drawn as a still SVG. */
 function MiniGraph() {
@@ -36,11 +38,31 @@ function MiniGraph() {
         return (
           <g key={id}>
             <line x1={0} y1={0} x2={x} y2={y} stroke={tokenValue('color.graph.edge')} strokeWidth={1} />
-            <circle cx={x} cy={y} r={6} fill={tokenValue(kindToken(node?.kind ?? 'note'))} />
+            <rect
+              className={styles.node}
+              x={x - NODE / 2}
+              y={y - NODE / 2}
+              width={NODE}
+              height={NODE}
+              fill={tokenValue(kindToken(node?.kind ?? 'note'))}
+            />
           </g>
         );
       })}
-      <circle cx={0} cy={0} r={9} fill={tokenValue('color.accent')} />
+      {/* Square pixel nodes as on the Notes page; CLAUDE.md orange with its halo, an open note yellow. */}
+      <rect
+        className={styles.centre}
+        x={-CENTRE / 2}
+        y={-CENTRE / 2}
+        width={CENTRE}
+        height={CENTRE}
+        fill={tokenValue(centre.kind === 'claudeMd' ? kindToken('claudeMd') : 'color.accent')}
+        stroke={tokenValue('color.accent')}
+        strokeWidth={centre.kind === 'claudeMd' ? 2 : 0}
+      />
+      <text className={styles.label} x={CENTRE / 2 + 6} y={4}>
+        {centre.label}
+      </text>
     </svg>
   );
 }

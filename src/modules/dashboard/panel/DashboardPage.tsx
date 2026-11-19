@@ -146,7 +146,15 @@ function WidgetCell({ widget, def, index, editing, focusable, log, onRemove, onA
     >
       {def.frame === 'box' ? (
         <Surface role="widget">
-          <div className={styles.box}>{body}</div>
+          {/* The box parts of visual-direction.md (Shape): frame, corner brackets and the title row (DASH-4). */}
+          <div className={styles.box}>
+            <span className={cx(styles.corner, styles.topLeft)} aria-hidden="true" />
+            <span className={cx(styles.corner, styles.topRight)} aria-hidden="true" />
+            <span className={cx(styles.corner, styles.bottomLeft)} aria-hidden="true" />
+            <span className={cx(styles.corner, styles.bottomRight)} aria-hidden="true" />
+            <header className={styles.boxTitle}>{def.title}</header>
+            <div className={styles.boxBody}>{body}</div>
+          </div>
         </Surface>
       ) : (
         <div className={styles.free}>{body}</div>

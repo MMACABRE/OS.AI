@@ -13,8 +13,13 @@ import { cacheState, SessionsBoard } from '../SessionsSection';
 import { SkillsDeck } from '../SkillsSection';
 import { focusTerminal } from '../send-command';
 import { useNow, UsageBars } from '../UsageSection';
+import widgetStyles from './HudWidgets.module.css';
 
-type Sized = { readonly cells: WidgetSize };
+type Sized = { readonly cells: WidgetSize; readonly pixels: { readonly width: number; readonly height: number } };
+/** Pixels of widget per step of mascot zoom: a 2 by 2 cell widget shows the strawberry near the mockup's size. */
+const MASCOT_CELL_PX = 48;
+/** Segments of the context bar, as in the mockup. */
+const CONTEXT_SEGMENTS = 20;
 
 /** The HUD's widget types for the dashboard (dashboard.md catalog, `hud.*`), each drawn inside the HUD's provider. */
 export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
@@ -58,23 +63,47 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
     const target = targetSession(sessions, focusOrder);
     if (target === null) return createElement(EmptyState, { message: 'No session to show.' });
     const percent = target.contextUsedPercentage === null ? null : Math.round(target.contextUsedPercentage);
+    // The mockup's CONTEXT box: a big yellow number, a segmented bar, then tokens and cache in small text.
+    const filled = Math.round(((percent ?? 0) / 100) * CONTEXT_SEGMENTS);
     return createElement(
       'div',
-      null,
-      createElement(RollingNumber, {
-        value: percent ?? 0,
-        format: (value: number) => (percent === null ? '—' : `${value}%`),
-      }),
-      createElement('p', null, tokensText(target.contextTokens, target.contextWindowSize)),
-      createElement('p', null, cacheState(target.lastResponseAt, now)),
+      { className: widgetStyles.context },
+      createElement(
+        'span',
+        { className: widgetStyles.bigNumber },
+        createElement(RollingNumber, {
+          value: percent ?? 0,
+          format: (value: number) => (percent === null ? '—' : `${value}%`),
+        }),
+      ),
+      createElement(
+        'span',
+        { className: widgetStyles.segments, 'aria-hidden': true },
+        Array.from({ length: CONTEXT_SEGMENTS }, (_, index) =>
+          createElement('i', { key: index, 'data-on': index < filled || undefined }),
+        ),
+      ),
+      createElement('p', { className: widgetStyles.small }, tokensText(target.contextTokens, target.contextWindowSize)),
+      createElement('p', { className: widgetStyles.small }, cacheState(target.lastResponseAt, now)),
     );
   };
 
-  const MascotWidget = () => {
+  /** The mascot fills its cells, as large as the mockup's top-right strawberry: whole-pixel scales only. */
+  const MascotWidget = ({ pixels }: Sized) => {
     const sessions = useHudData((state) => state.sessions);
     const focusOrder = useHudData((state) => state.focusOrder);
     const target = targetSession(sessions, focusOrder);
-    return createElement(Mascot, { activity: target?.activity ?? null, page: 'other', scale: 2 });
+    // The sprite draws at scale 2 (32 px); a whole-number CSS scale enlarges it with crisp pixels.
+    const zoom = Math.min(4, Math.max(1, Math.floor(Math.min(pixels.width, pixels.height) / MASCOT_CELL_PX)));
+    return createElement(
+      'div',
+      { className: widgetStyles.mascot },
+      createElement(
+        'span',
+        { style: { transform: `scale(${zoom})` } },
+        createElement(Mascot, { activity: target?.activity ?? null, page: 'other', scale: 2 }),
+      ),
+    );
   };
 
   const focusTarget = () => {

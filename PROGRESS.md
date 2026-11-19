@@ -503,3 +503,11 @@ Open gaps not yet fixed: the git title bar button (needs a title bar slot in wor
 - Screenshots of the app: `npm run build`, then Playwright `_electron.launch({ args: ['.', '--hsos-demo'] })`; a script that clicks page names and runs palette commands works well. Mockups: headless Edge (`msedge --headless=new --screenshot=... --window-size=1600,950 <file url>?still=1`).
 - Write files with backslashes or backticks with the Write or Edit tool. Agents have mangled non-ASCII characters (a § became a backtick); check merged diffs for that.
 - Skills disabled on this device and skipped on the owner's word: interview-me, idea-refine, context-engineering, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, surgical-patch, verify-and-stop, babysit.
+
+## 035 look pass (Lead)
+Status: done (untested)
+Date: 2026-11-19
+Did: Brought the Dashboard's look toward `design-round/dashboard/phosphor.html`, keeping the DASH-22 layout (the memory notes say the mockup sets the look, not the layout). Box widgets now carry the box parts of visual-direction.md (DASH-4): the strong orange frame with its pixel offset, four glowing corner brackets and an orange capitals title row. The mascot widget fills its cells with a whole-number zoom and crisp pixels. The mini graph draws square nodes with a glow, CLAUDE.md orange with a yellow frame and its label. The context widget shows a big yellow number over a 20-segment yellow bar, then tokens and cache in small text, as the mockup's CONTEXT box.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, demo screenshot of the Dashboard
+Deviations: For the 037 review: the usage widget keeps the HUD's thin bars instead of the mockup's big numbers and red segments; the mini graph is a still ring, not the drifting steam graph; the quick bar and the session ribbon widget are as in the HUD. Files outside the card: `src/modules/hud/panel/widgets/HudWidgets.module.css` is new.
+Next: 036 part 2 (gallery)
