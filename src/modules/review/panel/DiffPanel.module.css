@@ -1,0 +1,8 @@
+/* The diff panel's messages above the diff. */
+.note {
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
