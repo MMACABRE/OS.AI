@@ -15,6 +15,7 @@ import { areaOf, CodePage, DashboardPage, NotesPage, useSideStore } from './Page
 import type { PageProps } from './Pages';
 import { StatusBar } from './StatusBar';
 import { TitleBar } from './TitleBar';
+import { WelcomeView } from './WelcomeView';
 
 /** What the frame reads from the shell's registry (architecture §4). */
 export type FrameRegistry = {
@@ -95,6 +96,7 @@ export function AppFrame({ bus, registry, log, keyFor, message }: AppFrameProps)
     onDockReady: (control) => {
       if (id === 'code' || id === 'notes') docks.current[id] = control;
     },
+    welcome: bus !== null && project === null ? <WelcomeView bus={bus} /> : null,
   });
 
   return (

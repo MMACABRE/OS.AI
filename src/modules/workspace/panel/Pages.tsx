@@ -1,4 +1,5 @@
 import { createElement, useState } from 'react';
+import type { ReactNode } from 'react';
 import { create } from 'zustand';
 import type { PanelId } from '@hsos/contracts/ids';
 import type { Logger, PanelDefinition } from '@hsos/contracts/module';
@@ -14,6 +15,8 @@ export type PageProps = {
   readonly runCommand: (commandId: string) => void;
   readonly hasCommand: (commandId: string) => boolean;
   readonly onDockReady: (control: DockControl) => void;
+  /** The welcome view, when no project is open (WS-44). */
+  readonly welcome: ReactNode;
 };
 
 type Area = 'left' | 'right';
@@ -155,11 +158,13 @@ export function NotesPage({ panels, log, onDockReady }: PageProps) {
 }
 
 /** The Dashboard: the widget screens of the dashboard module (DASH-1), when it is registered. */
-export function DashboardPage({ panels }: PageProps) {
+export function DashboardPage({ panels, welcome }: PageProps) {
   const screens = panels.get('dashboard.screens');
   return (
     <div className={styles.dashboardPage}>
-      {screens === undefined ? (
+      {welcome !== null ? (
+        welcome
+      ) : screens === undefined ? (
         <EmptyState title="Dashboard" message="Widgets for sessions, usage and notes appear here." />
       ) : (
         <SideView definition={screens} />

@@ -796,3 +796,16 @@ Test files: `tests/review/changes-fixes.ui.test.tsx`, `tests/activity/activity-f
 | HIST-43, P-40 | component | a history timeline with a version selected | `snapshotAdded` | no skeleton; selection and diff scroll kept |
 | HIST-42 | component | a restore that succeeds | the toast shows | it has an "Undo" action; pressing it calls `history.restore` with the row under the new restore row |
 | ACT/REV commands | unit | the modules registered | the command list is read | `review.showChanges` (Ctrl+Shift+G), `activity.showTimeline`, `activity.showArtifacts` exist and open their side views |
+
+## 036 part 1: settings layout A and the welcome view
+
+`tests/workspace/welcome.ui.test.tsx`:
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| WS-5 | two recent projects, one with `exists: false` | it renders | the missing one is muted, its row is disabled, and it shows "Remove from list"; the other shows its age |
+| WS-5b | a recent project row focused | Enter | `workspace.openProject` was called with its path |
+| WS-5c | "Open folder" | pressed, and `pickFolder` returns a path | `openProject` got that path; a null result opens nothing |
+| WS-44 | no project open | the Dashboard renders | the welcome view shows instead of the widget screens |
+
+`tests/settings/screen.ui.test.tsx` additions: the section list shows each section's key count; a changed key's row has `data-changed` and a Reset link; a schema with `.describe()` shows that text under its label.

@@ -425,3 +425,11 @@ Deviations:
 - `review.showChanges` has no shortcut conflict check against other modules (`Ctrl+Shift+G` is the spec's).
 Merge: written by the Sonnet agent on `lane-e-030-033-fixes`, merged by the Lead on 2026-11-19.
 Next: 035
+
+## 036 Settings, themes and every state (part 1: settings and welcome view)
+Status: in progress
+Date: 2026-11-19
+Did: The settings screen follows layout A, Ledger, which the owner chose on 2026-11-19 from three options (`design-round/settings/phosphor-settings.html?layout=a|b|c`, recorded in `design-round/design-rounds.md`): search and a corner-box section list with key counts on the left, the open section filled yellow; on the right the problems in a yellow bar and the section's rows as label (with the schema's description as a hint), control and a Reset column, a yellow dot after a changed label and Reset in lavender. The welcome view (WS-5) is built: "Open a project", one primary "Open folder" (`shell.pickFolder`), recent projects newest first with their age, a missing folder muted with "Remove from list"; with no project open it is the Dashboard's first screen (WS-44).
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, demo screenshot of the settings screen
+Deviations: The welcome view could not be seen in the demo, because the demo transport does not emit `projectChanged` with null on "Close project". `WelcomeView.module.css` is new beside the listed `WelcomeView.tsx`; `Pages.tsx` and `AppFrame.tsx` changed to show it. The state gallery (step 3) waits for card 035's widgets.
+Next: 035 merge, then 036 part 2 (gallery)
