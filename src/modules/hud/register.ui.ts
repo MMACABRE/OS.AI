@@ -1,3 +1,5 @@
+import { hudWidgetTypes } from './panel/widgets/hud-widgets';
+import { dashboardWidgets } from '@hsos/contracts/channels/dashboard';
 import { createElement } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 import { settingsChannels } from '@hsos/contracts/channels/settings';
@@ -48,6 +50,7 @@ export function register(ctx: UiContext): void {
   };
 
   const RibbonFor = createRibbon({ bus: ctx.bus, openPanel: (type) => ctx.openPanel(type) });
+  for (const type of hudWidgetTypes(deps)) contributeUi(dashboardWidgets, type);
   contributeUi(terminalHeader, { render: (terminalId) => createElement(RibbonFor, { terminalId }) });
 
   ctx.registerPanel({

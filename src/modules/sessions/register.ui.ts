@@ -1,3 +1,6 @@
+import { recentSessionsType } from './panel/widgets/RecentWidget';
+import { dashboardWidgets } from '@hsos/contracts/channels/dashboard';
+import { contributeUi } from '@hsos/ui-kit';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { z } from 'zod';
@@ -31,6 +34,7 @@ type ReaderState = z.infer<typeof ReaderState>;
  * panel (`sessions.history`) and the transcript reader (`sessions.transcript`).
  */
 export function register(ctx: UiContext): void {
+  contributeUi(dashboardWidgets, recentSessionsType(ctx.bus, () => ctx.openPanel(HISTORY_PANEL)));
   const openTranscript = (item: SessionListItem) =>
     ctx.openPanel<ReaderState>(TRANSCRIPT_PANEL, {
       sessionId: item.sessionId,

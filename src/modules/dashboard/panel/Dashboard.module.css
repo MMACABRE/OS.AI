@@ -1,0 +1,171 @@
+/* The Dashboard (dashboard.md; visual-direction.md). Tokens only (UI-1). */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  height: 100%;
+  transition: transform var(--motion-page) var(--motion-ease-spring);
+}
+
+.noMotion {
+  transition: none;
+}
+
+.screen {
+  position: relative;
+  flex: 0 0 auto;
+  height: 100%;
+  min-width: 0;
+}
+
+.trackEditing .grid {
+  transform: scale(0.94);
+  transition: transform var(--motion-slow) var(--motion-ease-out);
+}
+
+.grid {
+  display: grid;
+  box-sizing: border-box;
+  height: 100%;
+  padding: var(--size-grid-edge);
+  row-gap: var(--size-grid-gapY);
+  column-gap: var(--size-grid-gapX);
+  transition: transform var(--motion-slow) var(--motion-ease-out);
+}
+
+.cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  transition: transform var(--motion-instant) var(--motion-ease-out);
+}
+
+.cell:hover {
+  transform: scale(1.02);
+}
+
+.cell:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 0.25rem;
+}
+
+.cell > div {
+  height: 100%;
+  min-height: 0;
+}
+
+.box {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.free {
+  height: 100%;
+  min-height: 0;
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.editing {
+  cursor: grab;
+  outline: 1px dashed var(--color-border-hairline);
+  outline-offset: 0.25rem;
+}
+
+.sway {
+  animation: sway 3s ease-in-out infinite alternate;
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-1.5deg);
+  }
+  to {
+    transform: rotate(1.5deg);
+  }
+}
+
+.handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--color-accent);
+  cursor: nwse-resize;
+}
+
+.removeButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.outline {
+  z-index: 2;
+  border: 2px solid;
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+}
+
+.outlineOk {
+  border-color: var(--color-accent);
+}
+
+.outlineBad {
+  border-color: var(--color-state-danger);
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dotOn {
+  background: var(--color-accent);
+  box-shadow: var(--glow-accent);
+}
