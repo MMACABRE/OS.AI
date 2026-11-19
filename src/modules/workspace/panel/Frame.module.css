@@ -1,0 +1,108 @@
+/*
+ * The window frame (layout.md): title bar, pages, status bar over the background. Lists and side views
+ * float without a box (visual-direction.md, Open air); the dock's panels carry their own frames.
+ */
+.frame {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: var(--size-titlebar) minmax(0, 1fr) var(--size-statusbar);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.pages {
+  position: relative;
+  min-height: 0;
+}
+
+.page {
+  position: absolute;
+  inset: 0;
+  padding: 0 1.125rem;
+}
+
+/* WS-41: a hidden page stays mounted but is not drawn and takes no input (inert). */
+.hiddenPage {
+  content-visibility: hidden;
+  visibility: hidden;
+}
+
+.codePage {
+  display: grid;
+  grid-template-columns: auto minmax(30rem, 1fr) auto;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 13.375rem;
+  min-height: 0;
+}
+
+.sideTabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sideTabsEnd {
+  margin-left: auto;
+}
+
+.sideContent {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.right {
+  width: 19.875rem;
+  min-height: 0;
+  overflow: auto;
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.notesPage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.notesList {
+  width: 13.375rem;
+  min-height: 0;
+  overflow: auto;
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.dashboardPage {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 1.125rem;
+  padding: 0 1.125rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  white-space: nowrap;
+}
+
+.message {
+  color: var(--color-text-muted);
+}
+
+.grow {
+  flex: 1;
+}

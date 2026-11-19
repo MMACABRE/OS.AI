@@ -323,3 +323,33 @@ jsdom computes no CSS animations from CSS modules, so motion rows check the clas
 | MOT-1 | `transition: transform var(--motion-quick) var(--motion-ease-spring), filter 1s` | `findLayoutAnimations` runs | no problem |
 
 Also worth a test: the worker draws no frame while `visibility` is hidden and draws exactly one under `reduced` (UI-32, needs the app, e2e); `applyTheme` sets `--surface-terminal-alpha` to the raised value.
+
+## 028 App frame and pages
+
+Code: `src/modules/workspace/panel/` (`AppFrame.tsx`, `TitleBar.tsx` with `repoName`, `Pages.tsx` with `useSideStore` and `areaOf`, `DockHost.tsx`, `StatusBar.tsx`, `page-store.ts` with `usePageStore` and `pageBeside`, `page-transition.ts` with `goToPage` and `shareForTransition`, `frame.css`), `src/modules/workspace/register.ui.ts`, `src/ui/app-root.tsx`, `src/ui/module-list.ts`, `src/modules/ui-kit/components/page-visible.ts`. Feature F-066.
+
+jsdom has no `document.startViewTransition`, so component rows exercise the direct switch; stub it on `document` to check it is called once. dockview needs a `ResizeObserver` (see `tests/workspace/dockview-spike.ui.test.tsx`).
+
+`tests/workspace/pages.ui.test.tsx`:
+
+| Rule  | Given | When | Then |
+| ----- | ----- | ---- | ---- |
+| WS-40 | the frame on `code`, focus in an element with `data-hsos-terminal`, the key dispatcher over the workspace commands | `Ctrl+3` | the `notes` section is visible, `code` is `inert`, and the switcher's `aria-current` is on "Notes" |
+| WS-40 | `pageBeside` | `code` with -1 and 1, `notes` with 1 | `dashboard`, `notes`, `dashboard` |
+| WS-43 | the `notes` page with a dock panel type registered | `ctx.openPanel` of that type | it opens in the "Notes dock" section, not the "Code dock" |
+| WS-45 | a button on `code` had focus | `goToPage('dashboard')`, then `goToPage('code')` | that button has focus again |
+| WS-41 | the frame showed `dashboard` once | it goes back to `code` | the `dashboard` section is still in the DOM, hidden and `inert` |
+| WS-11 | a dock panel with `allowMultiple: false`, open | it is opened again with new state | one dockview panel of that type exists |
+| WS-13 | a dock panel component that throws, beside a healthy one | both open | the error state shows in the first; the second renders |
+| UI-30 | the frame | the page changes twice | one canvas under `[data-hsos-backdrop]`, the same node throughout |
+
+`tests/e2e/demo-pages.e2e.ts` (launch with `--hsos-demo`):
+
+| Rule   | Given | When | Then |
+| ------ | ----- | ---- | ---- |
+| MOT-5  | the Code page | `Ctrl+1` | `startViewTransition` ran once (wrap it in `page.evaluate`); the Dashboard shows after `motion.page` |
+| MOT-7  | the background running | three page changes | the canvas is the same node and `backdropStats()` frames never go down |
+| MOT-11 | a page transition in progress | a key is pressed in a focused input on the new page | the input has the character before the transition finishes |
+| WS-41  | the demo on `code` | Dashboard for 3 s and back | the code section is the same node |
+
+Also worth a test: `repoName('https://github.com/a/b')` is `a/b`, and `null` for a bad URL; the repo button is absent when `webUrl` is null; the side tabs list registered side views in order with Settings last.

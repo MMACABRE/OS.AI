@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { diagnosticsChannels } from '@hsos/contracts/channels/diagnostics';
-import type { PanelId } from '@hsos/contracts/ids';
-import { CommandsContext, Icon, IconButton, ToastProvider, UiKitActionsContext } from '../modules/ui-kit';
+import { CommandsContext, ToastProvider, UiKitActionsContext } from '../modules/ui-kit';
+import { AppFrame } from '../modules/workspace/panel/AppFrame';
+import { systemClock } from '../modules/shell/system-clock';
+import { createModuleLogger } from './module-list';
 import './app-root.css';
 import type { UiKitActions } from '../modules/ui-kit';
 import { COMMAND_MODE, CommandPalette } from '../modules/ui-kit/palette/CommandPalette';
@@ -29,7 +30,7 @@ export function createPaletteControl(): PaletteControl {
   };
 }
 
-/** A plain text line the e2e checks of cards 005 and 010 read; the app frame (card 028) replaces it. */
+/** A plain text line the e2e checks of cards 005 and 010 read; the status bar shows it (card 028). */
 export type MessageControl = {
   set(text: string): void;
   subscribe(listener: (text: string) => void): () => void;
@@ -56,15 +57,14 @@ export type AppRootProps = {
   readonly message: MessageControl;
 };
 
-/** The renderer's root until the app frame exists: toasts, the ui-kit's app actions, and the palette. */
+const silent = { log: () => undefined };
+
+/** The renderer's root: toasts, the ui-kit's app actions, the app frame (card 028) and the palette. */
 export function AppRoot({ bus, registry, keyFor, palette, message }: AppRootProps) {
-  const [text, setText] = useState('HSOS');
+  const [text, setText] = useState('');
   const [paletteMode, setPaletteMode] = useState<PaletteModeId | null>(null);
-  const [openPanel, setOpenPanel] = useState<string | null>(null);
   useEffect(() => message.subscribe(setText), [message]);
   useEffect(() => palette.subscribe(setPaletteMode), [palette]);
-  // Until the workspace (card 028) docks panels, an opened panel fills the window.
-  useEffect(() => registry?.setPanelOpener((type) => setOpenPanel(type)), [registry]);
   const actions = useMemo<UiKitActions>(
     () => ({ openLog: () => void bus?.call(diagnosticsChannels.openLogFolder, {}) }),
     [bus],
@@ -73,22 +73,15 @@ export function AppRoot({ bus, registry, keyFor, palette, message }: AppRootProp
     () => ({ registry: registry?.commandRegistry ?? null, keyFor }),
     [registry, keyFor],
   );
-  const panel = openPanel === null ? undefined : registry?.panels.get(openPanel);
+  const log = useMemo(
+    () => (bus === null ? silent : createModuleLogger(bus, systemClock, 'workspace')),
+    [bus],
+  );
   return (
     <UiKitActionsContext.Provider value={actions}>
       <CommandsContext.Provider value={commands}>
         <ToastProvider>
-          <p>{text}</p>
-          {panel === undefined ? null : (
-            <FullWindowPanel title={panel.title} onClose={() => setOpenPanel(null)}>
-              <panel.component
-                panelId={'full-window' as PanelId}
-                state={panel.initialState}
-                setState={() => undefined}
-                isFocused
-              />
-            </FullWindowPanel>
-          )}
+          <AppFrame bus={bus} registry={registry} log={log} keyFor={keyFor} message={text} />
           {registry === null ? null : (
             <CommandPalette
               registry={registry.commandRegistry}
@@ -101,37 +94,5 @@ export function AppRoot({ bus, registry, keyFor, palette, message }: AppRootProp
         </ToastProvider>
       </CommandsContext.Provider>
     </UiKitActionsContext.Provider>
-  );
-}
-
-/** A panel shown over the whole window, closed with Escape or the close button (card 024, until card 028). */
-function FullWindowPanel({
-  title,
-  onClose,
-  children,
-}: {
-  readonly title: string;
-  readonly onClose: () => void;
-  readonly children: ReactNode;
-}) {
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  return (
-    <div role="region" aria-label={title} className="hsos-full-window-panel">
-      <div className="hsos-full-window-close">
-        <IconButton
-          icon={<Icon name="close" />}
-          label={`Close ${title}`}
-          keyBinding="Escape"
-          onPress={onClose}
-        />
-      </div>
-      {children}
-    </div>
   );
 }

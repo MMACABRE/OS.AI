@@ -1,0 +1,94 @@
+/*
+ * Page transitions (MOT-5 to MOT-7, MOT-11) through the View Transitions API. The root is not captured,
+ * so the background, title bar and status bar keep running live under the transition (MOT-7); only the
+ * page area (hsos-page) and shared elements move. Clicks pass through the transition's overlay.
+ */
+:root {
+  view-transition-name: none;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--motion-page);
+  animation-timing-function: var(--motion-ease-out);
+}
+
+::view-transition-old(hsos-page),
+::view-transition-new(hsos-page) {
+  animation-duration: var(--motion-page);
+  animation-timing-function: var(--motion-ease-out);
+  animation-fill-mode: both;
+}
+
+/* The leaving page slides toward the side of the switcher it leaves to; the new one comes from the other side. */
+:root[data-page-direction='left']::view-transition-old(hsos-page) {
+  animation-name: hsos-page-out-left;
+}
+
+:root[data-page-direction='left']::view-transition-new(hsos-page) {
+  animation-name: hsos-page-in-from-right;
+}
+
+:root[data-page-direction='right']::view-transition-old(hsos-page) {
+  animation-name: hsos-page-out-right;
+}
+
+:root[data-page-direction='right']::view-transition-new(hsos-page) {
+  animation-name: hsos-page-in-from-left;
+}
+
+@keyframes hsos-page-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-6%);
+  }
+}
+
+@keyframes hsos-page-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(6%);
+  }
+}
+
+@keyframes hsos-page-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(6%);
+  }
+}
+
+@keyframes hsos-page-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-6%);
+  }
+}
+
+@keyframes hsos-page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes hsos-page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* MOT-12: under reduced motion a page change is a fade of at most motion.quick, and nothing slides. */
+:root[data-motion='reduced']::view-transition-group(*) {
+  animation-duration: var(--motion-quick);
+}
+
+:root[data-motion='reduced']::view-transition-old(*) {
+  animation: hsos-page-fade-out var(--motion-quick) var(--motion-ease-out) both;
+}
+
+:root[data-motion='reduced']::view-transition-new(*) {
+  animation: hsos-page-fade-in var(--motion-quick) var(--motion-ease-out) both;
+}
