@@ -4,6 +4,7 @@ import { createBusLogger } from '../modules/diagnostics/panel/bus-logger';
 import * as diagnostics from '../modules/diagnostics/register.ui';
 import * as files from '../modules/files/register.ui';
 import * as history from '../modules/history/register.ui';
+import * as sessions from '../modules/sessions/register.ui';
 import * as settings from '../modules/settings/register.ui';
 import * as workspace from '../modules/workspace/register.ui';
 import type { ModuleEntry } from '../modules/shell/loader/load-modules';
@@ -15,6 +16,7 @@ export const uiModules: readonly ModuleEntry<UiContext>[] = [
   { id: 'workspace', module: workspace },
   { id: 'files', module: files },
   { id: 'history', module: history },
+  { id: 'sessions', module: sessions },
 ];
 
 /** The renderer's logger for one module: records go to main with `diagnostics.write` (DIAG-1). */

@@ -1,0 +1,42 @@
+/* Find Claude Session: a dialog with a search field over a short list of sessions (SESS-31). */
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 32rem;
+  max-width: 80vw;
+}
+
+.body {
+  height: 20rem;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  height: 100%;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.selected {
+  color: var(--color-accent);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  flex: none;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
