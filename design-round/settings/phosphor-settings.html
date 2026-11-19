@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HSOS settings, layout options</title>
+<style>
+@font-face { font-family: VT323; src: url('../../resources/fonts/VT323-Regular.ttf'); }
+@font-face { font-family: Jersey; src: url('../../resources/fonts/Jersey10-Regular.ttf'); }
+:root {
+  --bg: #0B0A09; --panel: #121010; --raised: #1C1816; --sel: #2A1F18;
+  --hair: #3A2A22; --strong: #B4512A; --text: #F2E8DE; --text2: #CDBFB3; --muted: #A08F84;
+  --yellow: #F5FF3B; --orange: #FF7A3D; --red: #FF003C; --cyan: #00F0FF; --lav: #C77DFF; --mag: #FF00FF;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 19px/1.25 VT323, monospace; }
+body {
+  background-image: radial-gradient(circle, rgba(255,122,61,.18) 1px, transparent 1.5px), radial-gradient(circle, rgba(0,240,255,.10) 1px, transparent 1.5px);
+  background-size: 18px 18px, 54px 54px; background-position: 0 0, 9px 9px;
+}
+.titlebar { height: 56px; display: flex; align-items: center; gap: 22px; padding: 0 18px; }
+.word { font: 34px Jersey, VT323; color: var(--red); text-shadow: 0 0 8px var(--red); letter-spacing: 1px; }
+.clock { font: 30px Jersey, VT323; color: var(--cyan); text-shadow: 0 0 6px var(--cyan); }
+.pages { display: flex; gap: 16px; margin-left: 40px; color: var(--text2); }
+.pages b { background: var(--yellow); color: var(--bg); padding: 0 8px; box-shadow: 0 0 10px var(--yellow); }
+.tabs { margin: 0 18px; display: flex; gap: 6px; }
+.tab { padding: 1px 10px; color: var(--text2); } .tab.on { background: var(--yellow); color: var(--bg); }
+.dock { position: absolute; inset: 92px 18px 30px 18px; }
+.box { position: relative; background: rgba(18,16,16,.82); border: 1px solid var(--hair); }
+.box::before, .box::after { content: ''; position: absolute; width: 12px; height: 12px; border: 2px solid var(--orange); }
+.box::before { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
+.box::after { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+.title { color: var(--orange); letter-spacing: 2px; text-transform: uppercase; font-size: 18px; }
+.search { border: 1px solid var(--strong); padding: 4px 10px; color: var(--muted); background: rgba(11,10,9,.7); }
+.search::before { content: '○ '; color: var(--orange); }
+.banner { border-left: 3px solid var(--yellow); padding: 6px 12px; background: rgba(245,255,59,.06); display: flex; gap: 14px; align-items: center; }
+.banner a { color: var(--yellow); text-decoration: underline; }
+.row { display: grid; grid-template-columns: 1fr 260px 54px; align-items: center; gap: 14px; padding: 7px 14px; border-bottom: 1px dashed rgba(58,42,34,.6); }
+.row .hint { display: block; color: var(--muted); font-size: 16px; }
+.row .reset { color: var(--lav); font-size: 16px; text-decoration: underline; }
+.row.changed .label::after { content: ' •'; color: var(--yellow); }
+.ctl { border: 1px solid var(--hair); padding: 2px 8px; color: var(--yellow); background: rgba(11,10,9,.6); }
+.ctl.sel::after { content: ' ▾'; color: var(--orange); }
+.sw { width: 44px; height: 20px; border: 1px solid var(--hair); position: relative; }
+.sw::after { content: ''; position: absolute; top: 2px; left: 3px; width: 14px; height: 14px; background: var(--muted); }
+.sw.on { border-color: var(--yellow); } .sw.on::after { left: 25px; background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.btn { border: 1px solid var(--strong); padding: 0 8px; color: var(--text); }
+.nav a { display: block; padding: 3px 12px; color: var(--text2); text-decoration: none; }
+.nav a.on { background: var(--yellow); color: var(--bg); }
+.nav a .n { float: right; color: var(--muted); } .nav a.on .n { color: var(--bg); }
+h3 { margin: 14px 14px 4px; font-weight: normal; color: var(--orange); letter-spacing: 2px; text-transform: uppercase; font-size: 18px; }
+.sw-row { display: flex; gap: 4px; } .sw-row i { width: 18px; height: 18px; display: inline-block; }
+.picker { position: fixed; right: 18px; top: 12px; display: flex; gap: 6px; z-index: 9; }
+.picker a { border: 1px solid var(--strong); color: var(--text); padding: 0 10px; text-decoration: none; background: var(--bg); }
+.picker a.on { background: var(--yellow); color: var(--bg); }
+.note { color: var(--muted); font-size: 16px; }
+/* A: ledger */
+.a { display: grid; grid-template-columns: 250px 1fr; gap: 22px; height: 100%; }
+.a .left { display: flex; flex-direction: column; gap: 10px; }
+.a .right { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.a .right .box { flex: 1; overflow: auto; }
+/* B: one scroll */
+.b { display: flex; flex-direction: column; gap: 12px; height: 100%; max-width: 980px; margin: 0 auto; }
+.b .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.b .chips a { border: 1px solid var(--hair); padding: 0 8px; color: var(--text2); text-decoration: none; }
+.b .chips a.on { border-color: var(--yellow); color: var(--yellow); }
+.b .scroll { overflow: auto; display: flex; flex-direction: column; gap: 18px; padding: 4px; }
+/* C: with preview */
+.c { display: grid; grid-template-columns: 220px 1fr 330px; gap: 22px; height: 100%; }
+.c .mid { display: flex; flex-direction: column; gap: 10px; min-height: 0; } .c .mid .box { flex: 1; overflow: auto; }
+.mini { height: 230px; margin: 12px; border: 1px solid var(--hair); position: relative; background: var(--bg); }
+.mini .bar { height: 18px; border-bottom: 1px solid var(--hair); display: flex; gap: 6px; padding: 0 6px; font-size: 14px; }
+.mini .t { position: absolute; left: 10px; top: 30px; right: 120px; bottom: 10px; border: 1px solid var(--hair); font-size: 14px; padding: 4px; color: var(--text2); }
+.mini .t b { color: var(--yellow); font-weight: normal; }
+.mini .h { position: absolute; right: 10px; top: 30px; width: 100px; bottom: 10px; font-size: 13px; color: var(--cyan); }
+.mini .node { position: absolute; width: 10px; height: 10px; background: var(--orange); box-shadow: 0 0 8px var(--orange); }
+</style>
+</head>
+<body>
+<div class="picker"><a href="?layout=a">A Ledger</a><a href="?layout=b">B One scroll</a><a href="?layout=c">C With preview</a></div>
+<div class="titlebar"><span class="word">HSOS</span><span class="clock">21:04</span><span class="pages"><span>Dashboard</span><b>Code</b><span>Notes</span></span></div>
+<div class="tabs"><span class="tab">claude · hsos</span><span class="tab on">Settings ✕</span></div>
+<div class="dock" id="dock"></div>
+<script>
+const sections = [
+  ['Appearance', [['Theme', 'sel', 'Phosphor'], ['UI scale', 'num', '100 %', 'Zoom of the whole window, 80 to 150'], ['Reduce motion', 'sel', 'System', null, true], ['Background scene', 'sw', true]]],
+  ['Terminal', [['Font size', 'num', '13', 'Ctrl + wheel changes it in a terminal'], ['Cursor', 'sel', 'Block'], ['Scrollback lines', 'num', '10 000'], ['Use WebGL', 'sw', true], ['Right click pastes', 'sw', false, null, true]]],
+  ['Files', [['Ask before moving to the bin', 'sw', true], ['Markdown opens in preview', 'sw', true]]],
+  ['HUD', [['Spoken alerts', 'sw', true], ['Voice', 'sel', 'Microsoft Aria']]],
+  ['Skills', [['Skills repo folder', 'path', 'Documents\\GitHub\\Core', 'Private repo; sync needs a sign-in']]],
+  ['Notes', [['Vault folder', 'path', 'Documents\\Vault']]],
+];
+const ctl = (k, v) => k === 'sw' ? '<span class="sw' + (v ? ' on' : '') + '"></span>' : k === 'path' ? '<span><span class="ctl">' + v + '</span> <span class="btn">Browse</span></span>' : '<span class="ctl' + (k === 'sel' ? ' sel' : '') + '">' + v + '</span>';
+const rows = (list) => list.map(([l, k, v, hint, changed]) => '<div class="row' + (changed ? ' changed' : '') + '"><span class="label">' + l + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</span>' + ctl(k, v) + '<span class="reset">' + (changed ? 'Reset' : '') + '</span></div>').join('');
+const banner = '<div class="banner"><span style="color:var(--yellow)">! 1 problem</span><span>settings.json: values.terminal.fontSize must be at most 32, so 13 is used.</span><a>Open file</a></div>';
+const nav = (on) => '<div class="box nav" style="padding:8px 0">' + sections.map(([n, l], i) => '<a class="' + (i === on ? 'on' : '') + '">' + n + '<span class="n">' + l.length + '</span></a>').join('') + '<a>Key bindings<span class="n">64</span></a><a>Themes<span class="n">1</span></a></div>';
+const themes = '<h3>Themes</h3><div class="row"><span class="label">Phosphor<span class="hint">built in</span></span><span class="sw-row"><i style="background:#FF7A3D"></i><i style="background:#F5FF3B"></i><i style="background:#FF003C"></i><i style="background:#00F0FF"></i><i style="background:#C77DFF"></i><i style="background:#FF00FF"></i></span><span class="btn">Duplicate</span></div>';
+const keys = '<h3>Key bindings</h3>' + [['Command palette', 'Ctrl+Shift+P'], ['New terminal', 'Ctrl+Shift+`'], ['Search skills', 'Ctrl+K S']].map(([a, b]) => '<div class="row"><span class="label">' + a + '</span><span class="ctl">' + b + '</span><span></span></div>').join('');
+const all = sections.map(([n, l]) => '<h3>' + n + '</h3>' + rows(l)).join('');
+const layout = new URLSearchParams(location.search).get('layout') || 'a';
+document.querySelectorAll('.picker a').forEach((a) => a.classList.toggle('on', a.href.endsWith(layout)));
+const dock = document.getElementById('dock');
+if (layout === 'a') dock.innerHTML = '<div class="a"><div class="left"><div class="search">search settings</div>' + nav(1) + '<p class="note">A, Ledger: the spec as written. Search and the section list on the left, one section at a time on the right.</p></div><div class="right">' + banner + '<div class="box"><h3>Terminal</h3>' + rows(sections[1][1]) + '</div></div></div>';
+if (layout === 'b') dock.innerHTML = '<div class="b"><div class="chips"><span class="search" style="width:280px">search settings</span>' + sections.map(([n], i) => '<a class="' + (i === 0 ? 'on' : '') + '">' + n + '</a>').join('') + '<a>Key bindings</a><a>Themes</a></div>' + banner + '<div class="scroll"><div class="box">' + all + '</div><div class="box">' + keys + themes + '</div></div><p class="note">B, One scroll: no side list. Every section in one column; the chips jump to a section and light up while you scroll. Search hides rows that do not match.</p></div>';
+if (layout === 'c') dock.innerHTML = '<div class="c"><div style="display:flex;flex-direction:column;gap:10px"><div class="search">search settings</div>' + nav(0) + '</div><div class="mid">' + banner + '<div class="box"><h3>Appearance</h3>' + rows(sections[0][1]) + themes + '</div></div><div class="box"><div class="title" style="padding:10px 12px 0">Preview</div><div class="mini"><div class="bar"><span style="color:var(--red)">HSOS</span><span style="color:var(--cyan)">21:04</span></div><div class="t">PS C:\\hsos&gt; claude<br><b>&gt;</b> fix the sync button<br>…</div><div class="h">1 need you<br>5h 58%<br>7d 21%</div><div class="node" style="left:60%;top:60%"></div></div><p class="note" style="margin:0 12px 12px">C, With preview: the spec list plus a live miniature on the right that shows theme, scale, motion and terminal font as you change them.</p></div></div>';
+</script>
+</body>
+</html>
