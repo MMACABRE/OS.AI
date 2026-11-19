@@ -1,3 +1,6 @@
+import { gitStatusType } from './panel/widgets/StatusWidget';
+import { dashboardWidgets } from '@hsos/contracts/channels/dashboard';
+import { contributeUi } from '@hsos/ui-kit';
 import { createElement } from 'react';
 import type { UiContext } from '@hsos/contracts/module';
 import { runGitCommand } from './panel/actions';
@@ -8,6 +11,7 @@ const REVIEW_CHANGES = 'review.changes';
 
 /** The git renderer side: the changes status item and the sync and fetch commands (git.md "UI"). Card 033. */
 export function register(ctx: UiContext): void {
+  contributeUi(dashboardWidgets, gitStatusType(ctx.bus, () => ctx.openPanel('review.changes')));
   ctx.registerStatusItem({
     id: 'git.changes',
     side: 'left',

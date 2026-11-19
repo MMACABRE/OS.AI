@@ -12,11 +12,12 @@ import * as settings from '../modules/settings/register.ui';
 import * as hud from '../modules/hud/register.ui';
 import * as graph from '../modules/graph/register.ui';
 import * as browser from '../modules/browser/register.ui';
+import * as dashboard from '../modules/dashboard/register.ui';
 import * as terminal from '../modules/terminal/register.ui';
 import * as workspace from '../modules/workspace/register.ui';
 import type { ModuleEntry } from '../modules/shell/loader/load-modules';
 
-/** Modules loaded in the renderer, in order (architecture §4, SHELL-20). */
+/** Modules loaded in the renderer, in order (architecture `4, SHELL-20). */
 export const uiModules: readonly ModuleEntry<UiContext>[] = [
   { id: 'settings', module: settings },
   { id: 'diagnostics', module: diagnostics },
@@ -31,6 +32,7 @@ export const uiModules: readonly ModuleEntry<UiContext>[] = [
   { id: 'activity', module: activity },
   { id: 'graph', module: graph },
   { id: 'browser', module: browser },
+  { id: 'dashboard', module: dashboard },
 ];
 
 /** The renderer's logger for one module: records go to main with `diagnostics.write` (DIAG-1). */

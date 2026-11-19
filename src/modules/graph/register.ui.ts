@@ -1,3 +1,6 @@
+import { miniGraphType } from './panel/widgets/MiniGraph';
+import { dashboardWidgets } from '@hsos/contracts/channels/dashboard';
+import { contributeUi } from '@hsos/ui-kit';
 import { graphChannels, graphSection } from '@hsos/contracts/channels/graph';
 import type { AbsPath } from '@hsos/contracts/ids';
 import type { UiContext } from '@hsos/contracts/module';
@@ -8,6 +11,7 @@ import { startGraphData, useGraphData } from './panel/graph-store';
 
 /** Renderer side of the graph (graph.md): the graph view, the local graph, the notes list, and the commands. */
 export function register(ctx: UiContext): void {
+  contributeUi(dashboardWidgets, miniGraphType(() => ctx.openPanel('graph.view')));
   startGraphData(ctx.bus);
   const settings = ctx.settings(graphSection);
   const openFile = (path: AbsPath, line: number | null) => ctx.openPanel('files.viewer', { path, line });

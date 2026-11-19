@@ -1,3 +1,6 @@
+import { activityRecentType } from './panel/widgets/RecentWidget';
+import { dashboardWidgets } from '@hsos/contracts/channels/dashboard';
+import { contributeUi } from '@hsos/ui-kit';
 import { createElement } from 'react';
 import type { AbsPath } from '@hsos/contracts/ids';
 import type { UiContext } from '@hsos/contracts/module';
@@ -10,6 +13,7 @@ export const ARTIFACTS_VIEW = 'activity.artifacts';
 
 /** The activity renderer side: the Activity and Artifacts side views (ACT-10 to ACT-33). Card 033. */
 export function register(ctx: UiContext): void {
+  contributeUi(dashboardWidgets, activityRecentType(ctx.bus, () => ctx.openPanel(TIMELINE_VIEW)));
   const openFile = (path: AbsPath) => ctx.openPanel('files.viewer', { path, line: null });
   const openHistory = (path: AbsPath, snapshotId: string) => ctx.openPanel('history.timeline', { path, selectedId: snapshotId });
 
