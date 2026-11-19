@@ -38,6 +38,8 @@ import { createMainWindow, loadRenderer } from './window/main-window';
 const SERVICES: readonly ServiceName[] = ['pty-host', 'workspace-service', 'link-service'];
 /** `npm run demo` (card 026): `HSOS_DEMO=1` or the `--hsos-demo` flag. */
 const DEMO = process.env['HSOS_DEMO'] === '1' || process.argv.includes('--hsos-demo');
+/** `npm run demo -- --gallery` (card 036): the state gallery instead of the app. */
+const GALLERY = process.argv.includes('--gallery');
 const RENDERER_LOSS_WINDOW_MS = 60_000;
 const RENDERER_LOSSES_BEFORE_DIALOG = 3;
 const UNRESPONSIVE_RELOAD_MS = 10_000;
@@ -278,7 +280,7 @@ void app.whenReady().then(async () => {
   watchRenderer(created);
   // In demo mode `uiReady` goes to the demo transport, so the window shows as soon as it can paint.
   if (DEMO) created.once('ready-to-show', () => created.show());
-  loadRenderer(created, { demo: DEMO });
+  loadRenderer(created, { demo: DEMO, gallery: GALLERY });
 });
 
 // Stop the services before quitting (SHELL-7, architecture §7 step 4).

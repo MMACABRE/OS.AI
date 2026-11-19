@@ -131,8 +131,15 @@ export async function createMainWindow(options: MainWindowOptions): Promise<Brow
 }
 
 /** Loads the renderer: the dev server in development, the built page otherwise. */
-export function loadRenderer(window: BrowserWindow, options: { readonly demo?: boolean } = {}): void {
-  const search = options.demo === true ? '?demo=1' : process.env['HSOS_E2E'] === '1' ? '?e2e=1' : '';
+export function loadRenderer(window: BrowserWindow, options: { readonly demo?: boolean; readonly gallery?: boolean } = {}): void {
+  const search =
+    options.demo === true
+      ? options.gallery === true
+        ? '?demo=1&gallery=1'
+        : '?demo=1'
+      : process.env['HSOS_E2E'] === '1'
+        ? '?e2e=1'
+        : '';
   const devUrl = process.env['ELECTRON_RENDERER_URL'];
   if (devUrl !== undefined) void window.loadURL(`${devUrl}${search}`);
   else void window.loadFile(join(import.meta.dirname, '../renderer/index.html'), { search });

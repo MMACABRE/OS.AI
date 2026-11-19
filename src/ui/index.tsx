@@ -124,6 +124,12 @@ async function chooseBus(): Promise<Bus | null> {
 }
 
 async function start(root: HTMLElement): Promise<void> {
+  // Card 036: the state gallery (`npm run demo -- --gallery`) replaces the app.
+  if (new URLSearchParams(window.location.search).get('gallery') === '1') {
+    const { Gallery } = await import('../demo/gallery');
+    createRoot(root).render(<Gallery />);
+    return;
+  }
   const message = createMessageControl();
   const palette = createPaletteControl();
   const bus = await chooseBus();
