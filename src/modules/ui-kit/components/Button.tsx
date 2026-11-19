@@ -9,6 +9,8 @@ export type ButtonProps = {
   /** Usually an `<Icon>`. */
   readonly icon?: ReactNode;
   readonly disabled?: boolean;
+  /** A toggle: shown as `primary` while on, and announced with `aria-pressed`. */
+  readonly pressed?: boolean;
   readonly onPress: () => void;
   readonly children: ReactNode;
 };
@@ -19,6 +21,7 @@ export function Button({
   size = 'normal',
   icon,
   disabled = false,
+  pressed,
   onPress,
   children,
 }: ButtonProps) {
@@ -26,8 +29,9 @@ export function Button({
   return (
     <button
       type="button"
-      className={cx(styles.button, styles[variant], styles[size])}
+      className={cx(styles.button, styles[pressed === true ? 'primary' : variant], styles[size])}
       disabled={disabled}
+      aria-pressed={pressed}
       onClick={onPress}
       {...lift}
     >

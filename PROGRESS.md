@@ -401,3 +401,11 @@ Did: `List` and `Tree` in the ui-kit now select a row on right click as well as 
 Checks: typecheck ok, lint ok, deps ok, test 27 passed
 Deviations: none. Files: `src/modules/ui-kit/components/List.tsx`, `Tree.tsx`.
 Next: 034 look pass
+
+## 034 look pass (Lead)
+Status: done (untested)
+Date: 2026-11-19
+Did: Brought the Notes page toward the approved layout C mockup (`design-round/notes/phosphor-notes.html?layout=c`). The page is now three columns: the notes list floating on the left, the graph free in the middle as a page layer (not a dock tab), and the notes dock on the right holding the open note. The graph draws square pixel nodes (sigma's `sdfSquare`), each with a halo in its own colour; CLAUDE.md is the largest node with a strong orange halo and a yellow frame, and the view opens and fits (Fit, double click, `0`) with CLAUDE.md in the centre (GRAPH-51); the open note glows yellow. The toolbar is a row of toggle buttons (24 h, Communities, Agent view, Only not reached, Fit) instead of switches; the ui-kit `Button` takes `pressed` for this. The notes list has a thin scrollbar in the border colour instead of the bright default.
+Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok, demo screenshot of the Notes page with a note open
+Deviations: Still short of the mockup, for the 037 review: graph nodes are not yet steam sources for the background (GRAPH-52; the ui-kit backdrop source hook takes DOM elements); no Kinds, Roots and Tags filters; labels are smaller than the mockup's; the note sheet sizes to its content instead of filling the column; the graph's hover card shows plain text, not `MarkdownView`; `graph.open` still opens a second graph as a dock tab. Files outside the card: `src/modules/workspace/panel/Pages.tsx`, `Frame.module.css`, `src/modules/ui-kit/components/Button.tsx`.
+Next: 035

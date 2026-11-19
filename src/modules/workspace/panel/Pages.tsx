@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { createElement, useState } from 'react';
 import { create } from 'zustand';
 import type { PanelId } from '@hsos/contracts/ids';
 import type { Logger, PanelDefinition } from '@hsos/contracts/module';
@@ -116,17 +116,40 @@ export function CodePage({ panels, log, runCommand, hasCommand, onDockReady }: P
   );
 }
 
-/** The Notes page: the notes list floating on the left and the notes dock (WS-43, layout.md "Pages"). */
+/** A panel shown as part of a page, keeping its own state while the page is mounted. */
+function PageLayer({ definition }: { readonly definition: PanelDefinition<unknown> }) {
+  const [state, setState] = useState<unknown>(definition.initialState);
+  return createElement(definition.component, {
+    panelId: definition.type as PanelId,
+    state,
+    setState,
+    isFocused: false,
+  });
+}
+
+/**
+ * The Notes page, layout C as approved (design-rounds.md "Notes page, round 2"): the graph floats free in
+ * the space left of the note, the notes list floats on the left over it, and the notes dock holds the open
+ * note on the right (WS-43, layout.md "Pages").
+ */
 export function NotesPage({ panels, log, onDockReady }: PageProps) {
   const notesList = panels.get('graph.notes');
+  const graph = panels.get('graph.view');
   return (
     <div className={styles.notesPage}>
+      {graph === undefined ? null : (
+        <div className={styles.notesGraph}>
+          <PageLayer definition={graph} />
+        </div>
+      )}
       {notesList === undefined ? null : (
         <aside className={styles.notesList} aria-label="Notes">
           <SideView definition={notesList} />
         </aside>
       )}
-      <DockHost label="Notes dock" panels={panels} log={log} onReady={onDockReady} />
+      <div className={styles.notesDock}>
+        <DockHost label="Notes dock" panels={panels} log={log} onReady={onDockReady} />
+      </div>
     </div>
   );
 }

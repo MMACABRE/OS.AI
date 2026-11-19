@@ -752,3 +752,12 @@ Not in this plan: the demo fixture screenshot (not built, see progress), BROW-3 
 | UI-LIST-1 | a `Tree` with rows a and b, a selected | right click on b | `onSelect` was called with b |
 | UI-LIST-2 | a `List` with rows a and b, a selected | right click on b | `onSelect` was called with b |
 | FILE-64 | the Files view with a.txt selected | right click on b.txt, then Delete, then confirm | `files.trash` got b.txt |
+
+## 034 look pass (Lead)
+
+| Rule | Given | When | Then |
+| --- | --- | --- | --- |
+| WS-43 | registered `graph.view`, `graph.notes` | the Notes page renders | the graph renders once as a page layer between the list and the dock; it is not a dock tab |
+| GRAPH-51 | a graph with CLAUDE.md | the canvas opens, or Fit is pressed | the camera centre equals CLAUDE.md's display position |
+| GRAPH-30 | a note selected in the notes list | the graph renders | that node's colour is `color.accent` and its halo blur is the focus blur |
+| UI-BTN-1 | `Button` with `pressed` true | it renders | `aria-pressed="true"` and the primary class |

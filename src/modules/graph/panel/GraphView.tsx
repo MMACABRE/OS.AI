@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import Sigma, { DEFAULT_STYLES } from 'sigma';
+import { sdfSquare } from 'sigma/rendering';
 import { z } from 'zod';
 import type { Bus } from '@hsos/contracts/bus';
 import { graphChannels } from '@hsos/contracts/channels/graph';
@@ -9,12 +10,10 @@ import type { AbsPath } from '@hsos/contracts/ids';
 import type { Logger, PanelProps } from '@hsos/contracts/module';
 import {
   Badge,
+  Button,
   EmptyState,
   ErrorState,
-  Icon,
-  IconButton,
   ProgressBar,
-  Switch,
   TextField,
   usePageVisible,
   useReducedMotion,
@@ -77,6 +76,12 @@ const PUSH_SPEED = 600;
 const PUSH_RADIUS = 40;
 const DRIFT_PX = 6;
 const DIM_ALPHA = 0.15;
+/** CLAUDE.md is the largest node, pinned in the centre with its halo (design-rounds.md round 4). */
+const PINNED_SIZE = 20;
+/** The soft pixel halo of every node, and the stronger one of CLAUDE.md, the open and the selected note. */
+const HALO_ALPHA = 0.35;
+const HALO_BLUR = 10;
+const FOCUS_BLUR = 22;
 const MUTED_ALPHA = 0.4;
 
 type Point = { readonly x: number; readonly y: number };
@@ -93,6 +98,9 @@ type Flags = {
   reach: AgentReach;
   now: number;
 };
+
+/** Puts CLAUDE.md in the centre of the current canvas; replaced while a canvas exists. */
+let centre: () => void = () => undefined;
 
 /** The layout of nodes that have no saved position: a ring, then ForceAtlas2 (GRAPH-20). */
 function startPoint(index: number, count: number): Point {
@@ -189,7 +197,7 @@ export function createGraphView(deps: GraphDeps) {
         graph.addNode(node.id, {
           x: point.x,
           y: point.y,
-          size: nodeRadius(node.degree),
+          size: node.kind === 'claudeMd' ? PINNED_SIZE : nodeRadius(node.degree),
           color: colourOf(node),
           label: node.label,
           base: colourOf(node),
@@ -249,13 +257,23 @@ export function createGraphView(deps: GraphDeps) {
       let ready: Sigma | null = null;
       const sigma = new Sigma(graph as unknown as ConstructorParameters<typeof Sigma>[0], element, {
         // Labels in the mono font and the secondary text colour, over sigma's default bindings.
+        // Square pixel nodes (Phosphor look), labels in the mono font, and a halo per node from the reducer.
+        primitives: { nodes: { shapes: [sdfSquare()] } },
         styles: {
           nodes: [
             DEFAULT_STYLES.nodes,
             {
               labelColor: tokenValue('color.text.secondary'),
-              labelFont: tokenValue('font.mono') || 'monospace',
-              labelSize: 13,
+              labelFont: tokenValue('font.mono'),
+              labelSize: 15,
+              backdropArea: 'node',
+              backdropVisibility: { attribute: 'backdropVisibility', defaultValue: 'hidden' },
+              backdropColor: { attribute: 'backdropColor', defaultValue: 'rgba(0,0,0,0)' },
+              backdropShadowColor: { attribute: 'backdropShadowColor', defaultValue: 'rgba(0,0,0,0)' },
+              backdropShadowBlur: { attribute: 'backdropShadowBlur', defaultValue: 0 },
+              backdropBorderColor: { attribute: 'backdropBorderColor', defaultValue: 'rgba(0,0,0,0)' },
+              backdropBorderWidth: { attribute: 'backdropBorderWidth', defaultValue: 0 },
+              backdropPadding: { attribute: 'backdropPadding', defaultValue: 0 },
             },
           ],
         },
@@ -278,7 +296,19 @@ export function createGraphView(deps: GraphDeps) {
             const community = graph.getNodeAttribute(id, 'community') as number;
             colour = colourTokens[community % colourTokens.length] ?? colour;
           }
-          let size = nodeRadius(node.degree);
+          let size = node.kind === 'claudeMd' ? PINNED_SIZE : nodeRadius(node.degree);
+          // Every node glows in its own colour; CLAUDE.md and the open note glow far brighter.
+          // The open note: the one last chosen in the notes list or the graph (GRAPH-30).
+          const openPath = useGraphData.getState().selectedPath;
+          const isOpen = node.path !== null && node.path === openPath;
+          let halo = withAlpha(colour, HALO_ALPHA);
+          let blur = HALO_BLUR;
+          let border = 'rgba(0,0,0,0)';
+          if (node.kind === 'claudeMd' || isOpen) {
+            halo = colour;
+            blur = FOCUS_BLUR;
+            if (isOpen) colour = accent;
+          }
           let label: string | null = null;
           if (top.has(id) || f.matches.has(id) || zoomed) label = node.label;
           if (f.agent) {
@@ -293,11 +323,18 @@ export function createGraphView(deps: GraphDeps) {
             colour = withAlpha(colour, DIM_ALPHA);
           if (f.hovered === id || f.neighbours.has(id)) label = node.label;
           if (f.selected === id) {
-            colour = accent;
-            size += 2;
+            border = accent;
             label = node.label;
             result.highlighted = true;
           }
+          if (node.kind === 'claudeMd') border = accent;
+          result['backdropVisibility'] = 'visible';
+          result['backdropColor'] = 'rgba(0,0,0,0)';
+          result['backdropShadowColor'] = halo;
+          result['backdropShadowBlur'] = blur;
+          result['backdropBorderColor'] = border;
+          result['backdropBorderWidth'] = border === 'rgba(0,0,0,0)' ? 0 : 2;
+          result['backdropPadding'] = border === 'rgba(0,0,0,0)' ? 0 : 3;
           result.color = colour;
           result.size = size;
           result.label = label;
@@ -329,6 +366,13 @@ export function createGraphView(deps: GraphDeps) {
         now: Date.now(),
       };
       sigma.getCamera().on('updated', () => sigma.refresh({ skipIndexation: true }));
+      // GRAPH-51: the view opens and fits with CLAUDE.md in the centre.
+      centre = () => {
+        const home = pinned === null ? null : sigma.getNodeDisplayData(pinned);
+        if (home === undefined || home === null) void sigma.getCamera().reset();
+        else void sigma.getCamera().animate({ x: home.x, y: home.y, ratio: 1, angle: 0 }, { duration: 0 });
+      };
+      centre();
 
       // Node drift, the pointer push and the spring back (GRAPH-51). Reduced motion stops both.
       const offsets = new Map<string, Point>();
@@ -443,7 +487,7 @@ export function createGraphView(deps: GraphDeps) {
         const info = nodeMap.get(node);
         if (info?.path) deps.openNote(info.path, null);
       });
-      sigma.on('doubleClickStage', () => void sigma.getCamera().reset());
+      sigma.on('doubleClickStage', () => centre());
 
       return () => {
         cancelAnimationFrame(frame);
@@ -452,6 +496,7 @@ export function createGraphView(deps: GraphDeps) {
         sigma.kill();
         sigmaRef.current = null;
         graphRef.current = null;
+        centre = () => undefined;
       };
       // The canvas is built once per graph; filters reach it through `flags`.
     }, [data.nodes, data.edges]);
@@ -481,7 +526,7 @@ export function createGraphView(deps: GraphDeps) {
       sigmaRef.current?.refresh({ skipIndexation: true });
     }, [visible]);
 
-    const fit = () => void sigmaRef.current?.getCamera().reset();
+    const fit = () => centre();
     const focusSearch = () => toolbar.current?.querySelector('input')?.focus();
     const onKeys = (event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (event.target instanceof HTMLInputElement) return;
@@ -543,29 +588,39 @@ export function createGraphView(deps: GraphDeps) {
               onChange={(query) => setState({ ...stateRef.current, query })}
             />
           </div>
-          <Switch
-            label="Changed in last 24 hours"
-            checked={state.recentOnly}
-            onChange={(recentOnly) => setState({ ...stateRef.current, recentOnly })}
-          />
-          <Switch
-            label="Colour by community"
-            checked={state.byCommunity}
-            onChange={(byCommunity) => setState({ ...stateRef.current, byCommunity })}
-          />
-          <Switch
-            label="Agent view"
-            checked={state.agentView}
-            onChange={(agentView) => setState({ ...stateRef.current, agentView })}
-          />
+          <Button
+            size="small"
+            pressed={state.recentOnly}
+            onPress={() => setState({ ...stateRef.current, recentOnly: !stateRef.current.recentOnly })}
+          >
+            24 h
+          </Button>
+          <Button
+            size="small"
+            pressed={state.byCommunity}
+            onPress={() => setState({ ...stateRef.current, byCommunity: !stateRef.current.byCommunity })}
+          >
+            Communities
+          </Button>
+          <Button
+            size="small"
+            pressed={state.agentView}
+            onPress={() => setState({ ...stateRef.current, agentView: !stateRef.current.agentView })}
+          >
+            Agent view
+          </Button>
           {state.agentView ? (
-            <Switch
-              label="Only not reached"
-              checked={state.onlyNotReached}
-              onChange={(onlyNotReached) => setState({ ...stateRef.current, onlyNotReached })}
-            />
+            <Button
+              size="small"
+              pressed={state.onlyNotReached}
+              onPress={() => setState({ ...stateRef.current, onlyNotReached: !stateRef.current.onlyNotReached })}
+            >
+              Only not reached
+            </Button>
           ) : null}
-          <IconButton icon={<Icon name="maximize" />} label="Fit graph" onPress={fit} />
+          <Button size="small" onPress={fit}>
+            Fit
+          </Button>
         </div>
         {state.agentView ? (
           <div className={styles.agent} aria-label="Agent view summary">
