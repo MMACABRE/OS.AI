@@ -188,3 +188,21 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.popover {
+  composes: pop from '../motion/motion.module.css';
+  --hsos-origin: var(--radix-popover-content-transform-origin);
+  z-index: 45;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(
+    in srgb,
+    var(--color-bg-overlay) calc(var(--surface-overlay-alpha) * 100%),
+    transparent
+  );
+  box-shadow: var(--shadow-overlay);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}

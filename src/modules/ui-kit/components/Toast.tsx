@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Button } from './Button';
 import { cx } from './cx';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
@@ -13,6 +14,8 @@ export const MAX_TOASTS = 3;
 export type ToastInput = {
   readonly message: string;
   readonly tone?: 'info' | 'ok' | 'error';
+  /** One button beside the message; pressing it runs `onPress` and dismisses the toast. */
+  readonly action?: { readonly label: string; readonly onPress: () => void } | undefined;
 };
 
 type ShownToast = ToastInput & { readonly id: number };
@@ -44,6 +47,18 @@ function ToastView({ toast, dismiss }: ToastViewProps) {
         <Icon name={isError ? 'error' : toast.tone === 'ok' ? 'check' : 'info'} />
       </span>
       <span className={styles.toastMessage}>{toast.message}</span>
+      {toast.action === undefined ? null : (
+        <Button
+          variant="ghost"
+          size="small"
+          onPress={() => {
+            toast.action?.onPress();
+            dismiss(toast.id);
+          }}
+        >
+          {toast.action.label}
+        </Button>
+      )}
       <IconButton icon={<Icon name="close" />} label="Dismiss" onPress={() => dismiss(toast.id)} />
     </div>
   );

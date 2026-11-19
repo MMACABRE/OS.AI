@@ -204,7 +204,7 @@ export function createTerminalPanel(deps: TerminalPanelDeps) {
     };
 
     return (
-      <div className={styles.panel} data-phase={phase.kind}>
+      <div className={styles.panel} data-phase={phase.kind} data-terminal-id={terminalId ?? undefined}>
         {terminalId === null ? null : <HeaderSlot terminalId={terminalId} onHeightChange={scheduleFit} />}
         <div ref={screen} className={styles.screen} data-hsos-terminal="" />
         {phase.kind === 'loading' && showLoading ? <p className={styles.loading}>Starting shell…</p> : null}

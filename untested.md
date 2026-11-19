@@ -389,3 +389,50 @@ xterm needs a canvas; in jsdom mock `@xterm/xterm` with a fake `Terminal` that r
 | HUD-93 | `data-motion="reduced"` | a dancing mascot renders and 2 s pass | the strip stays at frame 0 of its row; the mascot has `aria-hidden` |
 
 Also worth a test: `frameAt` for `from 4` (0 to 5, then 4, 5, 4) and `loop, hold frame 0` (frame 0 for `fps * 3` steps, then 1, 2, 3); `shortFolder` cuts the middle; `sessionForTerminal` picks the newest non-ended session; `elapsedSince` gives `42s`, `12m`, `3h 05m`.
+
+## 031 HUD
+
+Code: `src/modules/hud/panel/` (`HudPanel.tsx`, `Section.tsx`, `QuickBar.tsx` with `tokensText`, `SessionsSection.tsx` with `inProject`, `boardOrder`, `cacheState`, `contextToneClass`, `UsageSection.tsx` with `usageTone`, `resetsText`, `staleNote`, `SkillsSection.tsx` with `matchesSkill`, `deckOrder`, `SetupView.tsx` with `lastUsedText`, `matchesRow`, `setupSections`, `send-command.ts` with `sendToSession` and `cleanFreeText`, `hud-alerts.ts` with `firstSentence`, `spokenText`, `startHudAlerts`, `hud-data.ts` with `targetSession`, `VoiceChooser.tsx`, `AttentionStatus.tsx`), `src/modules/hud/register.ui.ts`, `src/modules/ui-kit/components/Popover.tsx`. Feature F-068.
+
+Seed `useHudData.setState` directly in component tests and wrap them in `HudDepsContext.Provider` with a `FakeBus`. Use a fake clock for timers.
+
+`tests/hud/hud.ui.test.tsx` (component rows of hud.md):
+
+| Rule | Given | When | Then |
+| ---- | ----- | ---- | ---- |
+| HUD-1 | sessions in the project, in its `.claude\worktrees\x`, and elsewhere | the board renders, then "Show all projects" | first two, then all three |
+| HUD-2 | one session of each activity with different change times | `boardOrder` | needs-you, working, background, done, idle, ended; newest first within a group |
+| HUD-3, HUD-9 | a working session with tool `Edit`, two running agents, context 72 | it renders | second line "Edit · 2 agents", "72%" with the warn class; at 91 the danger class |
+| HUD-4 | an agent that ended 30 s ago and one 90 s ago | it renders | only the 30 s one, with "done" |
+| HUD-5 | a row with a terminal, and one with `terminalId: null` | each is activated | the first calls `link.markSeen` and focuses `[data-terminal-id] textarea`; the second does nothing and shows "outside HSOS" |
+| HUD-6 | a session turns `needs-you` | it re-renders | its dot has the pulse class (three 400 ms iterations) |
+| HUD-7 | focus moves into `[data-terminal-id="t1"]` | the `focusin` runs | `markSeen` for every session bound to `t1`; `focusOrder` starts with `t1` |
+| HUD-8 | `lastResponseAt` 8 minutes ago | `cacheState` | `warm 52m`; 61 minutes ago gives `cold` |
+| HUD-10, HUD-11 | window not focused (`document.hasFocus` false), a session working 40 s then `done`, then `needs-you` 3 s later | the alerts run | one `shell.notify` for done; the needs-you inside 10 s sends none |
+| HUD-13 | window focused and the session's terminal focused | it turns `needs-you` | no `shell.speak`; with focus in another terminal one `shell.speak` |
+| HUD-14 | `lastMessage` "Done. See ```x``` [docs](http://a) now." | `spokenText(done, summary on)` | `<title>. Finished. Done.`; needs-you gives `<title>. Needs you. <reason>.` |
+| HUD-16 | `hud.chooseVoice` with voices A and B | B is chosen | `settings.setValue` `speakVoice` B and `shell.speak` with the test line and voice B |
+| HUD-25, HUD-26 | five-hour 58 % resetting in 2 h 10 m, seven-day null, `updatedAt` 14 min ago | usage renders | "58%", `resets 2h 10m`, "No data yet" for 7 days, the note "updated 14m ago" |
+| HUD-27 | the same | the status items render | `5h 58%` shows; `7d` is absent |
+| HUD-30 | skills "caveman" (favourite) and "graphify" | query `turn folder` | only the one whose name or description has both words; favourites first |
+| HUD-31 | no live session | a skill is activated | a toast "Start a Claude session first"; with a target, `terminal.write` of `/name ` without `\r` |
+| HUD-36, HUD-37 | a skill `off` with `stateLock: 'policy'` | its row and menu render | chip "off" muted; the state choices are disabled with the lock reason |
+| HUD-40, HUD-41 | `out-of-sync` with 3 changed, 1 added, 2 removed, ahead 1 | the row renders and Sync is pressed | the counts line, then a confirm dialog listing the folders; confirming calls `pushToRepo` |
+| HUD-60 | no target session | the quick bar renders | the title reads "Start a Claude session first"; Compact, Clear and the model button are disabled; Usage, Context, Skills work |
+| HUD-63 | target `idle`, last owner input before the last reply | `/status` is sent | `terminal.write` `/status\r` with `quick-command`; with input after the reply, `/status` as `owner` and a toast; `needs-you` writes nothing and toasts |
+| HUD-64 | target `working` | the mode button is pressed | `terminal.write` `\x1b[Z` with `quick-command`; focus stays where it was |
+| HUD-65 | the compact dialog with "keep\nthe tests" | Compact | `/compact keep the tests`; Cancel has focus when it opens |
+| HUD-66 | the clear dialog | Clear | `/clear` |
+| HUD-68 | `cleanFreeText('a\u0007b\nc')` | it runs | `a b c` |
+
+`tests/hud/setup-view.ui.test.tsx`:
+
+| Rule | Given | When | Then |
+| ---- | ---- | ---- | ---- |
+| HUD-50 | a setup with 2 MCP servers and 1 plugin | the view renders | the header counts each section; no "Show what loads at start" without `graph.agentView` |
+| HUD-51 | a server last used 3 days ago by `claude`, one with null | it renders | `3 d ago` with "Counted by Claude Code"; `never seen` |
+| HUD-53 | "Not used in 30 days" on, sort least recently used | it renders | only stale or unknown rows, unknown first |
+| HUD-54 | a target session | "Ask Claude to remove" on MCP server `old-db` | `terminal.write` of the exact sentence without `\r` |
+| HUD-55 | `errors` with one file | it renders | "Could not read <file>: <message>" in the warn class; focus after 11 s calls `getSetup` again |
+
+Also worth a test: a section that throws shows its error state while the others render (Section boundary); `tokensText(41000, 200000)` is `41k of 200k tokens`; `firstSentence` cuts at 160 characters on a word boundary.

@@ -1,0 +1,402 @@
+/*
+ * The HUD (hud.md "Panel"): one column floating over the background without a box, text with a dark
+ * shadow so it reads on any part of the scene (visual-direction.md, Open air). The skills deck holds an
+ * input, so it alone sits in a box.
+ */
+.hud {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.25rem 0 1rem;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  text-shadow: 0 0 0.1875rem var(--color-bg-app);
+}
+
+.grow {
+  flex: 1;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--size-row);
+}
+
+.titleButton {
+  composes: focusRing from '../../ui-kit/motion/lift.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-structure);
+  font: inherit;
+  font-size: var(--font-size-title);
+  text-transform: uppercase;
+  text-shadow: var(--glow-structure);
+  cursor: pointer;
+}
+
+.titleIcon {
+  display: inline-flex;
+}
+
+.titleNote {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+/* Quick bar */
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.quickTitle {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quickRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.chip {
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 1.625rem;
+  padding: 0 0.5rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-bg-panel) calc(var(--surface-panel-alpha) * 100%), transparent);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+}
+
+/* A status bar item: plain text that lifts like any button. */
+.statusItem {
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  padding: 0 0.25rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.ok {
+  color: var(--color-state-ok);
+}
+
+.warn {
+  color: var(--color-state-warn);
+}
+
+.danger {
+  color: var(--color-state-danger);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.popover {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 16rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Sessions */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sessionRow {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  column-gap: 0.5rem;
+  padding: 0.125rem 0.25rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sessionRow:hover {
+  background: color-mix(in srgb, var(--color-bg-selected) 60%, transparent);
+}
+
+.activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--font-size-small);
+}
+
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondLine {
+  grid-column: 2;
+  display: flex;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+.secondLeft {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agents {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 0 0 0.75rem;
+  list-style: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+.agentRow {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+}
+
+.dotNeedsYou {
+  background: var(--color-accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* Half filled: the left half is a block inside the ring. */
+.dotWorking {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-state-info);
+}
+
+.dotWorking::after {
+  content: '';
+  position: absolute;
+  inset: 0 50% 0 0;
+  background: var(--color-state-info);
+}
+
+.dotBackground {
+  border: 1px solid var(--color-state-info);
+}
+
+.dotDone {
+  border: 2px solid var(--color-state-ok);
+}
+
+.dotIdle {
+  border: 2px solid var(--color-text-muted);
+}
+
+.dotEnded {
+  visibility: hidden;
+}
+
+.pulse {
+  animation: pulse calc(1200ms / 3) var(--motion-ease-out) 3;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+    transform: scale(1.4);
+  }
+}
+
+/* Usage */
+.usageRow {
+  display: grid;
+  grid-template-columns: 3.75rem minmax(2rem, 1fr) 2.5rem minmax(0, auto);
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-small);
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.resets {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Skills deck: the one box in the HUD, because it holds an input. */
+.deck {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--color-bg-panel) calc(var(--surface-panel-alpha) * 100%), transparent);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.filter {
+  composes: chip;
+  min-height: 1.375rem;
+  border-width: 1px;
+}
+
+.filterOn {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.skillRow {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.skillMain {
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  display: flex;
+  min-width: 0;
+  gap: 0.5rem;
+  padding: 0.125rem 0.25rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skillName {
+  color: var(--color-knowledge);
+  white-space: nowrap;
+}
+
+.skillDescription {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.star {
+  composes: lift focusRing from '../../ui-kit/motion/lift.module.css';
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.starOn {
+  color: var(--color-accent);
+}
+
+.stateChip {
+  padding: 0 0.375rem;
+  border: 1px solid var(--color-knowledge);
+  border-radius: var(--radius-control);
+  color: var(--color-knowledge);
+  font-size: var(--font-size-small);
+}
+
+.stateOff {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-muted);
+}
+
+.runRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-small);
+}
+
+/* Skills repo */
+.repoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-small);
+}
+
+:global([data-motion='reduced']) .pulse {
+  animation: none;
+}

@@ -13,7 +13,7 @@ import {
   useBackdropSource,
 } from '@hsos/ui-kit';
 import { Mascot } from '../mascot/Mascot';
-import { sessionForTerminal, useHudData } from './hud-data';
+import { sessionForTerminal, useHudData } from '../hud-data';
 import styles from './Ribbon.module.css';
 
 /** Subagents that ended stay listed this long with "done" (HUD-82, LINK-29). */
