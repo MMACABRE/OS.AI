@@ -1,0 +1,77 @@
+/* The timeline of one file: a version list on the left, the chosen diff and its actions on the right. */
+.layout {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  width: 16rem;
+  min-height: 0;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.diff {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  height: 100%;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.selected {
+  color: var(--color-accent);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.note {
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}

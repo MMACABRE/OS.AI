@@ -1,0 +1,37 @@
+/* The Files view in the Phosphor look: a floating tree with no box of its own (visual-direction.md "Lists"). */
+.area {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+/* Folders the project ignores (node_modules and the like) read muted (FILE-1). */
+.dimmed {
+  color: var(--color-text-muted);
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.newFile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 16rem;
+}

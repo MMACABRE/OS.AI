@@ -1,0 +1,136 @@
+/* Activity: filters, a day heading per section, and rows of time, cause, path and counts (ACT-10). */
+.column {
+  composes: enter from '../../ui-kit/motion/motion.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.day {
+  margin: 0.5rem 0 0.25rem;
+  color: var(--color-structure);
+  font-family: var(--font-display);
+  font-size: var(--font-size-small);
+  font-weight: 400;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-bg-selected);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.indent {
+  padding-left: 1.5rem;
+}
+
+.time {
+  flex: none;
+  width: 3.25rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cause {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 9rem;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.path {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.folder {
+  color: var(--color-text-muted);
+}
+
+.name {
+  color: var(--color-text-primary);
+}
+
+.counts {
+  flex: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupRow {
+  display: block;
+  width: 100%;
+  padding: 0.125rem 0.375rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.groupRow:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+}

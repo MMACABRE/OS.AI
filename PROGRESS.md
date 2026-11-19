@@ -256,3 +256,69 @@ Did: Two owner fixes from `docs/handoff.md`. The HUD's Skills repo row now sits 
 Checks: typecheck ok, lint ok, deps ok, test 27 passed
 Deviations: Both change the look the owner reviews at the 037 gate; note them for that review. Tests not written (owner's rule), plan in `untested.md`. The `repo` id stays in `HudPanelState.collapsed` so saved panel state still parses; nothing sets it now. Files: `src/modules/hud/panel/HudPanel.tsx`, `src/modules/terminal/panel/TerminalPanel.tsx`.
 Next: lane B review and merge (030, 032, 033)
+
+## 030 Files, viewer and history
+Status: done (untested)
+Date: 2026-11-19
+Did: Built the Files view (side view `files.tree`: lazy folders on demo data, four states, context menu with delete confirmation and new file), the file viewer (dock `files.viewer`: text editor with Ctrl+S, dirty marker, changed-on-disk and deleted bars, binary, too-large and image notices) and the history timeline (dock `history.timeline`: version list, diff against the previous version, compare with the current file, restore with confirmation). Registered both modules in `src/ui/module-list.ts`.
+Checks: typecheck ok, lint ok, deps ok, build ok, test not run (implementer rule), e2e not run
+Deviations:
+- ui-kit has no `CodeView`, `DiffView` or `MarkdownView` yet (ui-kit.md lists them; they are not in `src/modules/ui-kit/index.ts`). The viewer uses a plain monospace `textarea`; the history panel has its own `DiffView` (inline only) and `line-diff.ts`. The review module (card 033) will need the same diff, so the Lead should move `DiffView` into ui-kit. Until then it is a copy.
+- No `diff` or `codemirror` package is imported in the panels: the lane rule allows only contracts, ui-kit and the module's own files.
+- Viewer, not built: markdown preview toggle (FILE-70), "Compare" on the changed-on-disk bar (FILE-74), line wrap (`wordWrap`), image preview (no `hsos-file:` scheme yet), dirty-close prompt (FILE-76; the dock has no close hook), focus of an already-open file (FILE-78; the dock API does not expose it, so every open adds a viewer), syntax colours, dirty dot on the tab (the marker is in the frame header).
+- Files view, not built: rename, new folder, Ctrl+N, Ctrl+C, drag to terminal and into folders, Delete key, dirty dots (FILE-66), "Open to the Side", "Open Terminal Here", "Send Path to Terminal". The view keeps its expanded folders and selection in component state, not in the view's saved state (FILE-60 asks for saved state; side views have no saved state yet).
+- History, not built: "+n lines" change (the timeline shows the byte change, `+812 B`, because line counts need every version read); Undo action on the restore toast (ui-kit's toast has no action); the `history.showForActiveFile` and `history.pruneNow` commands; "Compare" reads the file with `files.read`, so binary files show "Binary file changed."
+- The three helper files (`use-project.ts`, `helpers.ts`, `format.ts`) are small copies that the other modules also need (`useProject` for the open project, `relativeTime`). They belong in ui-kit or in `workspace`. The Lead should decide where.
+- The Files view and the viewer open the history timeline through `ctx.openPanel('history.timeline', ...)`, not by import. The timeline opens the file's history through `ctx.openPanel` only from the files module; no import crosses modules.
+- Paths in tree node ids and listings are absolute paths, joined with `\`. `DirEntry.relPath` is not used, because the contract says only "relative to the root that was listed" and the fixture uses the project root.
+- `src/ui/module-list.ts` was edited (the Lead asked for it), though the card's file list does not name it.
+Merge: written by a Haiku coder on `lane-b-030-033`, merged by the Lead on 2026-11-19; gap fixes follow in their own commits.
+Next: 032
+
+## 032 Sessions
+Status: done (untested)
+Date: 2026-11-19
+Did: Built the session picker (command `sessions.find`, a dialog with search, rows with state chip and backup badge, the first action on Enter), Session History (dock `sessions.history`: project and state selects, search, folder groups, checkbox and Shift-click selection, Ctrl+A, row menu, "Delete n", refresh on changes debounced 500 ms) and the transcript reader (dock `sessions.transcript`: the last 200 items, "Show earlier", growth check every 2 s while visible, Resume, Rename, Edit note). Rename, note and delete dialogs are shared. Registered the module in `src/ui/module-list.ts`.
+Checks: typecheck ok, lint ok, deps ok, build ok, test not run (implementer rule), e2e not run
+Deviations:
+- "Resume here" (SESS-32) is not built: it needs the focused terminal's prompt state (TERM-71), which the terminal module owns and the renderer does not expose yet.
+- "Go to terminal" (SESS-32) is shown but disabled. Nothing in the contracts focuses an existing terminal panel from another module, and `ctx.openPanel('terminal.shell')` would open a new one (the terminal panel allows several).
+- "Resume in new terminal" runs `terminal.create`, `sessions.bind` and `terminal.write` as SESS-32 says, but it does not open a terminal panel for the new shell. The terminal module should open it; the panel state shape for `terminal.shell` is not in the spec excerpts I read.
+- The picker is a dialog with its own React root (`createRoot` on a div in `document.body`, wrapped in ui-kit's `ToastProvider`), because a command cannot mount a dialog inside the app tree. The Dialog's Radix portal still renders into `document.body`. The rename field is not pre-selected (ui-kit's `TextField` has no select-on-focus).
+- The transcript shows plain text with line breaks, not `MarkdownView` (ui-kit has no `MarkdownView` yet). Raw HTML is therefore shown as text, which satisfies SESS-51.
+- The note field is a native `textarea` (ui-kit has no multi-line field); it is not a ui-kit component.
+- Session History rows use plain list markup with native checkboxes, not ui-kit's `List`, because the rows are grouped by folder and `List` has no group headers. Arrow keys do not move the selection in this list; Tab moves between rows, and Enter, F2, Delete and Ctrl+A work.
+- The project select shows the folder name only; the full path tooltip (SESS-71) is not shown (ui-kit's `Select` takes no tooltip).
+- The reader keeps the session fields it was opened with (title, note, live terminal). Rename and note refresh the title and note from `sessions.list`; the live terminal does not refresh until the reader is opened again.
+- Auto-resume (SESS-41, SESS-42) and the Settings section are not part of this card and are not built here.
+- `use-project.ts` and `format.ts` are copies of the files module's helpers (see card 030 progress); the Lead should move them to a shared place.
+Merge: written by a Haiku coder on `lane-b-030-033`, merged by the Lead on 2026-11-19; gap fixes follow in their own commits.
+Next: 033
+
+## 033 Git, changes, feedback and activity
+Status: done (untested)
+Date: 2026-11-19
+Did: Built the git changes status item (`git.changes`, count of changed files), the sync and fetch commands, the Changes side view (base select, changed-file list with change letters and counts, context menu, commit box with the suggested message, Commit and Commit and Sync), the feedback tray (comments with edit and remove, Clear all, target select among live Claude sessions, Send to Claude as a bracketed paste with no Enter, Copy), the diff panel (`review.diff`: inline diff, folds, F7 and Shift+F7, a comment box on a line from its "+" control or C, comments shown under their line), the tray count (`review.tray`), the Activity side view (day sections, group rows, cause and session filters, new-entry chip, load more on scroll, context menu with restore before and pin) and the Artifacts side view (search, tiles, tile menu). Registered git, review and activity in `src/ui/module-list.ts`.
+Checks: typecheck ok, lint ok, deps ok, build ok, test not run (implementer rule), e2e not run
+Deviations:
+- git: the title bar button (branch, ↑n ↓n, sync, offline tooltip) is not built. Modules have no title-bar slot; `workspace/panel/TitleBar.tsx` owns it.
+- git: the `git.changes` status item opens the first changed file's diff, not the Changes side view. A module cannot switch side views (the side store is in `workspace`). The Lead should add a way for a module to show a side view, then point the item at it.
+- git: only `git.sync` and `git.fetch` are registered. Commit All Changes (Ctrl+Enter), New Claude Session in Worktree, Sign in and Initialize are not built.
+- git: failures of the sync and fetch commands go to a Windows notification (`shell.notify`), because commands run outside the React tree and have no toast. GIT_AUTH_REQUIRED has no sign-in action.
+- review: the `review.tray` status item only shows "n comments"; it is not a button (see the side-view note above). `review.showChanges`, `review.nextChange`, `review.previousChange` and `review.sendFeedback` are not registered as commands. F7 and Shift+F7 work inside the diff panel only.
+- review: the base select lists every session of the project, not only those that edited files (REV-10). Finding edited files needs `link.getSessionEvents` for each session; not done.
+- review: "Restore Version Before This Change" (REV-15, session base) is not built. The review data gives no snapshot ids.
+- review: the diff panel has no inline and split toggle (Alt+Z, REV-22) and does not poll at two updates a second while Claude edits (REV-21). It refreshes on `changesInvalidated`. It does not keep the scroll position across a refresh (REV-20 asks for it); the test row for it is therefore not a pass yet.
+- review: every open of a changed file adds a diff panel (`allowMultiple: true`); the single reused preview panel of REV-13 needs a dock API the renderer does not expose.
+- review: binary files show "Binary file changed." without the sizes (REV-25), because `getDiff` gives no sizes.
+- review: the feedback tray is at the foot of the Changes view, not a strip reached from the status item (REV-30). Edit uses an inline field; Escape does not cancel it.
+- review and history: the diff code is a copy (`line-diff.ts`, `DiffView.tsx`). The spec puts one `DiffView` in ui-kit. The Lead should move it there.
+- review: the `use-repo.ts`, `helpers.ts` and `data.ts` (with `gitMessage` and `loadSessions`) are copies of helpers in git and sessions. The Lead should move the shared ones.
+- activity: the Activity tab dot (ACT-34) is not built. The commands `activity.showTimeline`, `activity.showArtifacts` and `activity.pinActiveFile` are not registered (they cannot switch side views either).
+- activity: artifacts have no thumbnails. Images show the image icon, not the picture; the `hsos-file:` scheme does not exist yet. An image opens in the file viewer, which shows its notice.
+- activity: the artifact grid uses `minmax(9rem, 1fr)` columns, not the "two across, one under 260 px" rule (ACT-30).
+- activity: "Pin comment" asks for the comment text in a small dialog first (the review service needs text); the spec does not say how the text is given.
+- activity: the session select lists the sessions in the loaded page only.
+- Shared files: `src/ui/module-list.ts` was edited (the Lead asked for it), though the card's file list does not name it.
+Merge: written by a Haiku coder on `lane-b-030-033`, merged by the Lead on 2026-11-19; gap fixes follow in their own commits.
+Next: the card after 033 (the 037 gate is later; the coordinator decides)

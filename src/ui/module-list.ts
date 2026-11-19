@@ -2,6 +2,12 @@ import type { Bus } from '@hsos/contracts/bus';
 import type { Clock, UiContext } from '@hsos/contracts/module';
 import { createBusLogger } from '../modules/diagnostics/panel/bus-logger';
 import * as diagnostics from '../modules/diagnostics/register.ui';
+import * as activity from '../modules/activity/register.ui';
+import * as files from '../modules/files/register.ui';
+import * as git from '../modules/git/register.ui';
+import * as history from '../modules/history/register.ui';
+import * as review from '../modules/review/register.ui';
+import * as sessions from '../modules/sessions/register.ui';
 import * as settings from '../modules/settings/register.ui';
 import * as hud from '../modules/hud/register.ui';
 import * as terminal from '../modules/terminal/register.ui';
@@ -14,7 +20,13 @@ export const uiModules: readonly ModuleEntry<UiContext>[] = [
   { id: 'diagnostics', module: diagnostics },
   { id: 'workspace', module: workspace },
   { id: 'terminal', module: terminal },
+  { id: 'files', module: files },
+  { id: 'history', module: history },
   { id: 'hud', module: hud },
+  { id: 'sessions', module: sessions },
+  { id: 'git', module: git },
+  { id: 'review', module: review },
+  { id: 'activity', module: activity },
 ];
 
 /** The renderer's logger for one module: records go to main with `diagnostics.write` (DIAG-1). */
