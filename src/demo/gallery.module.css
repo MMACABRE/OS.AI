@@ -1,0 +1,111 @@
+/* The state gallery (card 036). Tokens only (UI-1). */
+.page {
+  box-sizing: border-box;
+  height: 100vh;
+  overflow: auto;
+  padding: 1.5rem 2rem;
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+}
+
+.header {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-brand);
+  font-family: var(--font-display);
+  font-size: var(--font-size-display);
+  font-weight: normal;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.group {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--color-structure);
+  font-family: var(--font-display);
+  font-size: var(--font-size-title);
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rowTitle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-small);
+  font-weight: normal;
+}
+
+.states {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.tile {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+}
+
+.stateName {
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.frame {
+  box-sizing: border-box;
+  width: 26rem;
+  height: 18rem;
+  overflow: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-panel);
+  padding: 0.5rem;
+}
+
+.tile[data-size='panel'] .frame {
+  width: 36rem;
+  height: 24rem;
+}
+
+.tile[data-state='error'] .frame {
+  border-color: var(--color-state-danger);
+}
+
+.failed {
+  margin: 0;
+  color: var(--color-state-danger);
+  font-size: var(--font-size-small);
+}
