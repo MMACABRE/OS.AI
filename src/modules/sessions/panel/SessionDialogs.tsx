@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
-import { sessionsChannels } from '@hsos/contracts/channels/sessions';
-import type { SessionListItem } from '@hsos/contracts/channels/sessions';
+import { SessionListItem, SessionRecord, sessionsChannels } from '@hsos/contracts/channels/sessions';
 import { Button, ConfirmDialog, Dialog, TextField, useToast } from '@hsos/ui-kit';
 import { titleOf } from './actions';
 import styles from './SessionDialogs.module.css';
+
+/** The limits of the contract: the record's `customTitle` and `note`. */
+const TITLE_MAX = SessionListItem.shape.title.maxLength ?? Number.POSITIVE_INFINITY;
+const NOTE_MAX = SessionRecord.shape.note.unwrap().maxLength ?? Number.POSITIVE_INFINITY;
 
 /** What a dialog needs about a session: its id, name, note and live terminal. */
 export type DialogItem = Pick<SessionListItem, 'sessionId' | 'title' | 'note' | 'liveTerminalId'>;
@@ -38,7 +41,12 @@ function RenameDialog({ bus, item, onClose, onChanged }: Common) {
   const toast = useToast();
   const [title, setTitle] = useState(item.title);
   const trimmed = title.trim();
-  const invalid = trimmed === '' ? 'Enter a name.' : trimmed.length > 80 ? 'Use 80 characters or fewer.' : null;
+  const invalid =
+    trimmed === ''
+      ? 'Enter a name.'
+      : trimmed.length > TITLE_MAX
+        ? `Use ${TITLE_MAX} characters or fewer.`
+        : null;
   const save = () => {
     if (invalid !== null) return;
     void bus.call(sessionsChannels.rename, { sessionId: item.sessionId, title: trimmed }).then((result) => {
@@ -115,7 +123,7 @@ function NoteDialog({ bus, item, onClose, onChanged }: Common) {
         className={styles.note}
         aria-label="Note"
         value={note}
-        maxLength={2000}
+        maxLength={NOTE_MAX}
         spellCheck={false}
         onChange={(event) => setNote(event.target.value)}
         onKeyDown={(event) => {
@@ -137,11 +145,6 @@ function DeleteDialog({ bus, items, onClose, onChanged }: Omit<Common, 'item'> &
   const count = removable.length;
   const skipped = running.length === 0 ? '' : ` Still running, will be skipped: ${running.map(titleOf).join(', ')}.`;
   const confirm = () => {
-    if (count === 0) {
-      toast.show({ message: 'Running sessions are skipped. Nothing was moved.', tone: 'info' });
-      onClose();
-      return;
-    }
     void bus.call(sessionsChannels.trash, { sessionIds: removable.map((item) => item.sessionId) }).then((result) => {
       if (!result.ok) toast.show({ message: result.error.message, tone: 'error' });
       else {
@@ -152,6 +155,21 @@ function DeleteDialog({ bus, items, onClose, onChanged }: Omit<Common, 'item'> &
       onClose();
     });
   };
+  // SESS-76 is silent on a selection that is all running: nothing can be moved, so say so instead of asking.
+  if (count === 0)
+    return (
+      <Dialog
+        title="Nothing to move"
+        onClose={onClose}
+        actions={
+          <Button variant="primary" onPress={onClose}>
+            Close
+          </Button>
+        }
+      >
+        <p className={styles.hint}>{`Still running, will be skipped: ${running.map(titleOf).join(', ')}.`}</p>
+      </Dialog>
+    );
   return (
     <ConfirmDialog
       title={`Move ${count} session${count === 1 ? '' : 's'} to the Recycle Bin?`}

@@ -1,11 +1,12 @@
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { z } from 'zod';
-import type { SessionListItem } from '@hsos/contracts/channels/sessions';
+import { SessionListItem } from '@hsos/contracts/channels/sessions';
 import { toAbsPath } from '@hsos/contracts/ids';
+import type { TerminalId } from '@hsos/contracts/ids';
 import type { PanelProps, UiContext } from '@hsos/contracts/module';
-import { zAbsPath, zClaudeSessionId, zTerminalId } from '@hsos/contracts/schemas';
-import { ToastProvider } from '@hsos/ui-kit';
+import { zClaudeSessionId } from '@hsos/contracts/schemas';
+import { TOAST_MS, ToastProvider } from '@hsos/ui-kit';
 import { SessionHistory } from './panel/SessionHistory';
 import { SessionPicker } from './panel/SessionPicker';
 import { SessionReader } from './panel/SessionReader';
@@ -14,13 +15,14 @@ export const HISTORY_PANEL = 'sessions.history';
 export const TRANSCRIPT_PANEL = 'sessions.transcript';
 export const FIND_COMMAND = 'sessions.find';
 
-const ReaderState = z.object({
-  sessionId: zClaudeSessionId,
-  title: z.string().max(80),
-  cwd: zAbsPath,
-  hasOriginal: z.boolean(),
-  liveTerminalId: zTerminalId.nullable(),
-  note: z.string().max(2000),
+// The reader keeps these fields of a list row; their limits come from the contract.
+const ReaderState = SessionListItem.pick({
+  sessionId: true,
+  title: true,
+  cwd: true,
+  hasOriginal: true,
+  liveTerminalId: true,
+  note: true,
 });
 type ReaderState = z.infer<typeof ReaderState>;
 
@@ -39,6 +41,11 @@ export function register(ctx: UiContext): void {
       note: item.note,
     });
 
+  // The state shape of the terminal module's `terminal.shell` panel (TerminalPanelState), written out here
+  // because a module may not import another module.
+  const openTerminal = (terminalId: TerminalId, cwd: string) =>
+    ctx.openPanel('terminal.shell', { terminalId, cwd, worktree: null, launch: null, fontSizeDelta: 0 });
+
   // The picker is a dialog, so it mounts its own React root (SESS-31). One at a time.
   let pickerOpen = false;
   const openPicker = () => {
@@ -49,9 +56,13 @@ export function register(ctx: UiContext): void {
     const root = createRoot(host);
     const close = () => {
       pickerOpen = false;
+      // Only the dialog goes; the toast provider stays so a toast shown at close time still lasts its time.
       window.setTimeout(() => {
-        root.unmount();
-        host.remove();
+        root.render(createElement(ToastProvider, null));
+        window.setTimeout(() => {
+          root.unmount();
+          host.remove();
+        }, TOAST_MS + 1_000);
       }, 0);
     };
     root.render(
@@ -60,6 +71,7 @@ export function register(ctx: UiContext): void {
         null,
         createElement(SessionPicker, {
           bus: ctx.bus,
+          openTerminal,
           onClose: close,
           openTranscript: (item: SessionListItem) => {
             close();
@@ -93,7 +105,7 @@ export function register(ctx: UiContext): void {
     stateSchema: z.object({}),
     initialState: {},
     allowMultiple: false,
-    component: () => createElement(SessionHistory, { bus: ctx.bus, openTranscript }),
+    component: () => createElement(SessionHistory, { bus: ctx.bus, openTranscript, openTerminal }),
   });
 
   const none = zClaudeSessionId.parse('none');
@@ -105,6 +117,6 @@ export function register(ctx: UiContext): void {
     stateSchema: ReaderState,
     initialState: { sessionId: none, title: '', cwd: toAbsPath('C:\\'), hasOriginal: false, liveTerminalId: null, note: '' },
     allowMultiple: true,
-    component: (props: PanelProps<ReaderState>) => createElement(SessionReader, { bus: ctx.bus, session: props.state }),
+    component: (props: PanelProps<ReaderState>) => createElement(SessionReader, { bus: ctx.bus, session: props.state, openTerminal }),
   });
 }

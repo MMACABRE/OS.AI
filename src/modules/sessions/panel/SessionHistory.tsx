@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Bus } from '@hsos/contracts/bus';
 import { sessionsChannels } from '@hsos/contracts/channels/sessions';
 import type { SessionListItem } from '@hsos/contracts/channels/sessions';
 import { Badge, Button, EmptyState, Icon, IconButton, Menu, PanelFrame, Select, TextField, useToast } from '@hsos/ui-kit';
 import type { PanelViewState } from '@hsos/ui-kit';
-import { copyResumeCommand, loadSessions, matchesSearch, resumeInNewTerminal, rowMenu, titleOf } from './actions';
+import { copyResumeCommand, loadSessions, matchesSearch, newestFirst, resumeAndOpen, rowMenu, titleOf } from './actions';
+import type { OpenTerminal } from './actions';
 import { cls, firstLine, folderName, relativeTime } from './format';
 import { SessionDialogs } from './SessionDialogs';
 import type { SessionDialog } from './SessionDialogs';
@@ -31,10 +32,11 @@ const STATE_OPTIONS: readonly { readonly value: StateFilter; readonly label: str
 export type SessionHistoryProps = {
   readonly bus: Bus;
   readonly openTranscript: (item: SessionListItem) => void;
+  readonly openTerminal: OpenTerminal;
 };
 
 /** Session History (dock panel `sessions.history`, SESS-70 to SESS-77): every project's sessions in one list. */
-export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
+export function SessionHistory({ bus, openTranscript, openTerminal }: SessionHistoryProps) {
   const project = useProject(bus);
   const toast = useToast();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -45,6 +47,15 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [anchor, setAnchor] = useState<number | null>(null);
   const [dialog, setDialog] = useState<SessionDialog | null>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const projectId = project?.id ?? null;
+
+  // SESS-71: a different project starts again from the default filter.
+  useEffect(() => {
+    setProjectFilter(null);
+    setSelected(new Set());
+    setAnchor(null);
+  }, [projectId]);
 
   // SESS-70: the list reads again when a record or a transcript changes, debounced 500 ms.
   useEffect(() => {
@@ -76,42 +87,48 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
   }, [bus, project, reload]);
 
   const resume = (item: SessionListItem) => {
-    if (project === undefined || project === null) return;
-    void resumeInNewTerminal(bus, project, item).then((result) => {
-      if (result.ok) toast.show({ message: `Resumed "${titleOf(item)}" in a new terminal.`, tone: 'ok' });
-      else toast.show({ message: result.error.message, tone: 'error' });
+    void resumeAndOpen(bus, project, item, openTerminal).then((failure) => {
+      if (failure === null) toast.show({ message: `Resumed "${titleOf(item)}" in a new terminal.`, tone: 'ok' });
+      else toast.show({ message: failure, tone: 'error' });
     });
   };
 
   const copy = (item: SessionListItem) => {
     void copyResumeCommand(bus, item).then((result) => {
       if (result.ok) toast.show({ message: 'Copied the resume command.', tone: 'ok' });
+      else toast.show({ message: result.error.message, tone: 'error' });
     });
   };
 
   const items = state.status === 'ready' ? state.items : [];
   // SESS-71: the open project is the default filter, else all projects.
-  const projectValue = projectFilter ?? project?.path ?? 'all';
   const folders = useMemo(() => [...new Set(items.map((item) => item.cwd))], [items]);
+  // A folder with no sessions is not an option, so the filter falls back to all projects.
+  const wanted = projectFilter ?? project?.path ?? 'all';
+  const projectValue = wanted === 'all' || folders.some((folder) => folder === wanted) ? wanted : 'all';
   const projectOptions = [
     { value: 'all', label: 'All projects' },
     ...folders.map((cwd) => ({ value: cwd, label: folderName(cwd) })),
   ];
 
-  const visible = items.filter(
+  const visible = items
+    .filter(
     (item) =>
       (projectValue === 'all' || item.cwd === projectValue) &&
       (stateFilter === 'all' || item.state === stateFilter) &&
       matchesSearch(`${titleOf(item)} ${item.note}`, query),
-  );
+    )
+    .sort(newestFirst);
   // SESS-72: grouped by folder when "All projects" is chosen; the newest activity first in each group.
   const groups =
     projectValue === 'all'
       ? folders
           .map((cwd) => ({ cwd, items: visible.filter((item) => item.cwd === cwd) }))
           .filter((group) => group.items.length > 0)
+          .sort((a, b) => (b.items[0]?.lastActiveAt ?? 0) - (a.items[0]?.lastActiveAt ?? 0))
       : [{ cwd: projectValue, items: visible }];
   const ordered = groups.flatMap((group) => group.items);
+  const positions = new Map(ordered.map((item, index) => [item.sessionId, index]));
   const selectedItems = ordered.filter((item) => selected.has(item.sessionId));
 
   const pick = (index: number, shift: boolean, additive: boolean) => {
@@ -131,8 +148,13 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
     } else setSelected(new Set([item.sessionId]));
   };
 
-  const rowKey = (event: KeyboardEvent<HTMLLIElement>, item: SessionListItem) => {
-    if (event.key === 'Enter') openTranscript(item);
+  const rowKey = (event: KeyboardEvent<HTMLLIElement>, item: SessionListItem, index: number) => {
+    // Keys from the row's own buttons and menu belong to them.
+    if (event.target !== event.currentTarget) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      body.current?.querySelector<HTMLElement>(`[data-index="${index + (event.key === 'ArrowDown' ? 1 : -1)}"]`)?.focus();
+    } else if (event.key === 'Enter') openTranscript(item);
     else if (event.key === 'F2') setDialog({ kind: 'rename', item });
     else if (event.key === 'Delete') setDialog({ kind: 'delete', items: [item] });
   };
@@ -160,10 +182,11 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
         role="option"
         className={cls(styles.row, isSelected && styles.selected)}
         tabIndex={0}
+        data-index={index}
         aria-selected={isSelected}
         onClick={(event) => pick(index, event.shiftKey, false)}
         onDoubleClick={() => openTranscript(item)}
-        onKeyDown={(event) => rowKey(event, item)}
+        onKeyDown={(event) => rowKey(event, item, index)}
       >
         <input
           type="checkbox"
@@ -206,8 +229,12 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
     <>
       <PanelFrame title="Session History" state={frame}>
         <div
+          ref={body}
           className={styles.body}
           onKeyDown={(event) => {
+            // Ctrl+A in the search field selects its text, not the rows.
+            if (event.target instanceof HTMLInputElement && event.target.type !== 'checkbox') return;
+            if (event.target instanceof HTMLTextAreaElement) return;
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
               event.preventDefault();
               setSelected(new Set(ordered.map((item) => item.sessionId)));
@@ -247,7 +274,7 @@ export function SessionHistory({ bus, openTranscript }: SessionHistoryProps) {
                     </h3>
                   ) : null}
                   <ul className={styles.list} aria-label="Sessions" role="listbox" aria-multiselectable="true">
-                    {group.items.map((item) => renderRow(item, ordered.indexOf(item)))}
+                    {group.items.map((item) => renderRow(item, positions.get(item.sessionId) ?? 0))}
                   </ul>
                 </section>
               ))}
