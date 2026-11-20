@@ -17,6 +17,7 @@ import { startHudData, targetSession, useHudData } from '../../src/modules/hud/p
 import { QuickBar, tokensText } from '../../src/modules/hud/panel/QuickBar';
 import { Section } from '../../src/modules/hud/panel/Section';
 import { boardOrder, cacheState, SessionsBoard } from '../../src/modules/hud/panel/SessionsSection';
+import { SessionsMenu } from '../../src/modules/hud/panel/SessionsSection';
 import { cleanFreeText, sendToSession } from '../../src/modules/hud/panel/send-command';
 import { SkillsDeck, SkillsRepoRow } from '../../src/modules/hud/panel/SkillsSection';
 import { UsageBars } from '../../src/modules/hud/panel/UsageSection';
@@ -68,6 +69,23 @@ describe('sessions board (card 031)', () => {
     expect(screen.getByText('in worktree')).toBeTruthy();
     expect(screen.queryByText('elsewhere')).toBeNull();
     act(() => useHudData.setState({ showAllProjects: true }));
+    expect(screen.getByText('elsewhere')).toBeTruthy();
+    expect(screen.getByText('in project')).toBeTruthy();
+    expect(screen.getByText('in worktree')).toBeTruthy();
+  });
+
+  it('HUD-1 the section menu item "Show all projects" lists every session', async () => {
+    renderHud(
+      <>
+        <SessionsMenu />
+        <SessionsBoard />
+      </>,
+    );
+    expect(screen.getByText('in project')).toBeTruthy();
+    expect(screen.getByText('in worktree')).toBeTruthy();
+    expect(screen.queryByText('elsewhere')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Sessions menu' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Show all projects' }));
     expect(screen.getByText('elsewhere')).toBeTruthy();
     expect(screen.getByText('in project')).toBeTruthy();
     expect(screen.getByText('in worktree')).toBeTruthy();
@@ -611,6 +629,24 @@ describe('skills deck (card 031)', () => {
     await userEvent.click(screen.getByText('caveman'));
     await waitFor(() => expect(writes(bus)).toHaveLength(1));
     expect(writes(bus)[0]).toEqual({ id: T1, data: '/caveman ', source: 'owner' });
+  });
+
+  it('HUD-34 the row menu "Show in folder" reveals the skill file', async () => {
+    seedHud({ skills: { kind: 'ready', value: [skill('a')] } });
+    const { bus } = renderHud(<SkillsDeck />);
+    bus.answer(shellChannels.revealInExplorer, () => ok({}));
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Show in folder' }));
+    expect(bus.payloadsOf(shellChannels.revealInExplorer)).toEqual([{ path: skill('a').file }]);
+  });
+
+  it('HUD-37 a policy-locked skill disables its state choices and shows the reason', async () => {
+    seedHud({ skills: { kind: 'ready', value: [skill('a', { state: 'off', stateLock: 'policy', stateSource: 'policy' })] } });
+    renderHud(<SkillsDeck />);
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    const choice = await screen.findByRole('menuitem', { name: /You only/ });
+    expect(choice.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByText('Set by your organisation policy.')).toBeTruthy();
   });
 
   it('HUD-36 a skill that is off shows a muted "off" chip, and the state filter "Off" keeps only it', async () => {
