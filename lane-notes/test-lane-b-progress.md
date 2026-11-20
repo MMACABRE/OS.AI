@@ -62,3 +62,9 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - tests/hud/hud-panel.ui.test.tsx (2): OWNER-1.
 - tests/terminal/terminal-panel.ui.test.tsx (7): OWNER-2a (14, fontSizeDelta 1, resize, default prevented), OWNER-2b (32 up and 8 down stay, no setState), OWNER-2c (no Ctrl: unchanged, not prevented), OWNER-2d (delta 3 on 13 opens at 16; clamp at 32).
 - Skipped: none.
+
+## General notes for the Lead
+- Existing test tests/files/parcel-file-watcher.test.ts (card 004) is flaky when the machine is busy: it fails with "no matching change; saw []" inside its 2 s window in the full run, and passes alone. It blocked several of this lane's commits until a retry got through. It is not changed here.
+- Prettier was run only over new files; committed test files were never reformatted (the guard rejects changed lines).
+- The 029 row text says "t1 shows a ribbon"; the real ids are 12-character terminal ids, so tests use terminal-001 and terminal-002.
+- Rows with no rule id in the spec use the nearest id (UI-2 for keyboard and dialog rows, UI-6 for the icon set, STAGE-U for the demo backend).
