@@ -30,3 +30,8 @@
 - File: tests/settings/settings-store.test.ts
 - Covered: SET-1 (missing file created, same reader twice), SET-2, SET-3, SET-4 (incl. module without section), SET-5 (bad JSON unchanged, invalid copy on setValue, version 2), SET-6, SET-7 (.bak, listener once, sectionChanged, default removed).
 - Skipped: none.
+
+## 017 Settings live reload
+- File: tests/settings/live-reload.test.ts
+- Covered: SET-8 (real clock: onChange once, reader fires within 1000 ms; several writes give one onChange; keybindings and themes kinds; stop), SET-9 (two sections; unchanged reload), SET-10 (createRemoteSettingsReader: defaults, getSection, own module only, invalid value ignored, failure keeps defaults).
+- Skipped: F-006 e2e is not in this section's rows; none skipped.
