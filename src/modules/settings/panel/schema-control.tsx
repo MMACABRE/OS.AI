@@ -125,6 +125,8 @@ export function SchemaControl({ settingKey, label, schema, value, onValid, pickF
         max={field.max}
         step={field.step}
         label={label}
+        clampTyped={false}
+        invalidMessage={message}
         onChange={(next) => offer(next, null)}
       />
     );

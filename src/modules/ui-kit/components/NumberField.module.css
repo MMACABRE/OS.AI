@@ -1,7 +1,23 @@
+.wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .field {
   display: inline-flex;
   align-items: stretch;
   gap: 2px;
+}
+
+.invalid {
+  border-color: var(--color-state-danger);
+}
+
+.message {
+  color: var(--color-state-danger);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-small);
 }
 
 .input {
