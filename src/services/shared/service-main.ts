@@ -117,6 +117,8 @@ export function startServiceRuntime(
   const listeners: ((envelope: Envelope, from: Peer) => void)[] = [];
   const replyTo = new Map<string, 'ui' | 'main'>();
   let uiPort: MainPortLike | null = null;
+  // DIAG-8 (E2E): the service the launcher marked throws once, after it is ready.
+  const throwAfterReady = process.env['HSOS_E2E_THROW_SERVICE'] === name;
 
   const toListeners = (envelope: Envelope, from: Peer) => {
     if (envelope.kind === 'req') replyTo.set(envelope.id, from === 'ui' ? 'ui' : 'main');
@@ -153,7 +155,13 @@ export function startServiceRuntime(
   return {
     bus,
     log,
-    ready: () => parent.postMessage({ type: 'ready' }),
+    ready: () => {
+      parent.postMessage({ type: 'ready' });
+      if (throwAfterReady)
+        setTimeout(() => {
+          throw new Error('deliberate uncaught exception (DIAG-8)');
+        }, 0);
+    },
     onStop: (handler) => void stopHandlers.push(handler),
   };
 }
