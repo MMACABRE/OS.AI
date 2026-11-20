@@ -8,3 +8,8 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - tests/ui-kit/base-components.ui.test.tsx (13), tests/ui-kit/no-raw-css.test.ts (3), helper tests/ui-kit/css-composes.ts
 - Covered: UI-2 (Button, IconButton, Switch, NumberField, Select, TextField), UI-3, UI-1, P-43 (StatusDot), TextField invalid, Kbd caps.
 - Limits: Select arrow keys cannot be driven in jsdom (native select), so the change goes through selectOptions; Tab reach and the focusRing composition are checked. `:focus-visible` is not checked (jsdom).
+
+## 021 Panel frame, lists and trees
+- tests/ui-kit/panel-frame.ui.test.tsx (5), list.ui.test.tsx (6), tree.ui.test.tsx (5), panel-parts.ui.test.tsx (4: Tabs, SplitView x2, ProgressBar)
+- Covered: P-40, UI-7 (1000 rows < 60 with a stubbed 260 px clientHeight; 150 rows all; 10 000 rows < 100), List keyboard and type-ahead, Tree keyboard/aria, Tabs, SplitView (getBoundingClientRect stubbed to 1000 px), ProgressBar clamp.
+- Skipped: none. The "also" rows have no rule id in the spec, so they are prefixed UI-2 (keyboard operation).
