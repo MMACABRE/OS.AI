@@ -18,3 +18,9 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - tests/ui-kit/overlays.ui.test.tsx (14); helper additions in tests/ui-kit/css-composes.ts (ruleBody, MOTION)
 - Covered: Dialog Escape and focus return, ConfirmDialog focus (danger and not), Toast max 3 / 4000 ms / error stays until Dismiss, SET-15 (stylesheet source read: dialog composes dialogIn; the reduced rule is a fade of motion.quick; jsdom computes no CSS animation), BROW-3 (Dialog and a keyboard-opened dropdown Menu), icons (49 names equal the spec list, 8x8 grids, one rect per #).
 - Limits: ConfirmDialog without danger: Cancel is also its first focusable element, so the two focus tests cannot tell the rules apart there; a plain Dialog test shows the first-focusable rule with a text field. Rows with no rule id in the spec are prefixed UI-2 (dialog, toast) or UI-6 (icons, shared pixel set).
+
+## 023 Command palette
+- tests/ui-kit/rank-commands.test.ts (5), tests/ui-kit/palette.ui.test.tsx (5)
+- Covered: UI-11 (set, term, recency and registration order), UI-10 (list with keys), UI-12, UI-13 (reject and resolve), UI-14 (button and text field).
+- Row discrepancy (not a src bug): untested.md says query `set` matches "Restart service" as a subsequence. "restart service" holds s, e but no t after the e, so it is NOT a subsequence of s-e-t and the code rightly drops it. The test uses "Reset tasks" (s, e, t in order, no word starting with "set") as the subsequence case instead. Lead: fix the row in untested.md or the spec example.
+- Skipped: F-008 (e2e).
