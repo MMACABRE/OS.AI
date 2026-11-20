@@ -2,11 +2,11 @@
 
 Spec of HSOS (Windows 11 desktop app around terminal running Claude Code), and app built from it.
 
-**Status (2026-11-19):** spec done (20 modules, 118 cards). Build order look first: stage 0, Stage U (demo data, ends at owner gate card 037), stages 1 to 9 (JOURNAL 36, 37). On `main`: cards 001 to 036 done, untested by owner rule (`PROGRESS.md`, `untested.md`). No lane branches open. Handoff: `docs/handoff.md`.
+**Status (2026-11-19):** spec done (20 modules, 118 cards). Build order look first: stage 0, Stage U (demo data, ends at owner gate card 037), stages 1 to 9 (JOURNAL 36, 37). On `main`: cards 001 to 036 done. Test round 1 (2026-11-20): 537 unit/UI tests pass; e2e rows, 6 open src bugs and 2 owner questions left in `untested.md`. No lane branches open. Handoff: `docs/handoff.md`.
 
 **Look profile: Phosphor** (`spec/design/visual-direction.md`, JOURNAL 38; mockups `design-round/`, start `index.html`, decisions `design-round/design-rounds.md`). CRT pixel art; one colour per job (orange `#FF7A3D` structure, yellow `#F5FF3B` values/focus, red `#FF003C` attention/brand, cyan `#00F0FF` live, lavender `#C77DFF` knowledge, magenta `#FF00FF` memory); breathing HSOS + cyan clock top left; corner boxes; floating zoomable graph, CLAUDE.md pinned centre; strawberry mascot; dust-and-steam background; buttons lift in 3D. Screens without mockup get own layout, shown to owner as options first. Phosphor only built-in theme.
 
-**Next:** close gap between app and approved mockups, Dashboard first (owner 2026-11-19: "nothing like how we designed it"). See `docs/handoff.md` "Next". Then card 037 (owner gate), stop.
+**Next:** fix open bugs in `untested.md` (tests to re-add in `lane-notes/test-lane-*-bugs.md`), write and run e2e rows. Then close gap between app and approved mockups, Dashboard first (owner 2026-11-19: "nothing like how we designed it"). See `docs/handoff.md` "Next". Then card 037 (owner gate), stop.
 
 ## Before any work
 

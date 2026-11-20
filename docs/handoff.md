@@ -1,8 +1,16 @@
 # Handoff: hsdevloop run over cards 001 to 037
 
-Updated 2026-11-19 end of session. Read this, `CLAUDE.md`, last `PROGRESS.md` entries (incl. "Lead handoff note").
+Updated 2026-11-20 after test round 1. Read this, `CLAUDE.md`, last `PROGRESS.md` entries (incl. "Lead handoff note").
 
-## First thing next session (owner, 2026-11-19)
+## Test round 1 (2026-11-20)
+
+- 3 Sonnet tester lanes wrote the vitest rows of `untested.md` for 011 to 036; merged; 537 tests pass (67 files). Covered rows removed from `untested.md`.
+- Left in `untested.md`: e2e rows (Lead writes and runs them serially after a build), the unassigned `#` test plans (032 fixes, 034 Notes, 030/033 fixes, 035 Dashboard, 036 gallery), 6 open src bugs, 2 owner questions (SET-6 clamp or reject; REV-21 F7 by hunk or row).
+- Bug policy (owner): testers report, Lead fixes src, then re-adds the failing test from `lane-notes/test-lane-b-bugs.md` / `test-lane-c-bugs.md`; delete those files when empty.
+- `features.json` `passes` flags not yet flipped: flip per feature only when all its rows, e2e included, pass (verify).
+- Flaky: `tests/files/parcel-file-watcher.test.ts` fails about half of full runs (2 s wait under load) and blocks commits; retry. Fix needs owner OK (guard forbids changing existing test lines).
+
+## Mockup gap (owner, 2026-11-19)
 
 **Dashboard nothing like design.** Owner: app Dashboard "nothing like how we designed it in the UI grilling session". Agent in that session gave owner HTML file owner liked. Next session:
 
@@ -16,7 +24,7 @@ Updated 2026-11-19 end of session. Read this, `CLAUDE.md`, last `PROGRESS.md` en
 - Owner amendments done: Skills repo row above skills search; Ctrl+wheel terminal font (8 to 32); strawberry logo = app icon (`resources/icon.ico`, `resources/art/strawberry-logo.png`); settings layout A.
 - Lead fixes after lane B review: ui-kit `DiffView` (`diff`), `CodeView` (CodeMirror), `MarkdownView` (micromark); safe paste `pasteToTerminal` (REV-33, P-6); `List`/`Tree` select on right click; all review findings fixed (PROGRESS entries).
 - Look passes: Notes page layout C (graph page layer, square nodes, CLAUDE.md centre); Dashboard boxes, mascot, mini graph, context. Remaining gaps in PROGRESS "034 look pass", "035 look pass".
-- Card 037 not started: needs `HSOS Demo` package target + `tests/e2e/demo-tour.e2e.ts`. Tour is a test; owner rule says no tests: ask owner before.
+- Card 037 not started: needs `HSOS Demo` package target + `tests/e2e/demo-tour.e2e.ts` (ask owner before writing the tour test).
 
 ## Open gaps
 
@@ -30,7 +38,7 @@ Git title bar button (needs title bar slot); "Go to terminal" (SESS-32); `graph.
 ## Run rules
 
 - Build 001 to 037, stop at 037 gate.
-- No tests from implementers (owner 2026-11-18); plans in `untested.md`; features stay `passes: false`.
+- No tests from implementers (owner 2026-11-18); plans in `untested.md`; testing round writes them (round 1 done 2026-11-20).
 - Lead does look work; coders the rest; only Lead writes `PROGRESS.md`, `features.json`, `untested.md`.
 - Screens without mockup: options to owner first.
 - End each reply with % of plan done (memory `report-percent-done`).
