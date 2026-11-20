@@ -30,3 +30,7 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - Covered: P-32 invalid JSON text shows the message and saves nothing (shellArgs field), Reset only when changed and sends the default after 400 ms (SET-2), problems banner from getProblems and problemsChanged with Open file, one save 400 ms after the last edit (SET-6), fieldKindOf for boolean, enum, number, path, string.
 - Bug: the row "type 400 into the terminal font size" fails: NumberField clamps to the max and saves it. Moved to lane-notes/test-lane-b-bugs.md.
 - Skipped: F-009 (e2e). The row text says max 40; the real fontSize max is 32 (tests use that).
+
+## 025 Stage 0 checks
+- tests/stage0/packaging.test.ts (5): F-010 electron-builder.yml values (app id, product, NSIS flags, asarUnpack, themes extraResources, npmRebuild) and the 256x256 entry of resources/icon.ico.
+- Skipped (e2e, Playwright): REP-7/P-32 corrupted settings launch, F-008 palette, F-007 live theme, SHELL-14 renderer crash, `npm run dist`, and the optional F-005/F-006/F-004 rows.
