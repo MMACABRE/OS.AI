@@ -42,7 +42,7 @@ Dock panel `review.diff`. State: `{ path: AbsPath, base: ReviewBase, mode: 'inli
 
 - **REV-20.** Shows `DiffView` for `getDiff`. It refreshes when a `changesInvalidated` arrives and the file's content has changed, keeping the scroll position by anchoring on the first visible line.
 - **REV-21.** While the file is being edited by Claude, the diff updates live, at most twice a second.
-- **REV-22.** `F7` and `Shift+F7` move to the next and previous change. `Alt+Z` switches inline and split. Unchanged stretches longer than 8 lines fold to a "⋯ 42 unchanged lines" row that expands on activation.
+- **REV-22.** `F7` and `Shift+F7` move to the next and previous change. A change is one hunk: a run of removed and added rows with no unchanged row between them, so a replaced line is one stop. `Alt+Z` switches inline and split. Unchanged stretches longer than 8 lines fold to a "⋯ 42 unchanged lines" row that expands on activation.
 - **REV-23.** Hovering or focusing a line shows a "+" control in the gutter. Activating it, or pressing `C` on a focused line, opens a small text box under the line. `Ctrl+Enter` adds a `diff-line` comment; Escape cancels.
 - **REV-24.** Lines with comments show a marker in the gutter. Activating it shows the comment with Edit and Remove.
 - **REV-25.** Binary files show "Binary file changed" with both sizes.

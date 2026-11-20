@@ -58,7 +58,7 @@ Each module in the first column contributes its widgets to `dashboardWidgets`. S
 - **DASH-20.** The layout lives in `dashboardFile` (`%APPDATA%\HSOS\dashboard.json`) as `DashboardFile`. It is one dashboard for the whole app, not per project; widgets that show project data use the open project.
 - **DASH-21.** It is saved 500 ms after the last change, atomically, keeping the previous file as `.bak` (P-3). Loading validates it: an instance that fails its schema, overlaps another or leaves the grid is dropped and logged; an instance whose type is not contributed is kept in the file and not drawn. A missing or invalid file with no valid `.bak` gives the default layout.
 - **DASH-22.** The default layout, on an 8 by 6 grid:
-  - screen 1: `hud.ribbon` at 0,0 size 4×2; `hud.usage` at 4,0 size 2×2; `hud.mascot` at 6,0 size 2×2; `hud.sessions` at 0,2 size 4×3; `hud.context` at 4,2 size 2×3; `graph.mini` at 6,2 size 2×3; `hud.quickBar` at 0,5 size 8×1;
+  - screen 1, as the approved mockup `design-round/dashboard/phosphor.html`: `hud.ribbon` at 0,0 size 2×3; `hud.sessions` at 0,3 size 2×3; `graph.mini` at 2,0 size 4×5; `hud.quickBar` at 2,5 size 4×1; `hud.mascot` at 6,0 size 2×3; `hud.usage` at 6,3 size 2×2; `hud.context` at 6,5 size 2×1;
   - screen 2: `hud.skills` at 0,0 size 4×4; `sessions.recent` at 4,0 size 4×4; `git.status` at 0,4 size 4×2; `activity.recent` at 4,4 size 4×2.
 - **DASH-23.** Changing `columns` or `rows` to a smaller grid moves each widget that no longer fits to the first free place that fits it, on its screen or a new one; nothing is dropped.
 

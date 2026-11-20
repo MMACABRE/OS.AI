@@ -485,3 +485,16 @@ Spec author decisions and why:
 Not taken: lowering P-45 for this theme, because the contrast rule is what makes a see-through terminal safe to read. A per-surface brightness mask in the scene was also left out, because a single cap is simpler and passes.
 
 Spec changes: `visual-direction.md` rewritten for Phosphor; `themes/phosphor.json` added and the three old themes removed; `contracts/theme.ts` (20 tokens added, `size.rail` removed), `channels/settings.ts` (default theme), `channels/dashboard.ts` (`frame`); `layout.md` anatomy, title bar, pages, areas; `motion.md` MOT-2; `ui-kit.md` UI-33 to UI-35; `hud.md` HUD-80, HUD-81, HUD-90 to HUD-92; `dashboard.md` DASH-2, DASH-4 and catalog; `graph.md` GRAPH-50 to GRAPH-55 and states; `workspace.md` WS-30 and pages; `settings.md` SET-11, SET-12 and tests; `activity.md` ACT-34; `03-stack.md` fonts; `spec/reference/art/` (mascot sheet, frame map, `background.md`); cards 018, 027, 028, 029, 034 and the stage 0 icon; features F-007, F-050; glossary. Contracts compile under TypeScript 7.0.2 and zod 4.6.7.
+
+### Step 39. The Dashboard follows its mockup, and two test questions settled
+
+Test round 1 left two questions for the owner, and the owner said the app's Dashboard was "nothing like how we designed it". On 2026-11-20 the owner told the Lead to settle these without further questions, taking the Lead's recommendations.
+
+Decisions:
+- **DASH-22 follows the approved mockup.** The old default layout put the ribbon, usage and mascot on the top row, sessions, context and the mini graph in the middle, and the quick bar along the bottom. The approved `design-round/dashboard/phosphor.html` puts the mini graph free in the centre (4 by 5), the session and sessions boxes down the left edge, the mascot top right, usage and context bottom right, and the quick bar under the graph. Every size stays inside its catalog range, so no widget contract changes. The round-1 note that the mockup's layout was "not binding" is withdrawn for the Dashboard.
+- **SET-6 rejects.** The spec already said an invalid value returns `SET_INVALID` and changes nothing. The settings screen clamped a typed number above the maximum instead. That was a bug, not a spec question: the field shows the schema message and saves nothing.
+- **REV-22: a change is one hunk.** `F7` stepped onto the removed row and then the added row of one replaced line. A change is now a run of removed and added rows with no unchanged row between them, so a replaced line is one stop. The bug was filed as REV-21; the key rule is REV-22.
+
+Not taken: keeping DASH-22 and restyling the boxes only, because the owner's complaint was about the arrangement as much as the look.
+
+Spec changes: `dashboard.md` DASH-22; `review.md` REV-22.
