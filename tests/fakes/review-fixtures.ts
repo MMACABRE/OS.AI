@@ -8,8 +8,11 @@ export function pinned(id: string, target: CommentTarget, text: string): PinnedC
   return PinnedComment.parse({ id: id.padEnd(12, '_'), target, text, createdAt: 1_000 });
 }
 
-type ItemInput = Partial<Omit<SessionListItem, 'liveTerminalId'>> & {
+type ItemInput = Partial<Omit<SessionListItem, 'liveTerminalId' | 'lastActiveAt' | 'startedAt' | 'cwd'>> & {
   readonly liveTerminalId?: string | null;
+  readonly lastActiveAt?: number;
+  readonly startedAt?: number | null;
+  readonly cwd?: string;
 };
 
 /** A session list row built through the contract schema. */

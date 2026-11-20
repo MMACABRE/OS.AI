@@ -34,3 +34,12 @@ Helpers shared by all sections: tests/fakes/stub-bus.ts (Bus with answers by cha
 - P-6 (sanitizePaste), REV-33 (xterm paste got the text without ESC; tray never calls terminal.write), REV-33b (bracketed paste off, two lines: not pasted, error toast mentions Copy), REV-33c (no panel: toast says to open the terminal), REV-34 (Sent. Clear comments? with Clear and Keep, comments still listed), OWNER-2a to 2d.
 - The older 033 row "REV-33 ... terminal.write with ESC[200~ ... ESC[201~" is obsolete: the tray now pastes through the terminal panel (this section replaces it). Not tested as written.
 
+
+## 032 Sessions
+
+- tests/sessions/picker.ui.test.tsx: SESS-31 (search words, case, untitled, Backup only + state word, "5 min ago · 12 messages", ArrowDown, Enter starts the resume), SESS-32 (live row footer, non-live footer, order create/bind/write with the resume command as owner, restoreTranscript first for a backup-only row, copy command), state rows (loading, empty, no match, error+Retry, no project).
+- tests/sessions/history.ui.test.tsx: SESS-71 (x2), SESS-72 (groups, Shift range, Ctrl+A with "Delete 5"), SESS-73 (F2, Delete, note line), SESS-74 (x3), SESS-75, SESS-76 (x2), SESS-70 (debounce, real timers), state rows (empty, no match, error+Retry).
+- tests/sessions/reader.ui.test.tsx: SESS-50 (items, 250 with Show earlier, growth after 2 s with real timers, hidden page), SESS-51, empty, error+Retry, loading.
+- Not in my sections: the "Untested: card 032 fixes" table (tests/sessions/sessions-fixes.ui.test.tsx) has a "#" heading, not "##"; it is outside the list I was given, so I did not write it.
+- No bugs found in 032.
+
