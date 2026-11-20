@@ -344,6 +344,22 @@ describe('dashboard (card 035 UI rows)', () => {
     expect(useDashboard.getState().widgets).toHaveLength(1);
   });
 
+  it('DASH-9 the Undo toast stays 5 seconds: still offered at 4.9 s, gone by 5.1 s (fake timers)', () => {
+    vi.useFakeTimers();
+    contributeType('test.box', { title: 'Box thing' });
+    setDashboard({ editing: true, widgets: [cell('gone', 'test.box', 3, 1)] });
+    renderPage();
+    fireEvent.click(within(widgetEl('gone')).getByRole('button', { name: 'Remove widget' }));
+    act(() => {
+      vi.advanceTimersByTime(4_900);
+    });
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy();
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
   it('DASH-9 a removed widget comes back in the same place when "Undo" is pressed', async () => {
     contributeType('test.box', { title: 'Box thing' });
     setDashboard({
