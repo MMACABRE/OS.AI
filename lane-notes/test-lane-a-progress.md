@@ -15,3 +15,8 @@
 - File: tests/diagnostics/crash-reports.test.ts
 - Covered: DIAG-7 (200 records, exit code, time, version; no log; unwritable folder; death reporter wiring end to end), DIAG-9 (toHealth, getHealth with a contributed metrics source), DIAG-10 (50 left, none older than 30 days; cleanup at register).
 - Skipped: "a service that throws an uncaught exception exits with 70" (DIAG-8): needs the app (e2e).
+
+## 014 Module loader and contexts
+- File: tests/shell/loader.test.ts
+- Covered: SHELL-20 (throwing register skipped, order, ids returned, error record names the module), extension point contributions order, createUiRegistry duplicate panel/command/status item, createDataPaths workspaceFile, registerSettings defaults, openPanel before opener.
+- Skipped: none. (Rule id of the "extension point" row is not in the card table; tests use SHELL-20 as the loader rule id.)
