@@ -551,6 +551,14 @@ describe('quick bar (card 031)', () => {
     expect(writes(bus)[0]?.data).toBe('/compact keep the tests\r');
   });
 
+  it('HUD-65 the compact dialog opens with Cancel focused', async () => {
+    withTarget();
+    renderHud(<QuickBar onSearchSkills={vi.fn()} />);
+    await userEvent.click(screen.getByRole('button', { name: /^Compact$/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Compact this conversation?' });
+    await waitFor(() => expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: 'Cancel' })));
+  });
+
   it('HUD-66 the clear dialog has Cancel focused, so Enter at once sends nothing; Clear sends /clear', async () => {
     withTarget();
     const { bus } = renderHud(<QuickBar onSearchSkills={vi.fn()} />);

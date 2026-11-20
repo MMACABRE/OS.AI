@@ -193,7 +193,7 @@ export function QuickBar({ onSearchSkills }: { readonly onSearchSkills: () => vo
         <Dialog
           title="Compact this conversation?"
           onClose={() => setDialog(null)}
-          initialFocus={() => document.querySelector<HTMLElement>('[data-hud-cancel]')}
+          initialFocus={() => document.querySelector<HTMLElement>('[data-hud-cancel] button')}
           actions={
             <>
               <span data-hud-cancel="">
