@@ -51,3 +51,14 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - tests/workspace/pages.ui.test.tsx (18)
 - Covered: WS-40 (Ctrl+3 through the real key dispatcher and the real workspace commands, focus in data-hsos-terminal; pageBeside; switcher), MOT-5 (startViewTransition stubbed, called once, update runs at once), WS-41, WS-43 (dock of the visible page), WS-45 (jsdom does not blur an inert page, so the test blurs by hand), WS-11, WS-13 (the broken panel's tab is activated by hand to see its error state), UI-30 (same canvas node over two page changes), GIT-14 repoName, repo button present/absent, side tabs order with Settings last.
 - Skipped (e2e, tests/e2e/demo-pages.e2e.ts): MOT-5 timing of the Dashboard after motion.page, MOT-7 backdropStats frames never go down, MOT-11 key during transition, WS-41 3 s demo run.
+
+## 029 Terminal panel, ribbon and mascot
+- tests/terminal/header-slot.ui.test.tsx (7), tests/terminal/xterm-fakes.ts (helper: fake Terminal, fake FitAddon, throwing WebglAddon, a ResizeObserver that tests fire by hand), tests/hud/ribbon.ui.test.tsx (15), tests/hud/mascot.ui.test.tsx (11), tests/hud/mascot-placeholder.ui.test.tsx (3), tests/hud/hud-fixtures.ts (helper)
+- Covered: TERM-75 (heights 28 then 64 through onHeightChange; first-null contribution; a terminal.resize follows each height change in the real panel), TERM-76 (alpha 0.9 and 0.3 raised to 0.78, allowTransparency), TERM-52 (WebGL throws, log warn), HUD-80 (ribbon shown/absent, steam source colour live then brand, source leaves on unmount), HUD-81 (part order, tone warn/danger/ok), HUD-82 (3 rows, 30 s one with done, 90 s one gone, empty line), HUD-83 (roll spans only on the changed digit), HUD-90 (state table, three pages, four activities), HUD-91 (turn row 5 for 3 frames at 12 fps then row 1; placeholder sheet, one report), HUD-92 (5 minis and +2), HUD-93 (reduced motion frame 0 after 2 s, aria-hidden), frameAt (from 4, hold frame 0), shortFolder, sessionForTerminal, elapsedSince, listedAgents.
+- The placeholder test is in its own file because the sheet is loaded when Mascot.tsx is imported, so it needs a file-level vi.mock of loadMascotSheet.
+- Skipped: none.
+
+## Owner amendments 2026-11-19
+- tests/hud/hud-panel.ui.test.tsx (2): OWNER-1.
+- tests/terminal/terminal-panel.ui.test.tsx (7): OWNER-2a (14, fontSizeDelta 1, resize, default prevented), OWNER-2b (32 up and 8 down stay, no setState), OWNER-2c (no Ctrl: unchanged, not prevented), OWNER-2d (delta 3 on 13 opens at 16; clamp at 32).
+- Skipped: none.
