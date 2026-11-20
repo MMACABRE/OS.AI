@@ -41,6 +41,8 @@ import styles from './Dashboard.module.css';
 
 /** Pointer still for this long starts edit mode (DASH-5). */
 export const HOLD_MS = 500;
+/** A removal toast with "Undo" stays this long (DASH-9). */
+export const UNDO_MS = 5_000;
 /** Movement that cancels the hold (DASH-5). */
 export const HOLD_SLOP_PX = 6;
 
@@ -333,6 +335,7 @@ export function createDashboardPage(deps: DashboardDeps) {
       toast.show({
         message: 'Widget removed.',
         tone: 'info',
+        duration: UNDO_MS,
         action: { label: 'Undo', onPress: () => store.undoRemove() },
       });
     };

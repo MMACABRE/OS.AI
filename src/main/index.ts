@@ -29,6 +29,7 @@ import {
   themeStorePoint,
 } from './module-list';
 import type { ProcessMetric } from './module-list';
+import { processMetricsFrom } from '../modules/diagnostics/service/health';
 import { utilityProcessLauncher } from './supervisor/service-process';
 import type { ServiceName, ServiceProcess } from './supervisor/service-process';
 import { createSupervisor } from './supervisor/supervisor';
@@ -53,33 +54,8 @@ const stopHandlers: (() => Promise<void>)[] = [];
 let window: BrowserWindow | null = null;
 let rendererLoaded = false;
 
-/** Live processes for `diagnostics.getHealth`, from Electron's metrics (DIAG-9). */
 function processMetrics(): ProcessMetric[] {
-  const uiPid = window?.webContents.getOSProcessId();
-  return app.getAppMetrics().flatMap((metric): ProcessMetric[] => {
-    const service = SERVICES.find((name) => name === metric.serviceName);
-    const process =
-      metric.type === 'Browser'
-        ? 'main'
-        : metric.type === 'Utility' && service !== undefined
-          ? service
-          : metric.type === 'Tab' && metric.pid === uiPid
-            ? 'ui'
-            : null;
-    if (process === null) return [];
-    return [
-      {
-        process,
-        pid: metric.pid,
-        workingSetKb: metric.memory.workingSetSize,
-        createdAt: toEpoch(metric.creationTime),
-      },
-    ];
-  });
-}
-
-function toEpoch(ms: number): EpochMs {
-  return ms as EpochMs;
+  return processMetricsFrom(app.getAppMetrics(), window?.webContents.getOSProcessId(), SERVICES);
 }
 
 /**

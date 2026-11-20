@@ -107,21 +107,13 @@ test('SHELL-14: a lost renderer reloads, and the three services answer again', a
   }
 });
 
-// Playwright sets NODE_OPTIONS for its own loader, so the throw-once hook never loads in the app's processes.
-// Needs a trigger that does not depend on NODE_OPTIONS (owner or spec decision). See lane-notes/h2-bugs.md.
-test.fixme('DIAG-8: a service that throws an uncaught exception logs it and exits with 70; the supervisor restarts it', async () => {
-  const marker = join(profile.root, 'throw-once');
-  const hook = join(process.cwd(), 'tests', 'e2e', 'support', 'throw-once.cjs').replace(/\\/g, '/');
+// E2E switch (Lead decision): HSOS_E2E_THROW_SERVICE names a service that throws once after it is ready, in an unpackaged app.
+test('DIAG-8: a service that throws an uncaught exception logs it and exits with 70; the supervisor restarts it', async () => {
   const { app, page } = await launch(profile, {
     e2e: true,
-    env: {
-      NODE_OPTIONS: `--require ${hook}`,
-      HSOS_E2E_THROW_IN: 'workspace-service',
-      HSOS_E2E_THROW_MARKER: marker,
-    },
+    env: { HSOS_E2E_THROW_SERVICE: 'workspace-service' },
   });
   try {
-    await expect.poll(() => existsSync(marker), { timeout: 15_000, intervals: [100] }).toBe(true);
     // DIAG-8: exit code 70, with the stack in the log (DIAG-1 file logger).
     await expect
       .poll(() => crashFiles(profile).filter((name) => name.endsWith('-workspace-service.json')), {

@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { utilityProcess } from 'electron';
+import { app, utilityProcess } from 'electron';
 import type { MessagePortMain } from 'electron';
 import type { ServiceId } from '@hsos/contracts/ids';
 
@@ -19,11 +19,24 @@ export type ServiceProcess = {
 /** Starts a fresh process for one service (card 011, step 1). */
 export type ProcessLauncher = (name: ServiceName) => ServiceProcess;
 
+/**
+ * E2E (DIAG-8): HSOS_E2E_THROW_SERVICE names a service that throws once after it is ready, in an unpackaged app.
+ * Only the first launch of that service gets the switch, so its restart runs normally.
+ */
+const thrownOnce = new Set<string>();
+
 /** The real launcher: each service runs from `<out>/main/<name>.js` in an Electron utility process. */
 export const utilityProcessLauncher: ProcessLauncher = (name) => {
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  delete env['HSOS_E2E_THROW_SERVICE'];
+  if (!app.isPackaged && process.env['HSOS_E2E_THROW_SERVICE'] === name && !thrownOnce.has(name)) {
+    thrownOnce.add(name);
+    env['HSOS_E2E_THROW_SERVICE'] = name;
+  }
   const child = utilityProcess.fork(join(import.meta.dirname, `${name}.js`), [], {
     serviceName: name,
     stdio: 'pipe',
+    env,
   });
   child.stdout?.on('data', (data: Buffer) => process.stdout.write(data));
   child.stderr?.on('data', (data: Buffer) => process.stderr.write(data));

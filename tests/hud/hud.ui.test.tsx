@@ -343,6 +343,27 @@ describe('spoken and shown alerts (card 031)', () => {
     expect(spokenText(done, 'needs-you', true)).toBe('Parser. Needs you. Permission: Bash.');
   });
 
+  it('HUD-16 the toggle command flips speakAlerts and toasts "Spoken alerts off", then "on"', async () => {
+    const bus = createStubBus();
+    bus.answer(settingsChannels.setValue, () => ok({}));
+    const ctx = createFakeUiContext('hud', bus);
+    register(ctx);
+    seedHud({ settings: HudSettings.parse({ speakAlerts: true }) });
+    render(
+      <ToastProvider>
+        <span />
+      </ToastProvider>,
+    );
+    act(() => ctx.command('hud.toggleSpokenAlerts').run() as undefined);
+    expect(await screen.findByText('Spoken alerts off')).toBeTruthy();
+    act(() => ctx.command('hud.toggleSpokenAlerts').run() as undefined);
+    expect(await screen.findByText('Spoken alerts on')).toBeTruthy();
+    expect(bus.payloadsOf(settingsChannels.setValue)).toEqual([
+      { moduleId: 'hud', key: 'speakAlerts', value: false },
+      { moduleId: 'hud', key: 'speakAlerts', value: true },
+    ]);
+  });
+
   it('HUD-16 choosing a voice saves speakVoice and speaks the test line with it', async () => {
     const bus = createStubBus();
     bus.answer(shellChannels.listVoices, () => ok(['Voice A', 'Voice B']));
@@ -655,6 +676,23 @@ describe('skills deck (card 031)', () => {
     const choice = await screen.findByRole('menuitem', { name: /You only/ });
     expect(choice.getAttribute('aria-disabled')).toBe('true');
     expect(screen.getByText('Set by your organisation policy.')).toBeTruthy();
+  });
+
+  it('HUD-37 "For this project only" saves the state chosen in the State list, not the current one', async () => {
+    seedHud({ skills: { kind: 'ready', value: [skill('a', { state: 'on' })] } });
+    const bus = createStubBus();
+    bus.answer(skillsChannels.setState, () => ok({}));
+    renderHud(<SkillsDeck />, bus);
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /You only/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'For this project only' }));
+    await waitFor(() => expect(bus.payloadsOf(skillsChannels.setState)).toHaveLength(2));
+    expect(bus.payloadsOf(skillsChannels.setState)[1]).toEqual({
+      name: 'a',
+      state: 'user-invocable-only',
+      scope: 'project-local',
+    });
   });
 
   it('HUD-36 a skill that is off shows a muted "off" chip, and the state filter "Off" keeps only it', async () => {

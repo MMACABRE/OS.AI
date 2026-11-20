@@ -98,3 +98,29 @@ test('F-005: one window that remembers its place: moved, restarted, it reopens i
     await closeApp(second.app);
   }
 });
+
+// SHELL-6, open (Left for the Lead): at 120 % scale the frame border makes the outer and content sizes differ, so the size
+// grows a few pixels per restart. Content-based saving fixed the size but moved the position by 1 px, which F-005 checks.
+test.fixme('SHELL-6: the size is kept exactly over two restarts, at 120 % display scale', async () => {
+  const first = await launch(profile, { demo: true });
+  const area = await first.app.evaluate(({ screen }) => screen.getPrimaryDisplay().workArea);
+  try {
+    await first.app.evaluate(
+      ({ BrowserWindow }, rect) => BrowserWindow.getAllWindows()[0]?.setContentBounds(rect),
+      { x: area.x + 120, y: area.y + 90, width: 1100, height: 720 },
+    );
+    await sleep(1200);
+  } finally {
+    await closeApp(first.app);
+  }
+  for (let restart = 0; restart < 2; restart += 1) {
+    const again = await launch(profile, { demo: true });
+    try {
+      const content = await again.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.getContentBounds());
+      expect(content?.width).toBe(1100);
+      expect(content?.height).toBe(720);
+    } finally {
+      await closeApp(again.app);
+    }
+  }
+});

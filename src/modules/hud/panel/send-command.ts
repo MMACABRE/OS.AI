@@ -22,6 +22,24 @@ export function focusTerminal(terminalId: TerminalId): void {
   input?.focus();
 }
 
+/**
+ * Focuses a terminal's input once its panel is on screen: a page switch makes the panel visible a frame
+ * or two after the call (DASH-13). Gives up after `frames` frames.
+ */
+export function focusTerminalWhenShown(terminalId: TerminalId, frames = 30): void {
+  let left = frames;
+  const attempt = () => {
+    const input = document.querySelector<HTMLElement>(`[data-terminal-id="${terminalId}"] textarea`);
+    if (input !== null && input.closest('[inert]') === null && input.getClientRects().length > 0) {
+      input.focus();
+      if (document.activeElement === input) return;
+    }
+    left -= 1;
+    if (left > 0) requestAnimationFrame(attempt);
+  };
+  attempt();
+}
+
 export type SendResult = 'blocked' | 'ran' | 'typed';
 
 /**

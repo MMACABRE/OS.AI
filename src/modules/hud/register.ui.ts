@@ -6,7 +6,7 @@ import { settingsChannels } from '@hsos/contracts/channels/settings';
 import { shellChannels } from '@hsos/contracts/channels/shell';
 import { terminalHeader } from '@hsos/contracts/channels/terminal';
 import type { PanelProps, UiContext } from '@hsos/contracts/module';
-import { contributeUi } from '@hsos/ui-kit';
+import { contributeUi, showToast } from '@hsos/ui-kit';
 import { HudDepsContext } from './panel/hud-context';
 import type { HudDeps } from './panel/hud-context';
 import { startHudAlerts } from './panel/hud-alerts';
@@ -104,8 +104,10 @@ export function register(ctx: UiContext): void {
   register('hud.toggleSpokenAlerts', 'Turn Spoken Alerts On or Off', null, () => {
     const on = !useHudData.getState().settings.speakAlerts;
     void deps.setSetting('speakAlerts', on).then((saved) => {
-      if (saved)
+      if (saved) {
         useHudData.setState((state) => ({ settings: { ...state.settings, speakAlerts: on } }));
+        showToast({ message: on ? 'Spoken alerts on' : 'Spoken alerts off' });
+      } else showToast({ tone: 'error', message: 'Could not save Spoken alerts.' });
       ctx.log.log('info', 'hud.spoken_alerts', { on, saved });
     });
   });

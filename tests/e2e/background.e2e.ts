@@ -46,12 +46,14 @@ test.fixme('UI-32: a minimised window draws no background frame for 2 s', async 
 });
 
 // UI-32 / MOT-12 bug: with data-motion="reduced" the worker keeps drawing about 30 frames a second. See lane-notes/h2-bugs.md.
-test.fixme('UI-32: with reduced motion the background draws one frame and stops', async () => {
+test('UI-32: with reduced motion the background draws one frame and stops', async () => {
   const { app, page } = await launch(profile, { demo: true });
   try {
     await installBackdropProbe(page);
     await expect(page.locator('section[aria-label="code page"]')).toBeVisible({ timeout: 15_000 });
     await focusBody(page);
+    // The theme's settings reach the worker a moment after start; wait for them, or they reset data-motion.
+    await expect.poll(async () => (await backdropStats(page)).scene, { timeout: 15_000 }).toBe('phosphor-dust');
     const before = await backdropStats(page);
     await page.evaluate(() => document.documentElement.setAttribute('data-motion', 'reduced'));
     await sleep(500);

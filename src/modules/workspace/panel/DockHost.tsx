@@ -81,6 +81,19 @@ export function DockHost({ label, panels, log, onReady, emptyActions }: DockHost
           log.log('warn', 'workspace.unknown_panel', { type });
           return;
         }
+        // A terminal that already has a panel is shown, not opened a second time (DASH-13).
+        const terminalId = (state as { terminalId?: unknown } | undefined)?.terminalId;
+        const shownAlready =
+          terminalId === undefined || terminalId === null
+            ? undefined
+            : dock.panels.find((panel) => {
+                const parameters = panel.params as { type?: string; state?: { terminalId?: unknown } };
+                return parameters.type === type && parameters.state?.terminalId === terminalId;
+              });
+        if (shownAlready !== undefined) {
+          shownAlready.api.setActive();
+          return;
+        }
         const existing = dock.panels.find((panel) => (panel.params as { type?: string }).type === type);
         if (existing !== undefined && !definition.allowMultiple) {
           if (state !== undefined) setStates((current) => new Map(current).set(existing.id, state));

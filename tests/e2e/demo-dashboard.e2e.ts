@@ -15,10 +15,12 @@ test.afterEach(() => {
 test.setTimeout(120_000);
 
 // DASH-13 bug: the ribbon click opens the Code page but focus does not reach the session's terminal (focus stays on the ribbon). See lane-notes/h2-bugs.md.
-test.fixme('DASH-13: activating the session ribbon widget opens the Code page with its terminal focused', async () => {
+test('DASH-13: activating the session ribbon widget opens the Code page with its terminal focused', async () => {
   const { app, page } = await launch(profile, { demo: true });
   try {
     await expect(page.locator('section[aria-label="code page"]')).toBeVisible({ timeout: 15_000 });
+    // The running terminals are reopened a moment after start; let that finish before switching pages.
+    await expect(page.locator('section[aria-label="code page"] [data-terminal-id]').first()).toBeAttached({ timeout: 15_000 });
     await focusBody(page);
     await page.keyboard.press('Control+1');
     const ribbon = page.getByLabel('Session ribbon', { exact: true });
@@ -30,6 +32,25 @@ test.fixme('DASH-13: activating the session ribbon widget opens the Code page wi
         timeout: 3_000,
       })
       .toBe(true);
+  } finally {
+    await closeApp(app);
+  }
+});
+
+test('DASH-13: activating the ribbon again shows the same terminals, no second panel opens', async () => {
+  const { app, page } = await launch(profile, { demo: true });
+  try {
+    const terminals = page.locator('section[aria-label="code page"] [data-terminal-id]');
+    await expect(page.locator('section[aria-label="code page"]')).toBeVisible({ timeout: 15_000 });
+    await expect(terminals.first()).toBeAttached({ timeout: 15_000 });
+    const before = await terminals.count();
+    await focusBody(page);
+    await page.keyboard.press('Control+1');
+    const ribbon = page.getByLabel('Session ribbon', { exact: true });
+    await expect(ribbon).toBeVisible({ timeout: 5_000 });
+    await ribbon.click();
+    await expect(page.locator('section[aria-label="code page"]')).toBeVisible({ timeout: 3_000 });
+    expect(await terminals.count()).toBe(before);
   } finally {
     await closeApp(app);
   }

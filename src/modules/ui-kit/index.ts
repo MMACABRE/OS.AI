@@ -58,7 +58,7 @@ export type { IconProps } from './components/Icon';
 export { Menu } from './components/Menu';
 export type { MenuItem, MenuProps } from './components/Menu';
 export { useAnyOverlayOpen, useOverlayOpen } from './components/overlay-state';
-export { MAX_TOASTS, TOAST_MS, ToastProvider, useToast } from './components/Toast';
+export { MAX_TOASTS, TOAST_MS, ToastProvider, showToast, useToast } from './components/Toast';
 export type { ToastApi, ToastInput } from './components/Toast';
 export { ICONS } from './icons';
 export type { IconName } from './icons';
