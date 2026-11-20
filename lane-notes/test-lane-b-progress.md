@@ -40,3 +40,9 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - Covered: all hand-written fixtures parse (generateMissing off), every request channel has an entry when on (>= 155 channels), function fixtures answer a mockFromSchema request with a schema-valid response, no-fixture answers INTERNAL "No demo data", 80 ms at random 0 and 400 ms at random 1, everyMs events, parseReplay on terminal-claude.bin and on a truncated record.
 - No spec rule ids exist for the Stage U rows, so names start with STAGE-U.
 - Skipped: `npm run demo` launch (needs the app).
+
+## 027 Motion, glass and the background
+- tests/ui-kit/motion.ui.test.tsx (9), backdrop.ui.test.tsx (10), phosphor-dust.test.ts (1), surface.test.ts (3), apply-theme.ui.test.tsx (3), tests/lint/no-layout-animation.test.ts (3)
+- Covered: MOT-1, MOT-2, MOT-3, MOT-4, MOT-8, MOT-12, UI-30, UI-31, UI-33 (aria, one pointer + one puff, no puff on a button or after a drag, no canvas listener), UI-34 (overlay rules read from the stylesheet, no url( filter, phosphor-dust 300 frames under brightnessLimit), UI-35 (jsdom has no layout, so getClientRects is stubbed: a box unless the element or an ancestor is display none), applyTheme raised alpha, SET-13, SET-15 applyMotion.
+- jsdom limits: CSS-module rules are not computed, so animation, pointer-events and composes rows read the stylesheet source (tests/ui-kit/css-composes.ts). MOT-4 checks dialog and dim compose dialogIn and dimIn and that the animation uses motion.slow.
+- Skipped: UI-32 (worker draws nothing while hidden, one frame under reduced; needs the app, e2e).
