@@ -27,87 +27,17 @@ Unit tests done (`tests/shell/bounds.test.ts`, `tests/shell/system-channels.test
 
 Unit tests done (`tests/settings/theme-store.test.ts`, `tests/settings/apply-theme.ui.test.tsx`). Left: F-007 (e2e, card 025 covers it): copy `test-light.json` into `themesDir`, set `theme`, `--color-bg-app` changes without a reload.
 
-## 020 Base components
+## 023 Command palette (e2e left)
 
-Code: `src/modules/ui-kit/components/` (`Button`, `IconButton`, `TextField`, `NumberField`, `Switch`, `Select`, `Tooltip`, `Kbd`, `Badge`, `StatusDot`, each `.tsx` plus `.module.css`; `cx.ts`), `src/modules/ui-kit/motion/lift.module.css` (shared lift and focus ring), `src/modules/ui-kit/index.ts`, `eslint-rules/no-raw-css-values.js` (`findRawValues`, run by `npm run lint`), fixture `tests/fixtures/css/raw-values.module.css`.
+Unit tests done. Left: F-008 (e2e, card 025 covers it): press Ctrl+Shift+P, type "set", "Open Settings" runs from the list. Note: "set" is a subsequence of "Open Settings" only; the old row's "Restart service" example was wrong.
 
-`tests/ui-kit/base-components.ui.test.tsx` (jsdom, Testing Library), for each component:
+## 024 Settings screen (open question, e2e left)
 
-- UI-2: it can be reached with Tab and operated with the keyboard alone (Button and IconButton with Enter and Space; Switch toggles with Space; NumberField steps with ArrowUp and ArrowDown and clamps to min and max; Select changes with the arrow keys; TextField takes typing and calls `onChange`), and its focusable element carries the shared `focusRing` class (`:focus-visible` cannot be checked in jsdom).
-- UI-3: `IconButton` has the accessible name `label` and, on focus, the tooltip shows the label and the `Kbd` of its `keyBinding` (Radix opens on focus).
-- Also: `TextField` with `invalidMessage` sets `aria-invalid` and shows the message with `role="alert"`; `StatusDot` has `role="img"` and the label as its name; `Kbd` renders `Ctrl+K Ctrl+T` as four key caps.
+Unit tests done (`tests/settings/settings-screen.ui.test.tsx`). Open: SET-6, a typed number above max (400 into terminal font size, max 32) is clamped and saved by `NumberField`, but the spec says invalid input shows the schema message and saves nothing. Owner to decide clamp or reject; the failing test is in `lane-notes/test-lane-b-bugs.md`. Left: F-009 (e2e, card 025 covers it): press Ctrl+, , change a value, invalid input shows a message and is not saved.
 
-`tests/ui-kit/no-raw-css.test.ts`:
+## 025 Stage 0 checks (e2e left)
 
-- UI-1: `findRawValues` on `tests/fixtures/css/raw-values.module.css` reports exactly 3 problems (hex on line 2, `rgba(` on line 3, `4px` on line 4) and nothing for `2px 1px 0`, the comment, or `var(--size-row)`; running the script over `src` exits 0.
-
-## 021 Panel frame, lists and trees
-
-Code: `src/modules/ui-kit/components/` `PanelFrame` (with `PanelViewState`), `EmptyState`, `ErrorState`, `Skeleton` (`SKELETON_DELAY_MS`), `List`, `Tree`, `Tabs`, `SplitView`, `ProgressBar`, shared `PanelStates.module.css`, `virtual-rows.ts` (`useVirtualRows`, `useTypeAhead`, `VIRTUALISE_ABOVE`), `ui-kit-actions.ts` (`UiKitActionsContext` for "Show log"); exports in `src/modules/ui-kit/index.ts`.
-
-`tests/ui-kit/panel-frame.ui.test.tsx`:
-
-- P-40: `PanelFrame` with each state. `loading` shows nothing for 150 ms, then the loading line (fake timers); `empty` shows the title, message and action button; `error` shows the message, Retry calls `onRetry`, "Show log" calls `openLog` from a provided `UiKitActionsContext`, and the frame gets the error class; `ready` renders the children, and the children are absent in the other three states.
-
-`tests/ui-kit/list.ui.test.tsx`:
-
-- UI-7: with 1 000 rows of height 26 in a 260 px container, fewer than 60 `option` elements are in the DOM; with 150 rows, all 150 are.
-- Keyboard: ArrowDown, ArrowUp, Home, End move `onSelect`; Enter calls `onActivate` with the selected id.
-- Type-ahead: typing `b` then `e` quickly selects the first row whose text starts with "be".
-
-`tests/ui-kit/tree.ui.test.tsx`:
-
-- Right on a collapsed folder calls `onToggle`; Right on an expanded folder selects its first child; Left on an expanded folder calls `onToggle`; Left on a child selects its parent; rows carry `aria-level` and `aria-expanded`.
-
-Also worth tests: `Tabs` arrow keys change and focus the tab; `SplitView` arrow keys on the separator change `aria-valuenow` and respect `minSizes`; `ProgressBar` clamps 1.4 to `aria-valuenow` 100.
-
-## 022 Overlays and icons
-
-Code: `src/modules/ui-kit/components/` `Dialog`, `ConfirmDialog`, `Menu` (dropdown and context, `MenuItem`), `Toast` (`ToastProvider`, `useToast`, `TOAST_MS`, `MAX_TOASTS`), `Icon`, `overlay-state.ts` (`useOverlayOpen`, `useAnyOverlayOpen`), `Overlay.module.css`; `src/modules/ui-kit/icons/` (49 `<name>.svg.tsx` pixel grids, `index.ts` with `ICONS` and `IconName`, `pixel-grid.ts`).
-
-`tests/ui-kit/overlays.ui.test.tsx` (jsdom, Testing Library, fake timers where noted):
-
-- Escape closes a `Dialog` (calls `onClose`) and focus returns to the button that opened it.
-- `ConfirmDialog` with `danger` focuses Cancel on open; without `danger`, the first focusable element.
-- At most 3 toasts: showing 4 leaves the last 3; a non-error toast is gone after 4 000 ms; an error toast stays until Dismiss.
-- SET-15 for a dialog: under `data-motion="reduced"` on the root, the dialog's animation is the fade (check the class or computed `animation-name` where jsdom allows).
-- `useAnyOverlayOpen` is true while a `Dialog` or an open `Menu` is mounted and false after (BROW-3).
-
-Also: every name in `ICONS` is 8 rows of 8 cells; `Icon` renders one `rect` per `#`.
-
-## 023 Command palette
-
-Code: `src/modules/ui-kit/palette/rank-commands.ts` (`matchScore`, `rankCommands`), `command-registry.ts` (`createCommandRegistry`, `PaletteMode`, `PaletteItem`), `CommandPalette.tsx` (+ `.module.css`, `COMMAND_MODE`), the registry in `src/modules/shell/loader/ui-context.ts` (`commandRegistry`), `src/ui/app-root.tsx` (`AppRoot`, palette and message controls), the `shell.commandPalette` command (`Ctrl+Shift+P`, global) in `src/ui/index.tsx`. Feature F-008.
-
-`tests/ui-kit/rank-commands.test.ts`:
-
-- UI-11: titles "Settings: Open", "Open Settings", "Toggle Side Bar", "Restart service"; query `set` ranks the prefix match "Settings: Open" first, then the word-start match "Open Settings", then any subsequence ("Restart service"); "Toggle Side Bar" is excluded. Among equal scores the id in `recent` comes first, then registration order.
-
-`tests/ui-kit/palette.ui.test.tsx` (jsdom, inside `ToastProvider`):
-
-- UI-13: with a command whose `run` rejects with "Boom", typing and pressing Enter closes the palette and shows an error toast "Boom"; a resolving command runs once and is marked used.
-- UI-14: focus a button, open the palette, press Escape: focus is back on the button.
-- Also UI-12: with a provider mode of prefix '' opened as `initialMode`, typing `>` switches to the commands list.
-
-F-008 (e2e, card 025 covers it): press Ctrl+Shift+P, type "set", "Open Settings" runs from the list (needs card 024's `settings.open`).
-
-## 024 Settings screen
-
-Code: `src/modules/settings/panel/SettingsScreen.tsx` (+ `.module.css`, `SCREEN_SECTIONS`, `SAVE_DELAY_MS`, `keyLabel`), `schema-control.tsx` (`SchemaControl`, `fieldKindOf`), `KeybindingsSection.tsx`, `ThemesSection.tsx`, the `settings.screen` panel and `settings.open` command (`Ctrl+,`) in `src/modules/settings/register.ui.ts`; `CommandsContext` in `src/modules/ui-kit/palette/command-context.ts`; the full-window panel host in `src/ui/app-root.tsx` (+ `app-root.css`). Feature F-009.
-
-`tests/settings/settings-screen.ui.test.tsx` (jsdom, `FakeBus` answering `getSection`, `getProblems`, `setValue`; fake timers):
-
-- An invalid number (type 400 into the terminal font size with max 40, or text into a number-backed text field) shows the schema's message under the control and no `setValue` is sent after 400 ms.
-- "Reset" appears only for a key whose value differs from its default; pressing it sends `setValue` with the default after 400 ms.
-- The problems banner lists each problem from `getProblems` (and from a `problemsChanged` event) with an "Open file" button.
-
-Also: `fieldKindOf` gives `boolean` for `z.boolean().default(true)`, `enum` with options, `number` with min and max for `z.number().int().min(8).max(40).default(14)`, `path` for `zAbsPath.nullable().default(null)`; a valid edit is sent once, 400 ms after the last change.
-
-F-009 (e2e, card 025 covers it): press Ctrl+, , change a value, invalid input shows a message and is not saved.
-
-## 025 Stage 0 checks
-
-Code: `electron-builder.yml` (app id `local.hsos.app`, product `HSOS`, NSIS with `oneClick: false`, `perMachine: false`, `allowToChangeInstallationDirectory: true`, `asarUnpack` for node-pty and better-sqlite3, built-in themes copied to `<resources>\themes`, `npmRebuild: false`), `resources/icon.ico` (256 by 256, `HS` in Jersey 10, `#FF003C` on `#0B0A09`, radius 48, aliased). Feature F-010.
+Unit test done (`tests/stage0/packaging.test.ts`). Left:
 
 `tests/e2e/stage-0.e2e.ts` (Playwright with Electron, a temp `APPDATA` and `LOCALAPPDATA` so the owner's real settings are never touched):
 
@@ -119,90 +49,13 @@ Code: `electron-builder.yml` (app id `local.hsos.app`, product `HSOS`, NSIS with
 
 Also F-005 (move the window, restart, same place), F-006 (edit settings.json on disk, the change applies within a second) and F-004 (kill workspace-service, a crash file appears in `%LOCALAPPDATA%\HSOS\crash`, the service is ready again within 5 s) can join this file.
 
-## 026 Demo backend
+## 027 Motion, glass and the background (e2e left)
 
-Code: `src/demo/demo-transport.ts` (`createDemoTransport`, `buildFixtureTable`), `src/demo/all-channels.ts`, `src/demo/mock-from-schema.ts` (`mockFromSchema`, `DEMO_NOW`), `src/demo/terminal-replay.ts` (`parseReplay`, `createTerminalReplay`, `bytesFromDataUrl`), `src/demo/fixtures/` (one file per module, `world.ts`, `index.ts`, `terminal-claude.bin`), demo mode in `src/ui/bus.ts` (`isDemoMode`, `createDemoRendererBus`), `src/ui/index.tsx` and `src/main/index.ts`, the `demo` script.
+Unit tests done. Left: UI-32, the worker draws no frame while `visibility` is hidden and exactly one under `reduced` (needs the app, e2e).
 
-`tests/demo/fixtures.test.ts`:
+## 028 App frame and pages (e2e left)
 
-- `buildFixtureTable(ALL_FIXTURES, false)` reports no problems: every hand-written fixture parses with its channel's schema.
-- With `generateMissing` on, every request channel in `REQUEST_CHANNELS` has an entry and there are no problems (155 channels at this commit).
-- Every function fixture, called with a request built by `mockFromSchema` and parsed with the request schema, returns a value that parses with the response schema. A one-off check at this commit found none failing.
-
-`tests/demo/demo-transport.test.ts` (`createFakeClock`, `random: () => 0`):
-
-- A request for a channel with no fixture (`generateMissing: false`, a declared channel left out) answers `INTERNAL` with "No demo data".
-- A request is answered after 80 ms with `random` 0 and 400 ms with `random` 1, not before.
-- An event fixture with `everyMs` fires on the clock.
-
-Also: `parseReplay` reads the records of `terminal-claude.bin` and stops at a truncated record; `npm run demo` opens the window with demo data (not launched in this run).
-
-## 027 Motion, glass and the background
-
-Code: `src/modules/ui-kit/motion/` (`motion.ts`, `motion.module.css`, `lift.module.css`), `src/modules/ui-kit/components/Surface.tsx`, `surface-alpha.ts` (`raiseReadingAlphas`), `RollingNumber.tsx` (`changedDigits`), `src/modules/ui-kit/backdrop/` (`Backdrop.tsx`, `backdrop-client.ts` with `startBackdrop` and `readBackdropSettings`, `backdrop.worker.ts`, `protocol.ts`, `sources.ts`, `scenes/`), `src/modules/settings/panel/apply-theme.ts`, `eslint-rules/no-layout-animation.js` (`findLayoutAnimations`, rule `hsos/no-layout-animation`). Feature F-065.
-
-jsdom computes no CSS animations from CSS modules, so motion rows check the classes and inline delays, or run in Playwright against the built renderer. `startBackdrop` takes `createWorker`, so backdrop rows pass a fake worker that records `postMessage`; jsdom has no `transferControlToOffscreen`, so stub it on the canvas prototype to return a plain object.
-
-`tests/ui-kit/motion.ui.test.tsx`:
-
-| Rule   | Given                                                   | When                    | Then                                                                                                     |
-| ------ | ------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| MOT-2  | a `Button`                                              | pointer down, then up   | it has `data-released` after pointer up, and its class composes `lift` (scale 0.96 on `:active`)       |
-| MOT-2  | `tiltToward` with a 100 by 30 box, pointer at the right edge, max 18 | it runs     | `ry` is 18 and `rx` is 0; the same box 300 wide gives 9                                                 |
-| MOT-3  | a `List` of 12 rows                                     | it renders              | rows 0 to 7 have `animation-delay` 0 to 140 ms and rows 8 to 11 have 140 ms; after 360 ms the enter class is gone |
-| MOT-4  | a `Dialog`                                              | it opens                | the dialog composes `dialogIn` (scale 0.94 to 1 over `motion.slow`) and the dim composes `dimIn`         |
-| MOT-8  | a `RollingNumber` with value 41                         | it re-renders with 42   | only the last cell has the `in` and `out` spans; `changedDigits('41 %', '42 %')` is `[false, true, false, false]` |
-| MOT-12 | `data-motion="reduced"` on the root                     | `useReducedMotion` runs | it returns true, and false again when the attribute becomes `full`                                       |
-
-`tests/ui-kit/backdrop.ui.test.tsx` (fake worker):
-
-| Rule  | Given                                                       | When                                        | Then                                                                                         |
-| ----- | ----------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| UI-30 | `--backdrop-scene: unknown` on the root                     | `sceneFor('unknown')`, and `Backdrop` mounts | the scene is `still`; one canvas exists under `[data-hsos-backdrop]`                         |
-| UI-33 | the `Backdrop`                                              | the accessibility tree is read              | no node comes from it (`aria-hidden` on the backdrop and the CRT overlay)                    |
-| UI-33 | the pointer moves three times in one frame and clicks empty space | one animation frame passes          | the worker received one `pointer` and one `puff`; a click on a `button` sends no puff; a click after a 10 px drag sends none |
-| UI-34 | the `Backdrop`                                              | it renders                                  | `[data-hsos-crt]` has `pointer-events: none` and no animation; no element has a `filter` with `url(` |
-| UI-35 | two sources, one inside a `display: none` parent            | 1 000 ms pass (fake timers)                 | at most 10 `sources` messages, each holding only the visible source                          |
-
-`tests/ui-kit/phosphor-dust.test.ts`:
-
-| Rule  | Given                                                                       | When                       | Then                                                                    |
-| ----- | --------------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------- |
-| UI-34 | `createPhosphorDustScene` with Phosphor's colours and three sources at strength 1 | 300 frames are stepped and rendered | no pixel's `luminance` is above `brightnessLimit(color.accent)` |
-
-`tests/ui-kit/surface.test.ts`:
-
-| Rule  | Given                                                               | When                       | Then                                                                    |
-| ----- | ------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------- |
-| UI-31 | tokens with `surface.terminal.alpha: 0.3`, `surface.text.minAlpha: 0.85` | `raiseReadingAlphas` runs | the terminal alpha is `0.85` and one problem names `surface.terminal.alpha` |
-
-`tests/lint/no-layout-animation.test.ts`:
-
-| Rule  | Given                                                           | When                         | Then                    |
-| ----- | --------------------------------------------------------------- | ---------------------------- | ----------------------- |
-| MOT-1 | `.a { transition: width 1s }`, `@keyframes k { to { height: 0 } }`, `transition: all 1s` | `findLayoutAnimations` runs | three problems |
-| MOT-1 | `transition: transform var(--motion-quick) var(--motion-ease-spring), filter 1s` | `findLayoutAnimations` runs | no problem |
-
-Also worth a test: the worker draws no frame while `visibility` is hidden and draws exactly one under `reduced` (UI-32, needs the app, e2e); `applyTheme` sets `--surface-terminal-alpha` to the raised value.
-
-## 028 App frame and pages
-
-Code: `src/modules/workspace/panel/` (`AppFrame.tsx`, `TitleBar.tsx` with `repoName`, `Pages.tsx` with `useSideStore` and `areaOf`, `DockHost.tsx`, `StatusBar.tsx`, `page-store.ts` with `usePageStore` and `pageBeside`, `page-transition.ts` with `goToPage` and `shareForTransition`, `frame.css`), `src/modules/workspace/register.ui.ts`, `src/ui/app-root.tsx`, `src/ui/module-list.ts`, `src/modules/ui-kit/components/page-visible.ts`. Feature F-066.
-
-jsdom has no `document.startViewTransition`, so component rows exercise the direct switch; stub it on `document` to check it is called once. dockview needs a `ResizeObserver` (see `tests/workspace/dockview-spike.ui.test.tsx`).
-
-`tests/workspace/pages.ui.test.tsx`:
-
-| Rule  | Given | When | Then |
-| ----- | ----- | ---- | ---- |
-| WS-40 | the frame on `code`, focus in an element with `data-hsos-terminal`, the key dispatcher over the workspace commands | `Ctrl+3` | the `notes` section is visible, `code` is `inert`, and the switcher's `aria-current` is on "Notes" |
-| WS-40 | `pageBeside` | `code` with -1 and 1, `notes` with 1 | `dashboard`, `notes`, `dashboard` |
-| WS-43 | the `notes` page with a dock panel type registered | `ctx.openPanel` of that type | it opens in the "Notes dock" section, not the "Code dock" |
-| WS-45 | a button on `code` had focus | `goToPage('dashboard')`, then `goToPage('code')` | that button has focus again |
-| WS-41 | the frame showed `dashboard` once | it goes back to `code` | the `dashboard` section is still in the DOM, hidden and `inert` |
-| WS-11 | a dock panel with `allowMultiple: false`, open | it is opened again with new state | one dockview panel of that type exists |
-| WS-13 | a dock panel component that throws, beside a healthy one | both open | the error state shows in the first; the second renders |
-| UI-30 | the frame | the page changes twice | one canvas under `[data-hsos-backdrop]`, the same node throughout |
+Unit tests done (`tests/workspace/pages.ui.test.tsx`). Left:
 
 `tests/e2e/demo-pages.e2e.ts` (launch with `--hsos-demo`):
 
@@ -212,44 +65,6 @@ jsdom has no `document.startViewTransition`, so component rows exercise the dire
 | MOT-7  | the background running | three page changes | the canvas is the same node and `backdropStats()` frames never go down |
 | MOT-11 | a page transition in progress | a key is pressed in a focused input on the new page | the input has the character before the transition finishes |
 | WS-41  | the demo on `code` | Dashboard for 3 s and back | the code section is the same node |
-
-Also worth a test: `repoName('https://github.com/a/b')` is `a/b`, and `null` for a bad URL; the repo button is absent when `webUrl` is null; the side tabs list registered side views in order with Settings last.
-
-## 029 Terminal panel, ribbon and mascot
-
-Code: `src/modules/terminal/panel/` (`TerminalPanel.tsx` with `createTerminalPanel`, `create-xterm.ts`, `xterm-theme.ts` with `xtermTheme`, `terminalAlpha` and `withAlpha`, `header-slot.tsx`), `src/modules/terminal/register.ui.ts`, `src/modules/hud/panel/ribbon/` (`Ribbon.tsx` with `createRibbon`, `shortFolder`, `listedAgents`, `elapsedSince`; `hud-data.ts` with `useHudData`, `sessionForTerminal`, `startHudData`), `src/modules/hud/panel/mascot/` (`Mascot.tsx`, `mascot-sheet.ts` with `loadMascotSheet`, `mascotStateFor`, `frameAt`), `src/modules/hud/register.ui.ts`, `src/modules/ui-kit/components/contributions.ts`. Feature F-067.
-
-xterm needs a canvas; in jsdom mock `@xterm/xterm` with a fake `Terminal` that records its options and `write` calls, and mock `@xterm/addon-webgl` to throw (the fallback path). Use `FakeBus` for the bus.
-
-`tests/terminal/header-slot.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| TERM-75 | a contribution (through `contributeUi(terminalHeader, ...)`) returning a 28 px element for `t1`, then a 64 px one | the panel renders | `onHeightChange` is called with 28, then 64, and the panel refits (a `terminal.resize` call follows each) |
-| TERM-75 | two contributions, the first returning null | the slot renders | the second one's content shows |
-| TERM-76 | `--surface-terminal-alpha: 0.9`, `--surface-text-minAlpha: 0.78` on the root | the terminal is created | the fake `Terminal` got `allowTransparency: true` and a theme background `rgba(..., 0.9)`; with alpha 0.3 it is 0.78 |
-
-`tests/hud/ribbon.ui.test.tsx` (seed `useHudData` directly):
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| HUD-80 | a session bound to `t1` with activity `working`, and one bound to `t2` that `ended` | the ribbon renders for each | `t1` shows a ribbon inside a `[data-surface="ribbon"]`; `t2` renders nothing |
-| HUD-80 | the `t1` session becomes `needs-you` | the ribbon re-renders | `data-activity` is `needs-you` and the steam source colour is `color.brand` (spy on `addBackdropSource` or read the source registry) |
-| HUD-81 | a session with title, model, effort `high`, mode `plan`, cwd under `C:\Users\x`, context 72 | it renders | the parts read in order: mascot, title, "Opus 5.5 · high", "Plan", `~\...`, repo, context bar and "72%" toned warn |
-| HUD-82 | two running subagents and one that ended 30 s ago, another 90 s ago | the mascot button is pressed | three rows show, the 30 s one with "done"; with none, "No subagents running." |
-| HUD-83 | the context goes from 41 to 42 | it re-renders | only the last digit of the percentage has the roll spans |
-
-`tests/hud/mascot.ui.test.tsx` (fake timers):
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| HUD-90 | `mascotStateFor` | each activity on `code`, `notes`, `other` | working, background give `working`, `reading`, `dancing`; needs-you `waving`; done `cheering`; idle `resting`; ended and null `sleeping` |
-| HUD-91 | a mascot `working` | the activity becomes `needs-you` | the strip shows row 5 (turn) for 3 frames at 12 fps, then row 1 |
-| HUD-91 | `loadMascotSheet('not json')` | it runs | `kind` is `placeholder` with a problem; the component draws the two blocks and the reporter is called once |
-| HUD-92 | seven running subagents | the ribbon renders | five mini mascots and `+2` |
-| HUD-93 | `data-motion="reduced"` | a dancing mascot renders and 2 s pass | the strip stays at frame 0 of its row; the mascot has `aria-hidden` |
-
-Also worth a test: `frameAt` for `from 4` (0 to 5, then 4, 5, 4) and `loop, hold frame 0` (frame 0 for `fps * 3` steps, then 1, 2, 3); `shortFolder` cuts the middle; `sessionForTerminal` picks the newest non-ended session; `elapsedSince` gives `42s`, `12m`, `3h 05m`.
 
 ## 031 HUD
 
@@ -297,18 +112,6 @@ Seed `useHudData.setState` directly in component tests and wrap them in `HudDeps
 | HUD-55 | `errors` with one file | it renders | "Could not read <file>: <message>" in the warn class; focus after 11 s calls `getSetup` again |
 
 Also worth a test: a section that throws shows its error state while the others render (Section boundary); `tokensText(41000, 200000)` is `41k of 200k tokens`; `firstSentence` cuts at 160 characters on a word boundary.
-
-## Owner amendments 2026-11-19
-
-Code: `src/modules/hud/panel/HudPanel.tsx`, `src/modules/terminal/panel/TerminalPanel.tsx` (`MIN_FONT_SIZE`, `MAX_FONT_SIZE`, the wheel listener). No rule ids in the spec yet; name the tests `OWNER-1` and `OWNER-2`.
-
-| Test | Given | When | Then |
-| --- | --- | --- | --- |
-| OWNER-1 | the HUD panel with skills and a repo state | it renders | the Skills section holds the repo row before the search field, and no "Skills repo" section title exists |
-| OWNER-2a | a terminal panel with font size 13 and delta 0 | a wheel event with `ctrlKey` and `deltaY < 0` | xterm's `fontSize` is 14, `setState` got `fontSizeDelta: 1`, `terminal.resize` was called, and the event's `defaultPrevented` is true |
-| OWNER-2b | font size 32 | Ctrl+wheel up | the size stays 32 and `setState` is not called; at 8, Ctrl+wheel down likewise stays 8 |
-| OWNER-2c | any size | a wheel event without `ctrlKey` | the size is unchanged and the default is not prevented (normal scrollback) |
-| OWNER-2d | saved state with `fontSizeDelta: 3` and font size 13 | the panel opens | xterm starts at 16 |
 
 ## 030 Files, viewer and history
 
