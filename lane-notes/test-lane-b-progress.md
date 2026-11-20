@@ -34,3 +34,9 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 ## 025 Stage 0 checks
 - tests/stage0/packaging.test.ts (5): F-010 electron-builder.yml values (app id, product, NSIS flags, asarUnpack, themes extraResources, npmRebuild) and the 256x256 entry of resources/icon.ico.
 - Skipped (e2e, Playwright): REP-7/P-32 corrupted settings launch, F-008 palette, F-007 live theme, SHELL-14 renderer crash, `npm run dist`, and the optional F-005/F-006/F-004 rows.
+
+## 026 Demo backend
+- tests/demo/fixtures.test.ts (4), tests/demo/demo-transport.test.ts (6)
+- Covered: all hand-written fixtures parse (generateMissing off), every request channel has an entry when on (>= 155 channels), function fixtures answer a mockFromSchema request with a schema-valid response, no-fixture answers INTERNAL "No demo data", 80 ms at random 0 and 400 ms at random 1, everyMs events, parseReplay on terminal-claude.bin and on a truncated record.
+- No spec rule ids exist for the Stage U rows, so names start with STAGE-U.
+- Skipped: `npm run demo` launch (needs the app).
