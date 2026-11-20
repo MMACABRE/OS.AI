@@ -89,6 +89,8 @@ export function SkillsDeck() {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [running, setRunning] = useState<SkillInfo | null>(null);
   const [report, setReport] = useState<SkillRun | null>(null);
+  /** The state last chosen per skill, so "For this project only" saves that one (HUD-37). */
+  const [chosen, setChosen] = useState<Record<string, SkillState>>({});
 
   if (skills.kind === 'loading') return <Skeleton rows={4} label="Reading skills" />;
   if (skills.kind === 'error')
@@ -133,7 +135,10 @@ export function SkillsDeck() {
       ...STATE_CHOICES.map((choice) => ({
         label: `${choice.state === skill.state ? '✓ ' : '   '}${choice.label} — ${choice.line}`,
         disabled: locked,
-        onSelect: () => void setState(skill, choice.state, scope),
+        onSelect: () => {
+          setChosen((previous) => ({ ...previous, [skill.name]: choice.state }));
+          void setState(skill, choice.state, scope);
+        },
       })),
       ...(skill.stateSource === 'default' && !locked
         ? [
@@ -141,7 +146,7 @@ export function SkillsDeck() {
             { label: 'For all projects', onSelect: () => undefined, disabled: true },
             {
               label: 'For this project only',
-              onSelect: () => void setState(skill, skill.state, 'project-local'),
+              onSelect: () => void setState(skill, chosen[skill.name] ?? skill.state, 'project-local'),
             },
           ]
         : []),

@@ -657,6 +657,23 @@ describe('skills deck (card 031)', () => {
     expect(screen.getByText('Set by your organisation policy.')).toBeTruthy();
   });
 
+  it('HUD-37 "For this project only" saves the state chosen in the State list, not the current one', async () => {
+    seedHud({ skills: { kind: 'ready', value: [skill('a', { state: 'on' })] } });
+    const bus = createStubBus();
+    bus.answer(skillsChannels.setState, () => ok({}));
+    renderHud(<SkillsDeck />, bus);
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: /You only/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'More for a' }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'For this project only' }));
+    await waitFor(() => expect(bus.payloadsOf(skillsChannels.setState)).toHaveLength(2));
+    expect(bus.payloadsOf(skillsChannels.setState)[1]).toEqual({
+      name: 'a',
+      state: 'user-invocable-only',
+      scope: 'project-local',
+    });
+  });
+
   it('HUD-36 a skill that is off shows a muted "off" chip, and the state filter "Off" keeps only it', async () => {
     seedHud({
       skills: {
