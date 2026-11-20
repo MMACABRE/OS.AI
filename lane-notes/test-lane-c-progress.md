@@ -43,3 +43,13 @@ Helpers shared by all sections: tests/fakes/stub-bus.ts (Bus with answers by cha
 - Not in my sections: the "Untested: card 032 fixes" table (tests/sessions/sessions-fixes.ui.test.tsx) has a "#" heading, not "##"; it is outside the list I was given, so I did not write it.
 - No bugs found in 032.
 
+
+## 033 Git, changes, feedback and activity
+
+- tests/review/changes.ui.test.tsx: REV-12, REV-14 (x3), REV-10, REV-11, REV-15, REV-31 (tray label and targetLabel), state rows (loading, error+Retry, not a repo).
+- tests/review/diff.ui.test.tsx: REV-20 (same region element kept, new lines shown; scroll reset is not asserted, as the table says), REV-23 (C, type, Ctrl+Enter gives the exact diff-line target; Escape), REV-22 (fold of 12, F7), REV-25, "No differences.".
+- tests/activity/timeline.ui.test.tsx: ACT-15 (x2), ACT-11, ACT-10, ACT-14 (restore with confirm, pin), ACT-33, ACT-31 (html and image), state rows (empty timeline, error+Retry, empty artifacts).
+- REV-34 ("Sent. Clear comments?") is in tests/terminal/terminal-panel.ui.test.tsx (feedback paste section).
+- Skipped: the 033 REV-33 row (terminal.write with ESC[200~ and ESC[201~) is obsolete since the Lead fix replaced it by the xterm paste path (see the feedback paste section: REV-33, 33b, 33c). git.md has no component rows.
+- No bugs found in 033.
+
