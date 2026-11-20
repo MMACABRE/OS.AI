@@ -19,3 +19,18 @@ Helpers shared by all sections: tests/fakes/stub-bus.ts (Bus with answers by cha
 - tests/history/timeline.ui.test.tsx already holds the HIST-41 Compare row (section 030 commit). FILE-64 right click then Delete is in tests/files/files-tree.ui.test.tsx.
 - Bug: REV-21 F7 on replaced lines (bugs file).
 
+
+## 031 HUD
+
+- tests/hud/hud.ui.test.tsx: HUD-1 (state-driven), HUD-2, HUD-3/9, HUD-4, HUD-5, HUD-6 (pulse class; the 3 x 400 ms animation itself is CSS, not computed by jsdom), HUD-7, HUD-8, HUD-10/11, HUD-13, HUD-14, HUD-16 (through register.ui and the panel), HUD-25/26, HUD-27, HUD-30, HUD-31 (toast and write), HUD-35, HUD-36 (chip and filter), HUD-40/41, HUD-60, HUD-61, HUD-62, HUD-63 (4 cases, through sendToSession), HUD-64, HUD-65 (typed text), HUD-66, HUD-67, HUD-68 (cleanFreeText and the settings schema), OWNER-1, Section boundary, tokensText, firstSentence.
+- tests/hud/setup-view.ui.test.tsx: HUD-50, HUD-51, HUD-53, HUD-54, HUD-55.
+- OWNER-2a to 2d are in tests/terminal/terminal-panel.ui.test.tsx (committed with the feedback paste section); xterm is replaced by a fake through vi.mock of create-xterm, since jsdom cannot run it.
+- Bugs (bugs file): UI-MENU-1 (a Menu cannot open from an IconButton; this kills the HUD-1 menu item, HUD-34 and HUD-37 row menu), HUD-65 (Cancel does not get focus in the compact dialog). HUD-1 menu path, HUD-34, HUD-37 lock reason moved there.
+- Not tested: HUD-37 "For this project only" with a chosen state (not in the untested.md table; the code applies the current state, see bugs file note). HUD-16 toast "Spoken alerts on/off" is not in the table; the command only logs.
+
+
+## Lead fixes: feedback paste (tests/terminal/terminal-panel.ui.test.tsx)
+
+- P-6 (sanitizePaste), REV-33 (xterm paste got the text without ESC; tray never calls terminal.write), REV-33b (bracketed paste off, two lines: not pasted, error toast mentions Copy), REV-33c (no panel: toast says to open the terminal), REV-34 (Sent. Clear comments? with Clear and Keep, comments still listed), OWNER-2a to 2d.
+- The older 033 row "REV-33 ... terminal.write with ESC[200~ ... ESC[201~" is obsolete: the tray now pastes through the terminal panel (this section replaces it). Not tested as written.
+
