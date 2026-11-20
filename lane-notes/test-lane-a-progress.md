@@ -35,3 +35,8 @@
 - File: tests/settings/live-reload.test.ts
 - Covered: SET-8 (real clock: onChange once, reader fires within 1000 ms; several writes give one onChange; keybindings and themes kinds; stop), SET-9 (two sections; unchanged reload), SET-10 (createRemoteSettingsReader: defaults, getSection, own module only, invalid value ignored, failure keeps defaults).
 - Skipped: F-006 e2e is not in this section's rows; none skipped.
+
+## 018 Themes
+- Files: tests/settings/theme-store.test.ts, tests/settings/apply-theme.ui.test.tsx
+- Covered: SET-11, SET-12, SET-13 (test-light, jsdom), SET-14 (also url(, braces, semicolon, unknown token), SET-15, SET-16, save "My Theme 2" -> my-theme-2.json, load overwrites edited phosphor.json copy.
+- Skipped: F-007 e2e (copy test-light.json into themesDir, --color-bg-app changes without reload): e2e. Fonts, fonts.css, main's background/zoom are not unit tested.
