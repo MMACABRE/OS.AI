@@ -35,7 +35,8 @@ const MODE_LABELS: Readonly<Record<string, string>> = {
   bypassPermissions: 'Bypass',
 };
 
-const ACTIVITY_WORDS: Readonly<Record<ClaudeSession['activity'], string>> = {
+/** The session's activity said in words (HUD-93: the ribbon tooltip and the mascot widget's word). */
+export const ACTIVITY_WORDS: Readonly<Record<ClaudeSession['activity'], string>> = {
   'needs-you': 'needs you',
   working: 'working',
   background: 'background',

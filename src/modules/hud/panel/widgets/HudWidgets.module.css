@@ -1,5 +1,6 @@
 /* The mascot widget: centred in its cells, enlarged with crisp pixels. */
 .mascot {
+  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
@@ -9,6 +10,30 @@
 
 .mascot * {
   image-rendering: pixelated;
+}
+
+/* The scaled sprite keeps its real size in the layout, so the word sits under it. */
+.mascotSprite {
+  display: grid;
+  place-items: center;
+}
+
+/* The state word, right under the mascot as in the mockup's top right corner. */
+.mascotWords {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  justify-items: end;
+}
+
+.mascotWord {
+  color: var(--color-state-danger);
+  font-family: var(--font-display);
+  font-size: var(--font-size-display);
+  line-height: 0.9;
+  text-shadow: var(--glow-danger);
+  text-transform: capitalize;
 }
 
 .context {

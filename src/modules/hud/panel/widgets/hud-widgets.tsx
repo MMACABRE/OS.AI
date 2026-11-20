@@ -6,7 +6,7 @@ import { EmptyState, RollingNumber } from '@hsos/ui-kit';
 import { HudDepsContext } from '../hud-context';
 import type { HudDeps } from '../hud-context';
 import { targetSession, useHudData } from '../hud-data';
-import { createRibbon } from '../ribbon/Ribbon';
+import { ACTIVITY_WORDS, createRibbon } from '../ribbon/Ribbon';
 import { Mascot } from '../mascot/Mascot';
 import { QuickBar, tokensText } from '../QuickBar';
 import { cacheState, SessionsBoard } from '../SessionsSection';
@@ -18,7 +18,8 @@ import widgetStyles from './HudWidgets.module.css';
 type Sized = { readonly cells: WidgetSize; readonly pixels: { readonly width: number; readonly height: number } };
 /** Pixels of widget per step of mascot zoom: a 2 by 2 cell widget shows the strawberry near the mockup's size. */
 const MASCOT_CELL_PX = 48;
-/** Segments of the context bar, as in the mockup. */
+/** The sprite's side before zoom: the 16 by 16 cell at scale 2. */
+const MASCOT_SPRITE_PX = 32;/** Segments of the context bar, as in the mockup. */
 const CONTEXT_SEGMENTS = 20;
 
 /** The HUD's widget types for the dashboard (dashboard.md catalog, `hud.*`), each drawn inside the HUD's provider. */
@@ -141,20 +142,41 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
   };
 
   /** The mascot fills its cells, as large as the mockup's top-right strawberry: whole-pixel scales only. */
-  const MascotWidget = ({ pixels }: Sized) => {
+  const MascotWidget = ({ cells, pixels }: Sized) => {
     const sessions = useHudData((state) => state.sessions);
     const focusOrder = useHudData((state) => state.focusOrder);
     const target = targetSession(sessions, focusOrder);
+    // From 2 by 2 the state is said in words under the mascot (catalog, HUD-93), so the sprite leaves room for it.
+    const withWord = cells.w >= 2 && cells.h >= 2;
     // The sprite draws at scale 2 (32 px); a whole-number CSS scale enlarges it with crisp pixels.
     const zoom = Math.min(4, Math.max(1, Math.floor(Math.min(pixels.width, pixels.height) / MASCOT_CELL_PX)));
+    const side = MASCOT_SPRITE_PX * zoom;
     return createElement(
       'div',
       { className: widgetStyles.mascot },
       createElement(
         'span',
-        { style: { transform: `scale(${zoom})` } },
-        createElement(Mascot, { activity: target?.activity ?? null, page: 'other', scale: 2 }),
+        { className: widgetStyles.mascotSprite, style: { width: side, height: side } },
+        createElement(
+          'span',
+          { style: { transform: `scale(${zoom})` } },
+          createElement(Mascot, { activity: target?.activity ?? null, page: 'other', scale: 2 }),
+        ),
       ),
+      withWord
+        ? createElement(
+            'div',
+            { className: widgetStyles.mascotWords },
+            createElement(
+              'span',
+              { className: widgetStyles.mascotWord },
+              target === null ? 'sleeping' : ACTIVITY_WORDS[target.activity],
+            ),
+            target?.currentTool
+              ? createElement('span', { className: widgetStyles.small }, target.currentTool)
+              : null,
+          )
+        : null,
     );
   };
 
