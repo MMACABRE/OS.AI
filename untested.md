@@ -4,6 +4,19 @@ The owner's rule from 2026-11-18 (resuming the run at card 011): implementers wr
 
 Each entry names the test file the card asks for, the rule ids, and what each test must show. Test names start with the rule id (protocol rule). Rows come from the module spec's test table.
 
+## Open bugs found by the tester lanes (2026-11-20)
+
+The tests for these are in `lane-notes/test-lane-c-bugs.md` (full code, src location, failure message). Fix src, then add the test back.
+
+1. UI-MENU-1: `Menu` cannot open from an `IconButton` trigger; `IconButton` drops the props Radix passes. Breaks HUD-1 "Show all projects", HUD-34 skill row menu, HUD-37 locked-skill reason.
+2. HUD-65: compact dialog `initialFocus` returns the wrapping span, so Cancel does not get focus.
+3. FILE-61 / FILE-43: `FilesTree` never listens to `files.rescanNeeded`, so nothing reloads.
+4. HIST-41: `diffRows('', 'a')` returns a phantom removed empty line.
+5. REV-21: F7 stops on both rows of one replaced line. Spec unclear whether a "change" is a hunk or a row; owner to decide.
+6. WS-44: with no project open the page store starts on `code`, so the welcome view is not shown at start.
+
+Not yet covered in lane C's area: HUD-37 "For this project only" with a chosen state; the HUD-16 "Spoken alerts on/off" toast. The `#` test plans below were not assigned this round.
+
 ## 011 Supervisor (e2e left)
 
 Unit tests done (`tests/shell/supervisor.test.ts`). Left:
@@ -65,271 +78,6 @@ Unit tests done (`tests/workspace/pages.ui.test.tsx`). Left:
 | MOT-7  | the background running | three page changes | the canvas is the same node and `backdropStats()` frames never go down |
 | MOT-11 | a page transition in progress | a key is pressed in a focused input on the new page | the input has the character before the transition finishes |
 | WS-41  | the demo on `code` | Dashboard for 3 s and back | the code section is the same node |
-
-## 031 HUD
-
-Code: `src/modules/hud/panel/` (`HudPanel.tsx`, `Section.tsx`, `QuickBar.tsx` with `tokensText`, `SessionsSection.tsx` with `inProject`, `boardOrder`, `cacheState`, `contextToneClass`, `UsageSection.tsx` with `usageTone`, `resetsText`, `staleNote`, `SkillsSection.tsx` with `matchesSkill`, `deckOrder`, `SetupView.tsx` with `lastUsedText`, `matchesRow`, `setupSections`, `send-command.ts` with `sendToSession` and `cleanFreeText`, `hud-alerts.ts` with `firstSentence`, `spokenText`, `startHudAlerts`, `hud-data.ts` with `targetSession`, `VoiceChooser.tsx`, `AttentionStatus.tsx`), `src/modules/hud/register.ui.ts`, `src/modules/ui-kit/components/Popover.tsx`. Feature F-068.
-
-Seed `useHudData.setState` directly in component tests and wrap them in `HudDepsContext.Provider` with a `FakeBus`. Use a fake clock for timers.
-
-`tests/hud/hud.ui.test.tsx` (component rows of hud.md):
-
-| Rule | Given | When | Then |
-| ---- | ----- | ---- | ---- |
-| HUD-1 | sessions in the project, in its `.claude\worktrees\x`, and elsewhere | the board renders, then "Show all projects" | first two, then all three |
-| HUD-2 | one session of each activity with different change times | `boardOrder` | needs-you, working, background, done, idle, ended; newest first within a group |
-| HUD-3, HUD-9 | a working session with tool `Edit`, two running agents, context 72 | it renders | second line "Edit · 2 agents", "72%" with the warn class; at 91 the danger class |
-| HUD-4 | an agent that ended 30 s ago and one 90 s ago | it renders | only the 30 s one, with "done" |
-| HUD-5 | a row with a terminal, and one with `terminalId: null` | each is activated | the first calls `link.markSeen` and focuses `[data-terminal-id] textarea`; the second does nothing and shows "outside HSOS" |
-| HUD-6 | a session turns `needs-you` | it re-renders | its dot has the pulse class (three 400 ms iterations) |
-| HUD-7 | focus moves into `[data-terminal-id="t1"]` | the `focusin` runs | `markSeen` for every session bound to `t1`; `focusOrder` starts with `t1` |
-| HUD-8 | `lastResponseAt` 8 minutes ago | `cacheState` | `warm 52m`; 61 minutes ago gives `cold` |
-| HUD-10, HUD-11 | window not focused (`document.hasFocus` false), a session working 40 s then `done`, then `needs-you` 3 s later | the alerts run | one `shell.notify` for done; the needs-you inside 10 s sends none |
-| HUD-13 | window focused and the session's terminal focused | it turns `needs-you` | no `shell.speak`; with focus in another terminal one `shell.speak` |
-| HUD-14 | `lastMessage` "Done. See ```x``` [docs](http://a) now." | `spokenText(done, summary on)` | `<title>. Finished. Done.`; needs-you gives `<title>. Needs you. <reason>.` |
-| HUD-16 | `hud.chooseVoice` with voices A and B | B is chosen | `settings.setValue` `speakVoice` B and `shell.speak` with the test line and voice B |
-| HUD-25, HUD-26 | five-hour 58 % resetting in 2 h 10 m, seven-day null, `updatedAt` 14 min ago | usage renders | "58%", `resets 2h 10m`, "No data yet" for 7 days, the note "updated 14m ago" |
-| HUD-27 | the same | the status items render | `5h 58%` shows; `7d` is absent |
-| HUD-30 | skills "caveman" (favourite) and "graphify" | query `turn folder` | only the one whose name or description has both words; favourites first |
-| HUD-31 | no live session | a skill is activated | a toast "Start a Claude session first"; with a target, `terminal.write` of `/name ` without `\r` |
-| HUD-36, HUD-37 | a skill `off` with `stateLock: 'policy'` | its row and menu render | chip "off" muted; the state choices are disabled with the lock reason |
-| HUD-40, HUD-41 | `out-of-sync` with 3 changed, 1 added, 2 removed, ahead 1 | the row renders and Sync is pressed | the counts line, then a confirm dialog listing the folders; confirming calls `pushToRepo` |
-| HUD-60 | no target session | the quick bar renders | the title reads "Start a Claude session first"; Compact, Clear and the model button are disabled; Usage, Context, Skills work |
-| HUD-63 | target `idle`, last owner input before the last reply | `/status` is sent | `terminal.write` `/status\r` with `quick-command`; with input after the reply, `/status` as `owner` and a toast; `needs-you` writes nothing and toasts |
-| HUD-64 | target `working` | the mode button is pressed | `terminal.write` `\x1b[Z` with `quick-command`; focus stays where it was |
-| HUD-65 | the compact dialog with "keep\nthe tests" | Compact | `/compact keep the tests`; Cancel has focus when it opens |
-| HUD-66 | the clear dialog | Clear | `/clear` |
-| HUD-68 | `cleanFreeText('a\u0007b\nc')` | it runs | `a b c` |
-
-`tests/hud/setup-view.ui.test.tsx`:
-
-| Rule | Given | When | Then |
-| ---- | ---- | ---- | ---- |
-| HUD-50 | a setup with 2 MCP servers and 1 plugin | the view renders | the header counts each section; no "Show what loads at start" without `graph.agentView` |
-| HUD-51 | a server last used 3 days ago by `claude`, one with null | it renders | `3 d ago` with "Counted by Claude Code"; `never seen` |
-| HUD-53 | "Not used in 30 days" on, sort least recently used | it renders | only stale or unknown rows, unknown first |
-| HUD-54 | a target session | "Ask Claude to remove" on MCP server `old-db` | `terminal.write` of the exact sentence without `\r` |
-| HUD-55 | `errors` with one file | it renders | "Could not read <file>: <message>" in the warn class; focus after 11 s calls `getSetup` again |
-
-Also worth a test: a section that throws shows its error state while the others render (Section boundary); `tokensText(41000, 200000)` is `41k of 200k tokens`; `firstSentence` cuts at 160 characters on a word boundary.
-
-## 030 Files, viewer and history
-
-Code: `src/modules/files/panel/` (`FilesTree.tsx`, `FileViewer.tsx`, `use-project.ts`, `helpers.ts`), `src/modules/files/register.ui.ts`, `src/modules/history/panel/` (`Timeline.tsx`, `DiffView.tsx`, `line-diff.ts` with `diffLines`, `format.ts`), `src/modules/history/register.ui.ts`, `src/ui/module-list.ts`. No feature flag in this card.
-
-Jsdom computes no CSS animations, so the state rows check the rendered text and roles. The panels read the bus through `ctx.bus`: pass a fake `Bus` whose `call` answers from a map and whose `on` records listeners. `useToast` needs a `ToastProvider` around the component. `ConfirmDialog` and `Dialog` portal into `document.body`, so query them with `screen`.
-
-`tests/files/files-tree.ui.test.tsx`:
-
-| Rule    | Given | When | Then |
-| ------- | ----- | ---- | ---- |
-| FILE-60 | a project whose root lists `src/` (dir) and `README.md` (file) | the view renders | the root shows both, folders first; `src` has `aria-expanded="false"` |
-| FILE-60 | `src` collapsed and not loaded | `ArrowRight` on `src` | `files.listDir` is called once with `src`'s absolute path; the children appear |
-| FILE-61 | folder `src` expanded, `docs` collapsed | `files.changed` with `docs\x.md` and `src\y.ts` | `listDir` is called for `src` and for the root only; not for `docs` |
-| FILE-61 | the same | `files.rescanNeeded` | the root reloads (no error) |
-| FILE-63 | `README.md` selected | `Enter` | `ctx.openPanel` gets `files.viewer` with `{ path, line: null }` (through the `openFile` prop) |
-| FILE-1  | entries `b.txt`, `A` (dir), `node_modules` (dir, `isDimmed: true`) | the root renders | row order is `A`, `node_modules`, `b.txt`; the `node_modules` label has the dimmed class |
-| state   | `listDir` pending for more than 150 ms | the view renders | a skeleton with the label "Loading files" appears (the label is the frame's text) |
-| state   | `listDir` returns `{ ok: false, error: { message: 'Access denied' } }` | the view renders | "The folder could not be read. Access denied" with a "Retry" button; Retry calls `listDir` again |
-| state   | root listing is `[]` | the view renders | "This folder is empty." with a "New file" button; the button opens the New file dialog |
-| state   | no project (`getCurrentProject` returns null) | the view renders | "No project open" |
-| Delete  | `confirmTrash()` true, a file selected, context menu "Delete" | it is chosen | the "Move to Recycle Bin?" dialog shows; Confirm calls `files.trash` with that path |
-
-`tests/files/file-viewer.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| FILE-73 | a clean viewer on `a.ts` with text `one` | `files.changed` with `a.ts` `changed`, and `files.read` now returns `two` | the editor shows `two`; no element with role `alert` |
-| FILE-74 | a dirty viewer (text typed: `one x`) | `files.changed` with `a.ts` `changed` | the alert shows "This file changed on disk."; the editor still has `one x`; `files.save` was not called |
-| FILE-74 | the same, then the owner presses Ctrl+S | `files.save` returns `FILE_CHANGED_ON_DISK` | the alert is still shown; no save with `overwrite: true` was sent |
-| FILE-74 | the same bar | "Overwrite" pressed | `files.save` is called with `overwrite: true` and the editor text |
-| FILE-72 | a clean viewer, text `one` changed to `one x` | Ctrl+S | `files.save` gets `baseHash` of the loaded version, `format` of the loaded file, `content` `one x` |
-| FILE-75 | a viewer | `files.changed` `deleted` | "This file was deleted." with "Save to recreate"; the editor keeps its text |
-| FILE-78 | a viewer opened with `line: 3` on a 5-line file | the text loads | the caret is at the start of line 3 (`selectionStart` equals the offset of line 3) |
-| FILE-70 | `files.read` returns kind `binary` | the viewer renders | "This file is not text." and "Reveal in Explorer" (calls `shell.revealInExplorer`) |
-| FILE-70 | kind `too-large` | the viewer renders | "This file is too large to edit here." with the size |
-| state  | `files.read` pending | the viewer renders | the loading skeleton with "Opening a.ts" after 150 ms |
-| state  | `files.read` fails | the viewer renders | "This file could not be opened. <reason>" with Retry; Retry reads again |
-| state  | an empty text file | the viewer renders | a normal empty editor, no error |
-
-`tests/history/timeline.ui.test.tsx`:
-
-| Rule    | Given | When | Then |
-| ------- | ----- | ---- | ---- |
-| HIST-40 | three snapshots for one path, newest first, sources `external`, `hsos-save`, `baseline` | the timeline renders | rows read "Changed outside HSOS", "Saved in HSOS", "Before first change", newest first |
-| HIST-40 | the same | the timeline renders | each row names the size change against the older row (`+37 B` style, see the note in `progress`) |
-| HIST-41 | a selected snapshot and the previous one | the diff loads | `history.getPrevious` and `history.readText` ran for both; the diff shows the added and removed lines |
-| HIST-41 | "Compare with current file" switched on | the diff loads | `files.read` provides the right-hand side |
-| HIST-42 | a timeline with a selected snapshot | "Restore this version", then Confirm | `history.restore` is called once with the snapshot id; a toast with "is back at the version from" shows |
-| HIST-42 | the same | Cancel | `history.restore` is not called |
-| HIST-43 | a timeline for `a.ts` | `history.snapshotAdded` for `a.ts` | `history.listForFile` is called again; a snapshot for `b.ts` does not reload |
-| state   | `history.listForFile` returns `[]` | the timeline renders | "No earlier versions of this file yet. Versions appear here after the file changes." |
-| state   | `history.listForFile` fails | the timeline renders | "History could not be read. <reason>" with Retry |
-| state   | the selected snapshot's `readText` returns `FILE_BINARY` | the diff loads | "Binary file changed." |
-| state   | the diff is loading | the timeline renders | the skeleton "Loading the difference" |
-
-`tests/history/line-diff.test.ts` (unit, no React):
-
-| Rule    | Given | When | Then |
-| ------- | ----- | ---- | ---- |
-| HIST-41 | before `a b c`, after `a x c` | `diffLines` runs | `same a`, `removed b`, `added x`, `same c` in that order |
-| HIST-41 | before empty, after `a` | `diffLines` runs | one `added a` |
-| HIST-41 | a 2 000 by 2 000 line pair | `diffLines` runs | `null` (too large) |
-
-## 032 Sessions
-
-Code: `src/modules/sessions/panel/` (`SessionPicker.tsx`, `SessionHistory.tsx`, `SessionReader.tsx`, `SessionDialogs.tsx`, `actions.ts` with `loadSessions`, `resumeInNewTerminal`, `copyResumeCommand`, `rowMenu`, `matchesSearch`, `use-project.ts`, `format.ts`), `src/modules/sessions/register.ui.ts`, `src/ui/module-list.ts`. Feature: none in this card.
-
-The picker mounts its own React root (`register.ui.ts`, `openPicker`), so a test can call the command's `run` and then query `document.body`. The panels read the bus through `ctx.bus` and take it as a prop: pass a fake `Bus` whose `call` answers from a map by channel name. Wrap components in `ToastProvider` (ui-kit) to see toasts.
-
-`tests/sessions/picker.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| SESS-31 | rows titled `fix login flow` and `write tests` | the picker renders, then the search field gets `flow fix` | only `fix login flow` shows |
-| SESS-31 | the same | the search field gets `FLOW` | `fix login flow` shows (case ignored) |
-| SESS-31 | a row with an empty title | the picker renders | the title reads "Untitled session" |
-| SESS-31 | a row with `hasOriginal: false, hasBackup: true` | the picker renders | a "Backup only" badge shows on that row, and the state chip reads its state word |
-| SESS-31 | a row with `messages: 12`, `lastActiveAt` 5 minutes ago | the picker renders | the row reads "5 min ago · 12 messages" |
-| SESS-31 | arrow keys | `ArrowDown` after the first row is selected | the second row is selected (`aria-selected`) |
-| SESS-31 | rows listed | Enter on a selected row without `liveTerminalId` | `terminal.create` is called first (see SESS-32) |
-| SESS-32 | a row with `liveTerminalId: 't1'` | the picker renders, the row is selected | the footer shows "Go to terminal" (disabled) and "Open transcript"; no "Resume in new terminal" |
-| SESS-32 | a row without a live terminal, the focused terminal at state `running` | the picker renders | "Resume in new terminal" and "Copy resume command" show; no "Resume here" (not built, see progress) |
-| SESS-32 | "Resume in new terminal" | it runs | in order: `terminal.create` with `launch: null` and `cwd` of the session, `sessions.bind` with the new id, `terminal.write` with `claude --resume <id>\r` and `source: 'owner'` |
-| SESS-32 | the same, with `hasOriginal: false` | it runs | `sessions.restoreTranscript` is called before `terminal.create` |
-| SESS-32 | "Copy resume command" | it runs | `shell.writeClipboard` gets `cd "<cwd>"; claude --resume <id>` |
-| state  | `sessions.list` pending for more than 150 ms | the picker renders | a skeleton with "Loading sessions" |
-| state  | `sessions.list` returns `[]` | the picker renders | "No Claude sessions in this project yet." |
-| state  | a non-empty list and a search that matches nothing | the picker renders | "No session matches." |
-| state  | `sessions.list` fails | the picker renders | "Sessions could not be read. <reason>" with Retry; Retry calls `sessions.list` again |
-| state  | no project (`getCurrentProject` returns null) | the picker renders | "Open a project to find its sessions." |
-
-`tests/sessions/history.ui.test.tsx`:
-
-| Rule    | Given | When | Then |
-| ------- | ----- | ---- | ---- |
-| SESS-71 | the open project `C:\code\hsos` and two folders in the list | the history renders | the project select shows the open project; rows of other folders are hidden |
-| SESS-71 | the state select set to `interrupted` | the history renders | only interrupted rows show |
-| SESS-72 | "All projects" chosen; rows in two folders | the history renders | two groups, each headed by its folder name; newest first within each |
-| SESS-72 | rows 0 to 4 | a click on row 1 then a Shift-click on row 3 | rows 1 to 3 are selected (`aria-selected`) |
-| SESS-72 | rows listed | Ctrl+A on the list | every visible row is selected; "Delete 5" shows in the toolbar |
-| SESS-73 | a selected row | F2 | the rename dialog opens with the current title |
-| SESS-73 | a selected row | the Delete key | the "Move 1 session to the Recycle Bin?" dialog opens |
-| SESS-73 | a row with a note whose first line is `Kept for notes` | the history renders | the note's first line shows, muted |
-| SESS-74 | rename dialog with `fix login` | the field is changed to `fix login flow` and Save | `sessions.rename` is called with the trimmed title; the dialog closes; the copy under the field reads "Claude Code's own session list shows this name too." for an ended session and "Claude Code shows this name after the session ends." for a live one |
-| SESS-74 | a title of 81 characters | the field is read | Save is disabled; "Use 80 characters or fewer." shows |
-| SESS-75 | note dialog | Ctrl+Enter after typing | `sessions.setNote` is called once with the text; Enter alone adds a line |
-| SESS-76 | two sessions selected, one `running` | "Delete 2" then the confirm dialog | the body names the running one under "Still running, will be skipped:"; Cancel has focus; Confirm calls `sessions.trash` with the ended one only |
-| SESS-76 | the same, `sessions.trash` returns `{ trashed: [a], failed: [{ sessionId: b, message: 'Locked' }] }` | Confirm | a toast reads "1 moved to the Recycle Bin"; a second toast reads "Locked" |
-| SESS-70 | the history is open | `sessions.recordChanged` fires three times within 300 ms | `sessions.list` is called once more after 500 ms (debounced) |
-| state   | `sessions.list` returns `[]` | the history renders | "No Claude sessions found." |
-| state   | a filter that matches nothing | the history renders | "No session matches." |
-| state   | `sessions.list` fails | the history renders | "Sessions could not be read. <reason>" with Retry |
-
-`tests/sessions/reader.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| SESS-50 | a transcript of a user prompt, an assistant text, a tool item `Bash npm run check` | the reader renders | "You" and "Claude" items show their text; the tool item is one muted line |
-| SESS-50 | 250 items in the transcript | the reader renders | 200 items show; "Show earlier" shows; pressing it calls `readTranscript` with `beforeIndex` of the oldest shown item and `limit: 200` |
-| SESS-50 | the reader is visible, the transcript grows from 3 to 4 items | 2 s pass (fake timers) | the fourth item appears; no duplicate of the first three |
-| SESS-50 | the reader is on a hidden page (`PageVisibleContext` false) | 2 s pass | no `readTranscript` call after the first |
-| SESS-51 | a prompt whose text is `<b>bold</b> and <script>x</script>` | the reader renders | the text shows literally; no `<b>` element exists |
-| SESS-50 | the transcript has 0 items | the reader renders | "This session has no messages yet." |
-| state  | `readTranscript` fails with `FILE_NOT_FOUND` | the reader renders | "The transcript could not be read. <reason>" with Retry |
-| state  | `readTranscript` pending | the reader renders | the skeleton "Reading the transcript" |
-
-## 033 Git, changes, feedback and activity
-
-Code: `src/modules/git/panel/` (`ChangesStatus.tsx`, `actions.ts` with `gitMessage` and `runGitCommand`, `use-repo.ts`), `src/modules/git/register.ui.ts`, `src/modules/review/panel/` (`ChangesView.tsx`, `FeedbackTray.tsx` with `targetLabel`, `DiffPanel.tsx`, `DiffView.tsx` with `numberRows`, `rowsFor`, `targetOf`, `line-diff.ts`, `data.ts`, `TrayCount.tsx`, `use-repo.ts`, `helpers.ts`), `src/modules/review/register.ui.ts`, `src/modules/activity/panel/` (`Timeline.tsx` with `sectionsOf`, `Artifacts.tsx`, `PinDialog.tsx`, `format.ts`, `use-project.ts`), `src/modules/activity/register.ui.ts`, `src/ui/module-list.ts`. Feature: none in this card.
-
-The component rows are the ones `review.md` and `activity.md` list under "component"; `git.md` has none. Jsdom has no CSS animation, so rows check text and roles. Panels take `ctx.bus` as a prop: pass a fake `Bus` that answers `call` from a map by channel name and records `on` listeners. Wrap in `ToastProvider` (ui-kit). `Dialog` portals into `document.body`.
-
-`tests/review/changes.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| REV-12 | the Changes view with `listChanges` returning `[a.ts, b.ts]`, `b.ts` selected | `changesInvalidated` for the project, and `listChanges` now returns `[a.ts, b.ts, c.ts]` | `b.ts` still has `aria-selected="true"`; `c.ts` is listed |
-| REV-14 | `git.getStatus` returns a repo with `operation: 'merge'`, one changed file | the Changes view renders (base "Since last commit") | the "Commit" and "Commit and Sync" buttons are disabled |
-| REV-14 | the same with `operation: 'none'`, a message from `git.suggestMessage` | the view renders | the message field shows the suggestion; "Commit" is enabled |
-| REV-14 | the same, "Commit" pressed | `git.commit` | it receives every listed file's relative path and the message; the rows refresh |
-| REV-10 | the base select | "Session: fix login" chosen | `listChanges` is called with `{ kind: 'session-start', sessionId }`; the commit box is gone |
-| REV-11 | three files, `+120 −45` in sum | the view renders | the summary reads "3 files · +120 −45"; each row has its letter with the word in its accessible name (for example `M` with `Modified`) |
-| REV-15 | a file row selected, "Show History" | it runs | `openHistory` is called with that file's absolute path |
-| REV-34 | comments are sent (the tray shows "Sent. Clear comments?") | the tray renders | the comments are still listed; "Clear" and "Keep" show |
-| REV-33 | one comment, a live Claude session with `liveTerminalId`, "Send to Claude" pressed | the view runs | `review.composePrompt` runs, then `terminal.write` with `\u001b[200~`, the prompt and `\u001b[201~`; the data has no carriage return; `source` is `owner` |
-| REV-31 | a comment whose target is a `before` diff line, the prompt | the tray lists it | the label ends with `(removed line)` |
-| state  | `listChanges` pending for more than 150 ms | the view renders | a skeleton "Reading changes" |
-| state  | `listChanges` fails | the view renders | "Changes could not be read. <reason>" with Retry |
-| state  | a folder that is not a repo, base "Since last commit" | the view renders | "This folder is not a git repository. Choose a Claude session to see its changes." |
-
-`tests/review/diff.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| REV-20 | a diff of 300 lines | the file gains three lines at the top and the diff refreshes | the same content line is still in view (checked by `data-row` order, the first visible row keeps its text); no scroll reset is asserted yet (see progress) |
-| REV-23 | a diff with a changed line `out[i] = cap` at after-line 121 | the line gets focus, `C` is pressed, the text `Keep the cap` is typed, `Ctrl+Enter` | `review.addComment` is called with `{ kind: 'diff-line', path, line: 121, side: 'after', quote: 'out[i] = cap' }` and `text: 'Keep the cap'` |
-| REV-23 | the same, Escape pressed in the box | | the box closes; no call |
-| REV-22 | a run of 12 unchanged lines between two changes | the diff renders | one "⋯ 12 unchanged lines" button; pressing it shows the 12 lines |
-| REV-22 | F7 pressed in the diff | | the cursor moves to the first changed row (`data-row` of that row is scrolled to) |
-| REV-25 | `getDiff` returns `isBinary: true` | the panel renders | "Binary file changed." |
-| state  | the diff of identical sides | the panel renders | "No differences." |
-
-`tests/activity/timeline.ui.test.tsx`:
-
-| Rule   | Given | When | Then |
-| ------ | ----- | ---- | ---- |
-| ACT-15 | a timeline with 40 entries, the list scrolled down by 300 px | an `activity.entryAdded` event arrives | the scroll position is unchanged (`scrollTop` still 300); a button "1 new changes" shows |
-| ACT-15 | the list at the top | the same event | the new entry is the first row; no chip shows |
-| ACT-11 | seven `claude` entries of one session within 40 s, then one `owner` entry | the timeline renders | one group row "refactor parser · 7 files" (the session title, cut to 24) and one single row "You"; the group row toggles its members (`aria-expanded`) |
-| ACT-10 | entries from today and yesterday | the timeline renders | the day headings "Today" and "Yesterday" |
-| ACT-14 | a row's context menu, "Restore the version before this change" | it is chosen | `history.getPrevious` is called; a confirm dialog shows; Confirm calls `history.restore` with the previous id |
-| ACT-14 | the same, "Pin comment" | it is chosen | the pin dialog opens; Pin calls `review.addComment` with `kind: 'file-line'` and `line: 1` |
-| ACT-33 | tiles `a/report.html` and `b/chart.png` | the search field gets `rep` | `activity.listArtifacts` is called with `query: 'rep'`; one tile shows |
-| ACT-31 | an artifact tile of kind `html` | it is activated | `shell.openPath` is called with its path |
-| ACT-31 | an image tile | it is activated | `ctx.openPanel` for `files.viewer` gets its path (through the `openFile` prop) |
-| state  | `listTimeline` returns `[]` | the timeline renders | "No changes recorded yet. Changes to files in this project appear here." |
-| state  | `listArtifacts` returns `[]` with an empty query | the artifacts view renders | "Pages, PDFs and images Claude makes in this project appear here." |
-| state  | `listTimeline` fails | the timeline renders | "Activity could not be read. <reason>" with Retry |
-
-## Lead fixes after the lane B merge: ui-kit views
-
-Code: `src/modules/ui-kit/components/DiffView.tsx`, `diff-rows.ts` (`diffRows`, `foldRows`, `pairRows`), `CodeView.tsx`, `MarkdownView.tsx`; their users `src/modules/history/panel/Timeline.tsx`, `src/modules/review/panel/DiffPanel.tsx` (`targetOf`), `src/modules/files/panel/FileViewer.tsx`, `src/modules/files/register.ui.ts` (`openLink`).
-
-`tests/ui-kit/diff-rows.test.ts` (pure):
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| UI-DIFF-1 | `a\nb\nc` and `a\nB\nc` | `diffRows` | rows same 1/1, removed 2/null, added null/2, same 3/3 |
-| REV-22 | 20 unchanged lines between two changes | `foldRows` with nothing expanded | one fold of 20; with its start expanded, 20 rows |
-| UI-DIFF-2 | removed, removed, added | `pairRows` | pairs [r1,a1], [r2,null] |
-
-`tests/ui-kit/views.ui.test.tsx` (jsdom):
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| UI-5 | `MarkdownView` with source `<img src=x onerror=alert(1)>` | it renders | no `img` element; the text is shown |
-| UI-5b | `MarkdownView` with `[x](javascript:alert(1))` and `[y](notes/a.md)` | click each link | `onLinkActivate` is never called with a `javascript:` href; it gets `notes/a.md` |
-| REV-20 | `DiffView` scrolled to 400 px | `after` changes | the same element is in the DOM and `scrollTop` is still 400 |
-| REV-21 | `DiffView` with three changes | F7 three times, then Shift+F7 | focus moves to change 1, 2, 3, then 2 |
-| REV-23 | `DiffView` with `onLineAction` | C on a focused added line | `onLineAction` gets that row; Ctrl+C does nothing |
-| FILE-73 | `CodeView` with the cursor on line 40 | `value` changes | the cursor is on line 40 and the scroll is unchanged |
-| FILE-72 | `CodeView` with `onSave` | Ctrl+S inside the editor | `onSave` runs once and the browser save does not |
-
-`tests/files/viewer.ui.test.tsx`: FILE-70 (a `.md` file opens in preview when `markdownPreviewFirst`, Ctrl+Shift+V shows the source), FILE-74 (Compare shows a diff of disk against the buffer, nothing is saved), FILE-79 (a link `../b.md` from `C:\p\docs\a.md` opens `C:\p\b.md`; an https link calls `shell.openExternal`), a double Ctrl+S sends one `files.save`.
-
-`tests/history/timeline.ui.test.tsx`: HIST-41 (with Compare on, the diff's left side is the selected snapshot's text and the right side is the current file).
-
-## Lead fixes after the lane B merge: feedback paste
-
-Code: `src/modules/ui-kit/components/terminal-paste.ts`, `src/modules/terminal/panel/TerminalPanel.tsx` (the registering effect), `src/modules/review/panel/FeedbackTray.tsx` (`send`).
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| P-6 | `sanitizePaste` | text `a\x1b[201~\rb\tc\n` | returns `a[201~\rb\tc\n` without the escape |
-| REV-33 | a terminal panel whose xterm has bracketed paste on, and a comment holding `\x1b[201~rm -rf x\r` | "Send to Claude" | xterm's `paste` got the text without `\x1b`; `terminal.write` was not called by the tray; no carriage return outside the markers |
-| REV-33b | bracketed paste off, composed text with two lines | "Send to Claude" | nothing is pasted; an error toast suggests Copy |
-| REV-33c | no panel for the chosen terminal | "Send to Claude" | a toast says to open the terminal; nothing is written |
 
 # Untested: card 032 fixes
 
@@ -409,23 +157,6 @@ Suggested files and rows (the testing agent may group them differently):
 
 Not in this plan: the demo fixture screenshot (not built, see progress), BROW-3 screenshot overlay, BROW-9 crash state (no channel in the contract), and the e2e rows of `browser.md`.
 
-## Lead fixes after the lane B merge: right click selects its row
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| UI-LIST-1 | a `Tree` with rows a and b, a selected | right click on b | `onSelect` was called with b |
-| UI-LIST-2 | a `List` with rows a and b, a selected | right click on b | `onSelect` was called with b |
-| FILE-64 | the Files view with a.txt selected | right click on b.txt, then Delete, then confirm | `files.trash` got b.txt |
-
-## 034 look pass (Lead)
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| WS-43 | registered `graph.view`, `graph.notes` | the Notes page renders | the graph renders once as a page layer between the list and the dock; it is not a dock tab |
-| GRAPH-51 | a graph with CLAUDE.md | the canvas opens, or Fit is pressed | the camera centre equals CLAUDE.md's display position |
-| GRAPH-30 | a note selected in the notes list | the graph renders | that node's colour is `color.accent` and its halo blur is the focus blur |
-| UI-BTN-1 | `Button` with `pressed` true | it renders | `aria-pressed="true"` and the primary class |
-
 # Untested: cards 030 and 033 fixes
 
 Test files: `tests/review/changes-fixes.ui.test.tsx`, `tests/activity/activity-fixes.ui.test.tsx`, `tests/files/tree-fixes.ui.test.tsx`, `tests/history/timeline-fixes.ui.test.tsx`, `tests/git/status-fixes.ui.test.tsx`.
@@ -460,19 +191,6 @@ Test files: `tests/review/changes-fixes.ui.test.tsx`, `tests/activity/activity-f
 | HIST-43, P-40 | component | a history timeline with a version selected | `snapshotAdded` | no skeleton; selection and diff scroll kept |
 | HIST-42 | component | a restore that succeeds | the toast shows | it has an "Undo" action; pressing it calls `history.restore` with the row under the new restore row |
 | ACT/REV commands | unit | the modules registered | the command list is read | `review.showChanges` (Ctrl+Shift+G), `activity.showTimeline`, `activity.showArtifacts` exist and open their side views |
-
-## 036 part 1: settings layout A and the welcome view
-
-`tests/workspace/welcome.ui.test.tsx`:
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| WS-5 | two recent projects, one with `exists: false` | it renders | the missing one is muted, its row is disabled, and it shows "Remove from list"; the other shows its age |
-| WS-5b | a recent project row focused | Enter | `workspace.openProject` was called with its path |
-| WS-5c | "Open folder" | pressed, and `pickFolder` returns a path | `openProject` got that path; a null result opens nothing |
-| WS-44 | no project open | the Dashboard renders | the welcome view shows instead of the widget screens |
-
-`tests/settings/screen.ui.test.tsx` additions: the section list shows each section's key count; a changed key's row has `data-changed` and a Reset link; a schema with `.describe()` shows that text under its label.
 
 # 035 Dashboard: test plan (untested)
 
@@ -516,14 +234,6 @@ Suggested files and rows (from dashboard.md "Tests"; the testing agent may regro
 | DASH-13 | a `hud.ribbon` widget for a session in terminal `t1` | it is activated | the Code page shows with `t1` focused (`focusTerminal`), through one view transition. NOTE: the view transition is not built (MOT-6); expect the focus check to pass only. |
 
 Not in this plan (no channel or not built): DASH-20 (save and load over the service, integration; the service side is card 116), the swipe gesture of DASH-1, the drag-from-sheet of DASH-8, the edge hold of DASH-6.
-
-## 035 look pass
-
-| Rule | Given | When | Then |
-| --- | --- | --- | --- |
-| DASH-4 | a `box` widget and a `free` widget | the grid renders | the box one has the frame, four corner elements and a title row with the type's title; the free one has none |
-| DASH-12 | `hud.mascot` at 2 by 2 cells of 360 by 320 px | it renders | the sprite's wrapper has `scale(4)` (at most 4, at least 1) |
-| DASH-12b | `hud.context` with 22 percent | it renders | the number reads 22% and 4 of 20 segments are on |
 
 # 036 state gallery: test plan (untested)
 
