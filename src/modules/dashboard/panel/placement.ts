@@ -129,18 +129,18 @@ export function reflow(
   return { widgets: placed, screens: screenCount };
 }
 
-/** The default layout of an 8 by 6 grid (DASH-22). Ids are twelve characters, as the contract requires. */
+/** The default layout of an 8 by 6 grid (DASH-22), as the approved mockup `design-round/dashboard/phosphor.html`. Ids are twelve characters, as the contract requires. */
 export const DEFAULT_LAYOUT: DashboardFile = {
   version: 1,
   screens: 2,
   widgets: [
-    { id: 'dash00000001', type: 'hud.ribbon', screen: 0, x: 0, y: 0, w: 4, h: 2, config: null },
-    { id: 'dash00000002', type: 'hud.usage', screen: 0, x: 4, y: 0, w: 2, h: 2, config: null },
-    { id: 'dash00000003', type: 'hud.mascot', screen: 0, x: 6, y: 0, w: 2, h: 2, config: null },
-    { id: 'dash00000004', type: 'hud.sessions', screen: 0, x: 0, y: 2, w: 4, h: 3, config: null },
-    { id: 'dash00000005', type: 'hud.context', screen: 0, x: 4, y: 2, w: 2, h: 3, config: null },
-    { id: 'dash00000006', type: 'graph.mini', screen: 0, x: 6, y: 2, w: 2, h: 3, config: null },
-    { id: 'dash00000007', type: 'hud.quickBar', screen: 0, x: 0, y: 5, w: 8, h: 1, config: null },
+    { id: 'dash00000001', type: 'hud.ribbon', screen: 0, x: 0, y: 0, w: 2, h: 3, config: null },
+    { id: 'dash00000004', type: 'hud.sessions', screen: 0, x: 0, y: 3, w: 2, h: 3, config: null },
+    { id: 'dash00000006', type: 'graph.mini', screen: 0, x: 2, y: 0, w: 4, h: 5, config: null },
+    { id: 'dash00000007', type: 'hud.quickBar', screen: 0, x: 2, y: 5, w: 4, h: 1, config: null },
+    { id: 'dash00000003', type: 'hud.mascot', screen: 0, x: 6, y: 0, w: 2, h: 3, config: null },
+    { id: 'dash00000002', type: 'hud.usage', screen: 0, x: 6, y: 3, w: 2, h: 2, config: null },
+    { id: 'dash00000005', type: 'hud.context', screen: 0, x: 6, y: 5, w: 2, h: 1, config: null },
     { id: 'dash00000008', type: 'hud.skills', screen: 1, x: 0, y: 0, w: 4, h: 4, config: null },
     { id: 'dash00000009', type: 'sessions.recent', screen: 1, x: 4, y: 0, w: 4, h: 4, config: null },
     { id: 'dash00000010', type: 'git.status', screen: 1, x: 0, y: 4, w: 4, h: 2, config: null },
