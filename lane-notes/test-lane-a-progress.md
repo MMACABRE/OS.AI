@@ -20,3 +20,8 @@
 - File: tests/shell/loader.test.ts
 - Covered: SHELL-20 (throwing register skipped, order, ids returned, error record names the module), extension point contributions order, createUiRegistry duplicate panel/command/status item, createDataPaths workspaceFile, registerSettings defaults, openPanel before opener.
 - Skipped: none. (Rule id of the "extension point" row is not in the card table; tests use SHELL-20 as the loader rule id.)
+
+## 015 Window
+- Files: tests/shell/bounds.test.ts, tests/shell/system-channels.test.ts
+- Covered: SHELL-6 (outside displays, second display kept, offset primary, small display, writePlacement keeps keys, .bak, refuses version 2, round trip), SHELL-21, SHELL-22, SHELL-23 (focused, click restores/focuses/emits), SHELL-26 (ui refused, link-service gets token, never logged, random 64 hex), SHELL-27, SHELL-30.
+- Skipped: tests/e2e/window.e2e.ts rows SHELL-1 (second launch), SHELL-24 (navigation refused), F-005 move/restart/reopen: e2e. main-window.ts (createMainWindow, debounced save) needs Electron and is not unit tested.
