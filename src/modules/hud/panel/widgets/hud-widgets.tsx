@@ -12,7 +12,7 @@ import { QuickBar, tokensText } from '../QuickBar';
 import { cacheState, SessionsBoard } from '../SessionsSection';
 import { SkillsDeck } from '../SkillsSection';
 import { focusTerminal } from '../send-command';
-import { useNow, UsageBars } from '../UsageSection';
+import { resetsText, usageTone, useNow, UsageBars } from '../UsageSection';
 import widgetStyles from './HudWidgets.module.css';
 
 type Sized = { readonly cells: WidgetSize; readonly pixels: { readonly width: number; readonly height: number } };
@@ -43,6 +43,8 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
 
   const UsageWidget = ({ cells }: Sized) => {
     const usage = useHudData((state) => state.usage);
+    const settings = useHudData((state) => state.settings);
+    const now = useNow();
     if (usage.kind !== 'ready') return createElement(EmptyState, { message: 'Usage is not known yet.' });
     const percent = Math.max(
       usage.value.fiveHour?.usedPercentage ?? 0,
@@ -53,10 +55,57 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
         value: Math.round(percent),
         format: (value: number) => `${value}%`,
       });
-    return createElement(UsageBars);
+    if (cells.h < 2) return createElement(UsageBars);
+    // The mockup's USAGE box: per window a big toned number, its reset time, then a segmented bar.
+    const rows = [
+      { label: '5 hours', window: usage.value.fiveHour },
+      { label: '7 days', window: usage.value.sevenDay },
+    ];
+    return createElement(
+      'div',
+      { className: widgetStyles.usage },
+      rows.map(({ label, window }) => {
+        const used = window === null ? null : Math.round(window.usedPercentage);
+        const tone = used === null ? 'ok' : usageTone(used, settings.warnAt, settings.dangerAt);
+        const filled = Math.round(((used ?? 0) / 100) * CONTEXT_SEGMENTS);
+        return createElement(
+          'div',
+          { key: label, className: widgetStyles.usageWindow },
+          createElement(
+            'div',
+            { className: widgetStyles.usageLabel },
+            createElement(
+              'span',
+              { className: `${widgetStyles.bigNumber} ${widgetStyles[tone]}` },
+              createElement(RollingNumber, {
+                value: used ?? 0,
+                format: (value: number) => (used === null ? '–' : `${value}%`),
+              }),
+            ),
+            createElement(
+              'span',
+              { className: widgetStyles.small },
+              createElement('span', null, label),
+              window === null ? ' · no data yet' : ` · ${resetsText(window.resetsAt, now)}`,
+            ),
+          ),
+          createElement(
+            'span',
+            {
+              className: `${widgetStyles.segments} ${widgetStyles[tone]}`,
+              role: 'img',
+              'aria-label': used === null ? `${label}: no data yet` : `${label} ${used} percent used`,
+            },
+            Array.from({ length: CONTEXT_SEGMENTS }, (_, index) =>
+              createElement('i', { key: index, 'data-on': index < filled || undefined }),
+            ),
+          ),
+        );
+      }),
+    );
   };
 
-  const ContextWidget = () => {
+  const ContextWidget = ({ cells }: Sized) => {
     const sessions = useHudData((state) => state.sessions);
     const focusOrder = useHudData((state) => state.focusOrder);
     const now = useNow();
@@ -65,9 +114,10 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
     const percent = target.contextUsedPercentage === null ? null : Math.round(target.contextUsedPercentage);
     // The mockup's CONTEXT box: a big yellow number, a segmented bar, then tokens and cache in small text.
     const filled = Math.round(((percent ?? 0) / 100) * CONTEXT_SEGMENTS);
+    // One cell high: the number and the bar side by side, tokens after them (mockup bottom right).
     return createElement(
       'div',
-      { className: widgetStyles.context },
+      { className: cells.h < 2 ? widgetStyles.contextRow : widgetStyles.context },
       createElement(
         'span',
         { className: widgetStyles.bigNumber },
@@ -83,8 +133,10 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
           createElement('i', { key: index, 'data-on': index < filled || undefined }),
         ),
       ),
-      createElement('p', { className: widgetStyles.small }, tokensText(target.contextTokens, target.contextWindowSize)),
-      createElement('p', { className: widgetStyles.small }, cacheState(target.lastResponseAt, now)),
+      cells.h < 2
+        ? null
+        : createElement('p', { className: widgetStyles.small }, tokensText(target.contextTokens, target.contextWindowSize)),
+      cells.h < 2 ? null : createElement('p', { className: widgetStyles.small }, cacheState(target.lastResponseAt, now)),
     );
   };
 

@@ -41,6 +41,69 @@
   box-shadow: var(--glow-accent);
 }
 
+/* Usage tones (HUD-25): cyan while fine, yellow from warnAt, red from dangerAt. */
+.ok {
+  color: var(--color-live);
+}
+
+.warn {
+  color: var(--color-state-warn);
+}
+
+.danger {
+  color: var(--color-state-danger);
+}
+
+.segments.ok i[data-on] {
+  background: var(--color-live);
+  box-shadow: var(--glow-live);
+}
+
+.segments.warn i[data-on] {
+  background: var(--color-state-warn);
+  box-shadow: var(--glow-accent);
+}
+
+.segments.danger i[data-on] {
+  background: var(--color-state-danger);
+  box-shadow: var(--glow-danger);
+}
+
+.bigNumber.ok,
+.bigNumber.warn,
+.bigNumber.danger {
+  text-shadow: none;
+}
+
+.usage {
+  display: grid;
+  gap: 1.25rem;
+  margin: auto 0;
+}
+
+.usageWindow {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.usageLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.contextRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contextRow > p {
+  grid-column: 1 / -1;
+}
+
 .small {
   margin: 0;
   color: var(--color-text-secondary);
