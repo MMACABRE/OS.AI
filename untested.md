@@ -1,21 +1,21 @@
 # Untested work
 
-The owner's rule from 2026-11-18 (resuming the run at card 011): implementers write the code only. They do not write or run the card's tests. Each card's test plan goes here, for a testing agent the owner runs later over all the work. Features whose tests are listed here stay `passes: false` in `features.json` until that agent's tests pass.
+Owner rule from 2026-11-18 (resuming run at card 011): implementers write code only. No write or run card tests. Each card test plan goes here, for testing agent owner runs later over all work. Features with tests listed here stay `passes: false` in `features.json` until agent tests pass.
 
-Each entry names the test file the card asks for, the rule ids, and what each test must show. Test names start with the rule id (protocol rule). Rows come from the module spec's test table.
+Each entry names test file card asks for, rule ids, what each test must show. Test names start with rule id (protocol rule). Rows come from module spec test table.
 
 ## Open bugs found by the tester lanes (2026-11-20)
 
-The tests for these are in `lane-notes/test-lane-c-bugs.md` (full code, src location, failure message). Fix src, then add the test back.
+Tests for these in `lane-notes/test-lane-c-bugs.md` (full code, src location, failure message). Fix src, then add test back.
 
-1. UI-MENU-1: `Menu` cannot open from an `IconButton` trigger; `IconButton` drops the props Radix passes. Breaks HUD-1 "Show all projects", HUD-34 skill row menu, HUD-37 locked-skill reason.
-2. HUD-65: compact dialog `initialFocus` returns the wrapping span, so Cancel does not get focus.
+1. UI-MENU-1: `Menu` cannot open from `IconButton` trigger; `IconButton` drops props Radix passes. Breaks HUD-1 "Show all projects", HUD-34 skill row menu, HUD-37 locked-skill reason.
+2. HUD-65: compact dialog `initialFocus` returns wrapping span, so Cancel gets no focus.
 3. FILE-61 / FILE-43: `FilesTree` never listens to `files.rescanNeeded`, so nothing reloads.
-4. HIST-41: `diffRows('', 'a')` returns a phantom removed empty line.
-5. REV-21: F7 stops on both rows of one replaced line. Spec unclear whether a "change" is a hunk or a row; owner to decide.
-6. WS-44: with no project open the page store starts on `code`, so the welcome view is not shown at start.
+4. HIST-41: `diffRows('', 'a')` returns phantom removed empty line.
+5. REV-21: F7 stops on both rows of one replaced line. Spec unclear whether "change" is hunk or row; owner to decide.
+6. WS-44: with no project open page store starts on `code`, so welcome view not shown at start.
 
-Not yet covered in lane C's area: HUD-37 "For this project only" with a chosen state; the HUD-16 "Spoken alerts on/off" toast. The `#` test plans below were not assigned this round.
+Not yet covered in lane C area: HUD-37 "For this project only" with chosen state; HUD-16 "Spoken alerts on/off" toast. `#` test plans below not assigned this round.
 
 ## 011 Supervisor (e2e left)
 
@@ -30,41 +30,41 @@ Unit tests done (`tests/shell/supervisor.test.ts`). Left:
 
 ## 013 Crash reports and health (e2e left)
 
-Unit tests done (`tests/diagnostics/crash-reports.test.ts`). Left: DIAG-8, a service that throws an uncaught exception exits with 70 (needs the app, e2e).
+Unit tests done (`tests/diagnostics/crash-reports.test.ts`). Left: DIAG-8, service throwing uncaught exception exits with 70 (needs app, e2e).
 
 ## 015 Window (e2e left)
 
-Unit tests done (`tests/shell/bounds.test.ts`, `tests/shell/system-channels.test.ts`). Left: `tests/e2e/window.e2e.ts`: SHELL-1 (a second launch exits and the first window gets focus; one window exists), SHELL-24 (`window.location.href = 'https://x.test'` and `window.open(...)` from the page leave the URL unchanged and open no window). F-005 also needs: move the window, restart, it reopens in the same place.
+Unit tests done (`tests/shell/bounds.test.ts`, `tests/shell/system-channels.test.ts`). Left: `tests/e2e/window.e2e.ts`: SHELL-1 (second launch exits, first window gets focus; one window exists), SHELL-24 (`window.location.href = 'https://x.test'` and `window.open(...)` from page leave URL unchanged, open no window). F-005 also needs: move window, restart, reopens same place.
 
 ## 018 Themes (e2e left)
 
-Unit tests done (`tests/settings/theme-store.test.ts`, `tests/settings/apply-theme.ui.test.tsx`). Left: F-007 (e2e, card 025 covers it): copy `test-light.json` into `themesDir`, set `theme`, `--color-bg-app` changes without a reload.
+Unit tests done (`tests/settings/theme-store.test.ts`, `tests/settings/apply-theme.ui.test.tsx`). Left: F-007 (e2e, card 025 covers): copy `test-light.json` into `themesDir`, set `theme`, `--color-bg-app` changes without reload.
 
 ## 023 Command palette (e2e left)
 
-Unit tests done. Left: F-008 (e2e, card 025 covers it): press Ctrl+Shift+P, type "set", "Open Settings" runs from the list. Note: "set" is a subsequence of "Open Settings" only; the old row's "Restart service" example was wrong.
+Unit tests done. Left: F-008 (e2e, card 025 covers): press Ctrl+Shift+P, type "set", "Open Settings" runs from list. Note: "set" is subsequence of "Open Settings" only; old row "Restart service" example wrong.
 
 ## 024 Settings screen (open question, e2e left)
 
-Unit tests done (`tests/settings/settings-screen.ui.test.tsx`). Open: SET-6, a typed number above max (400 into terminal font size, max 32) is clamped and saved by `NumberField`, but the spec says invalid input shows the schema message and saves nothing. Owner to decide clamp or reject; the failing test is in `lane-notes/test-lane-b-bugs.md`. Left: F-009 (e2e, card 025 covers it): press Ctrl+, , change a value, invalid input shows a message and is not saved.
+Unit tests done (`tests/settings/settings-screen.ui.test.tsx`). Open: SET-6, typed number above max (400 into terminal font size, max 32) clamped and saved by `NumberField`, but spec says invalid input shows schema message, saves nothing. Owner to decide clamp or reject; failing test in `lane-notes/test-lane-b-bugs.md`. Left: F-009 (e2e, card 025 covers): press Ctrl+, , change value, invalid input shows message, not saved.
 
 ## 025 Stage 0 checks (e2e left)
 
 Unit test done (`tests/stage0/packaging.test.ts`). Left:
 
-`tests/e2e/stage-0.e2e.ts` (Playwright with Electron, a temp `APPDATA` and `LOCALAPPDATA` so the owner's real settings are never touched):
+`tests/e2e/stage-0.e2e.ts` (Playwright with Electron, temp `APPDATA` and `LOCALAPPDATA` so owner real settings never touched):
 
-1. REL-7 and P-32: write `{ not json` to `%APPDATA%\HSOS\settings\settings.json` before launch; the window opens; `Ctrl+,` opens the settings screen and its problems banner lists the file.
-2. F-008: `Ctrl+Shift+P` opens the palette; type `set`; "Open Settings" is in the list and Enter opens the settings screen.
-3. F-007: copy `tests/fixtures/themes/test-light.json` into `%APPDATA%\HSOS\themes`, set `theme` to `test-light` (through the settings screen's Themes "Use", or by writing settings.json), and `getComputedStyle(document.documentElement).getPropertyValue('--color-bg-app')` becomes `#F4F1EA` without a reload (keep a marker on `window` and check it survives).
-4. SHELL-14: kill the renderer (`webContents.forcefullyCrashRenderer()` through `electronApp.evaluate`); the window reloads and the `?e2e=1` ping line shows all three services again.
-5. `npm run dist` produces an installer `dist/HSOS Setup 0.1.0.exe` (check once, outside the e2e run).
+1. REL-7 and P-32: write `{ not json` to `%APPDATA%\HSOS\settings\settings.json` before launch; window opens; `Ctrl+,` opens settings screen, problems banner lists file.
+2. F-008: `Ctrl+Shift+P` opens palette; type `set`; "Open Settings" in list, Enter opens settings screen.
+3. F-007: copy `tests/fixtures/themes/test-light.json` into `%APPDATA%\HSOS\themes`, set `theme` to `test-light` (through settings screen Themes "Use", or by writing settings.json), `getComputedStyle(document.documentElement).getPropertyValue('--color-bg-app')` becomes `#F4F1EA` without reload (keep marker on `window`, check it survives).
+4. SHELL-14: kill renderer (`webContents.forcefullyCrashRenderer()` through `electronApp.evaluate`); window reloads, `?e2e=1` ping line shows all three services again.
+5. `npm run dist` produces installer `dist/HSOS Setup 0.1.0.exe` (check once, outside e2e run).
 
-Also F-005 (move the window, restart, same place), F-006 (edit settings.json on disk, the change applies within a second) and F-004 (kill workspace-service, a crash file appears in `%LOCALAPPDATA%\HSOS\crash`, the service is ready again within 5 s) can join this file.
+Also F-005 (move window, restart, same place), F-006 (edit settings.json on disk, change applies within a second) and F-004 (kill workspace-service, crash file appears in `%LOCALAPPDATA%\HSOS\crash`, service ready again within 5 s) can join this file.
 
 ## 027 Motion, glass and the background (e2e left)
 
-Unit tests done. Left: UI-32, the worker draws no frame while `visibility` is hidden and exactly one under `reduced` (needs the app, e2e).
+Unit tests done. Left: UI-32, worker draws no frame while `visibility` hidden, exactly one under `reduced` (needs app, e2e).
 
 ## 028 App frame and pages (e2e left)
 
@@ -74,10 +74,10 @@ Unit tests done (`tests/workspace/pages.ui.test.tsx`). Left:
 
 | Rule   | Given | When | Then |
 | ------ | ----- | ---- | ---- |
-| MOT-5  | the Code page | `Ctrl+1` | `startViewTransition` ran once (wrap it in `page.evaluate`); the Dashboard shows after `motion.page` |
-| MOT-7  | the background running | three page changes | the canvas is the same node and `backdropStats()` frames never go down |
-| MOT-11 | a page transition in progress | a key is pressed in a focused input on the new page | the input has the character before the transition finishes |
-| WS-41  | the demo on `code` | Dashboard for 3 s and back | the code section is the same node |
+| MOT-5  | the Code page | `Ctrl+1` | `startViewTransition` ran once (wrap in `page.evaluate`); Dashboard shows after `motion.page` |
+| MOT-7  | the background running | three page changes | canvas is same node, `backdropStats()` frames never go down |
+| MOT-11 | a page transition in progress | key pressed in focused input on new page | input has character before transition finishes |
+| WS-41  | the demo on `code` | Dashboard for 3 s and back | code section is same node |
 
 # Untested: card 032 fixes
 
@@ -108,11 +108,11 @@ Test file for all rows: `tests/sessions/sessions-fixes.ui.test.tsx`. Each name s
 
 Code: `src/modules/graph/panel/` (GraphView, GraphCards, NotesList, LocalGraph, graph-model, graph-store, graph-canvas, graph-colour), `src/modules/graph/register.ui.ts`, `src/modules/browser/panel/` (BrowserTab, address), `src/modules/browser/register.ui.ts`. Feature F-069.
 
-The card names the `component` rows of `graph.md` and `browser.md` for these panels. `browser.md` has no component row for the panel; the nearest rows are the unit row BROW-4 (address parsing, implemented in `address.ts`) and the e2e rows, which need the main process and are not listed here.
+Card names `component` rows of `graph.md` and `browser.md` for these panels. `browser.md` has no component row for panel; nearest rows are unit row BROW-4 (address parsing, implemented in `address.ts`) and e2e rows, which need main process and not listed here.
 
-Suggested files and rows (the testing agent may group them differently):
+Suggested files and rows (testing agent may group differently):
 
-`tests/graph/graph-view.test.tsx` (component, fake bus with graph fixtures; WebGL is absent in jsdom, so the test mocks `sigma` or runs in the e2e level where noted):
+`tests/graph/graph-view.test.tsx` (component, fake bus with graph fixtures; WebGL absent in jsdom, so test mocks `sigma` or runs at e2e level where noted):
 
 | Rule | Given | When | Then |
 | --- | --- | --- | --- |
@@ -147,7 +147,7 @@ Suggested files and rows (the testing agent may group them differently):
 | --- | --- | --- | --- |
 | BROW-4 | `example.com`, `localhost:3000`, `how to center a div` | the address is normalised | `https://example.com`, `http://localhost:3000`, `https://duckduckgo.com/?q=how%20to%20center%20a%20div` |
 
-`tests/browser/browser-tab.test.tsx` (component, optional; the spec has no row for it):
+`tests/browser/browser-tab.test.tsx` (component, optional; spec has no row for it):
 
 | Rule | Given | When | Then |
 | --- | --- | --- | --- |
@@ -155,7 +155,7 @@ Suggested files and rows (the testing agent may group them differently):
 | BROW-41 | a tab whose `isAgentControlled` is true | the panel renders | the "Claude is using this tab" indicator and the "Stop" button show, and the page area has the 2 px accent frame |
 | BROW-1 | a panel with `tabId` null and `url` empty | it mounts | `browser.openTab` is called with the home URL from settings and the tab id is saved in the panel state |
 
-Not in this plan: the demo fixture screenshot (not built, see progress), BROW-3 screenshot overlay, BROW-9 crash state (no channel in the contract), and the e2e rows of `browser.md`.
+Not in plan: demo fixture screenshot (not built, see progress), BROW-3 screenshot overlay, BROW-9 crash state (no channel in contract), e2e rows of `browser.md`.
 
 # Untested: cards 030 and 033 fixes
 
@@ -196,7 +196,7 @@ Test files: `tests/review/changes-fixes.ui.test.tsx`, `tests/activity/activity-f
 
 Code: `src/modules/dashboard/panel/` (placement.ts, dashboard-store.ts, DashboardPage.tsx, Dashboard.module.css), `src/modules/dashboard/register.ui.ts`; widgets in `src/modules/hud/panel/widgets/hud-widgets.tsx`, `src/modules/sessions/panel/widgets/RecentWidget.tsx`, `src/modules/git/panel/widgets/StatusWidget.tsx`, `src/modules/activity/panel/widgets/RecentWidget.tsx`, `src/modules/graph/panel/widgets/MiniGraph.tsx`. Feature F-070.
 
-Suggested files and rows (from dashboard.md "Tests"; the testing agent may regroup):
+Suggested files and rows (from dashboard.md "Tests"; testing agent may regroup):
 
 `tests/dashboard/placement.test.ts` (unit, pure functions in `placement.ts`):
 
@@ -209,7 +209,7 @@ Suggested files and rows (from dashboard.md "Tests"; the testing agent may regro
 | DASH-7 | a `hud.usage` widget (largest 4×3) at 0,0 with a widget at 3,0 | `resizeTarget` with a want of 6 wide | width is 3 |
 | DASH-8 | a full screen (no free cell of the default size) | `firstFit` | null (the page then shows "No room on this screen. Make space or add a screen.") |
 
-`tests/dashboard/dashboard.ui.test.tsx` (component, fake bus with the `dashboard` fixtures; store reset between tests):
+`tests/dashboard/dashboard.ui.test.tsx` (component, fake bus with `dashboard` fixtures; store reset between tests):
 
 | Rule | Given | When | Then |
 | --- | --- | --- | --- |
@@ -231,9 +231,9 @@ Suggested files and rows (from dashboard.md "Tests"; the testing agent may regro
 
 | Rule | Given | When | Then |
 | --- | --- | --- | --- |
-| DASH-13 | a `hud.ribbon` widget for a session in terminal `t1` | it is activated | the Code page shows with `t1` focused (`focusTerminal`), through one view transition. NOTE: the view transition is not built (MOT-6); expect the focus check to pass only. |
+| DASH-13 | a `hud.ribbon` widget for a session in terminal `t1` | it is activated | the Code page shows with `t1` focused (`focusTerminal`), through one view transition. NOTE: view transition not built (MOT-6); expect focus check to pass only. |
 
-Not in this plan (no channel or not built): DASH-20 (save and load over the service, integration; the service side is card 116), the swipe gesture of DASH-1, the drag-from-sheet of DASH-8, the edge hold of DASH-6.
+Not in plan (no channel or not built): DASH-20 (save and load over the service, integration; service side is card 116), swipe gesture of DASH-1, drag-from-sheet of DASH-8, edge hold of DASH-6.
 
 # 036 state gallery: test plan (untested)
 
@@ -245,6 +245,6 @@ Test (card 036, step 3):
 | --- | --- | --- | --- | --- | --- |
 | `tests/demo/gallery.ui.test.tsx` | every registered panel and widget renders all four states without throwing | component | the gallery's four passes over the demo transport (`Gallery`) | the page renders | every registered panel (`ready.registry.panels`) and every dashboard widget (`uiContributions(dashboardWidgets)`) has a tile in loading, empty, error and ready; no tile shows "threw:" from its boundary |
 
-Notes for the testing agent:
-- Module stores are singletons (hud-data, graph-store, dashboard-store, and others). The four passes write them in turn, so a column can show data from another state. The test checks rendering and no throw, not that each column shows its own state.
-- Loading never answers, so loading tiles show the panel's own loading view or nothing. Empty and error answer after 120 ms.
+Notes for testing agent:
+- Module stores are singletons (hud-data, graph-store, dashboard-store, others). Four passes write them in turn, so a column can show data from another state. Test checks rendering and no throw, not that each column shows its own state.
+- Loading never answers, so loading tiles show panel's own loading view or nothing. Empty and error answer after 120 ms.
