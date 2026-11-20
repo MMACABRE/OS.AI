@@ -53,3 +53,17 @@ Helpers shared by all sections: tests/fakes/stub-bus.ts (Bus with answers by cha
 - Skipped: the 033 REV-33 row (terminal.write with ESC[200~ and ESC[201~) is obsolete since the Lead fix replaced it by the xterm paste path (see the feedback paste section: REV-33, 33b, 33c). git.md has no component rows.
 - No bugs found in 033.
 
+
+## 034 look pass (Lead)
+
+- tests/workspace/pages.ui.test.tsx: WS-43 (the graph view renders once as a page layer, before the notes list, before the dock; not in the dock and no tab).
+- tests/graph/graph-look.ui.test.tsx: GRAPH-51 (camera centre is CLAUDE.md display position on open and on Fit), GRAPH-30 (the selected note is color.accent and its halo blur equals the CLAUDE.md focus blur and is above a plain node's). sigma is replaced by a fake through vi.mock because jsdom has no WebGL; the reducers and the camera calls are the real view's.
+- tests/ui-kit/button.ui.test.tsx: UI-BTN-1.
+- Not in my list: the "034 Notes page and browser panel: test plan" (heading with one #) was not assigned.
+
+
+## 035 look pass
+
+- tests/dashboard/dashboard-look.ui.test.tsx: DASH-4 (box widget: frame, four corners, title row; free widget: none), DASH-12 (mascot scale 4 at 360 by 320 px, clamped to 1 and 4, 2 at 100 px), DASH-12b (22% and 4 of 20 segments on).
+- Not in my list: the "035 Dashboard: test plan" (placement.test.ts, dashboard.ui.test.tsx, e2e demo-dashboard) has a heading with one #, so it was not assigned. The DASH-13 e2e row is skipped as an e2e row.
+
