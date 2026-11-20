@@ -534,3 +534,21 @@ Did: Parts 1 and 2 above: the settings screen in the owner's layout A, the welco
 Checks: typecheck ok, lint ok, deps ok, test 27 passed, build ok
 Deviations: see parts 1 and 2.
 Next: 037 (owner gate)
+
+## Test round 1: untested.md, cards 011 to 036 (Lead + 3 tester lanes)
+Status: done (unit and UI tests); e2e left
+Date: 2026-11-20
+Did: Three Sonnet tester subagents, one worktree each (owner approved 3 lanes, Sonnet, bugs reported to the Lead, e2e for the Lead later), wrote the vitest rows of untested.md. Lane A: 011 to 019. Lane B: 020 to 029 and the owner amendments (OWNER-1, OWNER-2a to 2d). Lane C: 030 to 036, the Lead fixes and the look passes. The Lead merged them in card order and removed every covered row from untested.md (95 KB to 25 KB).
+Checks: typecheck ok, lint ok, deps ok, test 537 passed across 67 files (was 27). No src, spec or docs files changed.
+Deviations:
+- Lanes B and C both added `tests/terminal/terminal-panel.ui.test.tsx` and `tests/workspace/pages.ui.test.tsx`. Lane B's copies are kept, and lane C's are now `tests/terminal/feedback-paste.ui.test.tsx` and `tests/workspace/pages-dashboard.ui.test.tsx`. OWNER-2 is tested in both.
+- `lane-notes/test-lane-b-bugs.md` and `lane-notes/test-lane-c-bugs.md` are kept: they hold the failing tests that go back in once src is fixed. The progress notes were removed.
+- Rows with no rule id are named SHELL-20 (014 extension point), STAGE-U, UI-2 and UI-6.
+- Row errors fixed in the tests: 023 "set" matches "Open Settings", not "Restart service"; 024 terminal fontSize max is 32, not 40.
+Blocked questions:
+- SET-6: NumberField clamps 400 to 32 and saves, but the spec says that invalid input shows the message and saves nothing. Clamp or reject? (owner)
+- REV-21: should F7 step by hunk or by row? (owner)
+Anything that looks wrong:
+- Open src bugs, listed in untested.md "Open bugs": UI-MENU-1 (an IconButton cannot trigger a Menu), HUD-65 (focus in the compact dialog), FILE-61/43 (no rescanNeeded listener), HIST-41 (diffRows phantom line), WS-44 (the welcome view is not shown at start).
+- `tests/files/parcel-file-watcher.test.ts` (card 004) fails about half of full runs on its 2 s wait and blocks commits; a retry gets through.
+Next: fix the open bugs and add their tests back, write and run the e2e rows still in untested.md, then the mockup gap (docs/handoff.md "Next") and card 037.
