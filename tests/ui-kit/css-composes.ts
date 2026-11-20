@@ -39,3 +39,14 @@ export function composedBy(cssFile: string, className: string, seen = new Set<st
 export function composes(element: Element, cssFile: string, wanted: string): boolean {
   return sourceClassNames(element).some((name) => composedBy(cssFile, name).has(wanted));
 }
+
+/** The declarations of the first rule whose selector contains `selector`, comments removed. */
+export function ruleBody(cssFile: string, selector: string): string {
+  const text = readFileSync(cssFile, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const match of text.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+    if ((match[1] ?? '').split(',').some((part) => part.trim() === selector)) return match[2] ?? '';
+  return '';
+}
+
+/** The source folder of the ui-kit motion CSS. */
+export const MOTION = resolve(import.meta.dirname, '../../src/modules/ui-kit/motion');
