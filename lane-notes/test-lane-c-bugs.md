@@ -188,3 +188,21 @@ Test code:
     await waitFor(() => expect(document.activeElement).toBe(within(dialog).getByRole('button', { name: 'Cancel' })));
   });
 ```
+
+## BUG: WS-44 - with no project open the Dashboard page is not the active page
+
+- Test file to add the test to: `tests/workspace/welcome.ui.test.tsx`
+- Src: src/modules/workspace/panel/page-store.ts (initial page is "code"); nothing in AppFrame.tsx or register.ui.ts switches to the dashboard when the project is null
+- Spec says: workspace.md WS-44: "With no project open, the dashboard page shows, with the welcome view (WS-5) as its first screen's empty state."
+- Code does: At start (no project) the Code page is the active page and the welcome view, which only the Dashboard page renders, is never shown until the owner switches page by hand.
+- Failure: TestingLibraryElementError: Unable to find role="button" and name "Open folder" (usePageStore.page stays "code"). The test resets the page store with usePageStore.setState(usePageStore.getInitialState(), true) in a beforeEach and renders AppFrame with getCurrentProject answering null.
+
+Test code:
+
+```tsx
+  it('WS-44 at start with no project open the Dashboard page is the active page, showing the welcome view', async () => {
+    frame(false);
+    expect(await screen.findByRole('button', { name: 'Open folder' })).toBeTruthy();
+    expect(usePageStore.getState().page).toBe('dashboard');
+  });
+```

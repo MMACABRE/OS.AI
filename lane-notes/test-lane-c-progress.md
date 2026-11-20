@@ -67,3 +67,11 @@ Helpers shared by all sections: tests/fakes/stub-bus.ts (Bus with answers by cha
 - tests/dashboard/dashboard-look.ui.test.tsx: DASH-4 (box widget: frame, four corners, title row; free widget: none), DASH-12 (mascot scale 4 at 360 by 320 px, clamped to 1 and 4, 2 at 100 px), DASH-12b (22% and 4 of 20 segments on).
 - Not in my list: the "035 Dashboard: test plan" (placement.test.ts, dashboard.ui.test.tsx, e2e demo-dashboard) has a heading with one #, so it was not assigned. The DASH-13 e2e row is skipped as an e2e row.
 
+
+## 036 part 1: settings layout A and the welcome view
+
+- tests/workspace/welcome.ui.test.tsx: WS-5 (missing project muted, row disabled, "Remove from list"; the other shows "3 days ago"), WS-5b (Enter opens), WS-5c (Open folder with a picked path and with null), WS-44 (Dashboard renders the welcome view with no project and the widget screens with one; rendered through AppFrame with the dashboard page shown).
+- tests/settings/screen-layout.ui.test.tsx: section list with key counts (Appearance 4, Files 8, Claude sessions 2, Dashboard 2, none for Key bindings and Themes), data-changed and Reset on a changed key (and Reset sends the default), the description under a label. I used a new file because untested.md names tests/settings/screen.ui.test.tsx, which does not exist on this branch (card 024's file belongs to another lane), so adding to it would conflict at merge; the Lead can append these tests to it. The description row registers a description on the terminal fontSize schema through z.globalRegistry, because no contract schema uses .describe() yet.
+- Bug: WS-44 "with no project open the Dashboard page shows" is not implemented (page store starts on code); moved to the bugs file.
+- Flake, not mine: tests/files/parcel-file-watcher.test.ts (card 004) fails on the 2 s wait in the full run about half the time on this machine (alone it passes); the pre-commit hook then blocks. Retrying the commit gets through.
+
