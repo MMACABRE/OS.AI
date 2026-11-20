@@ -25,6 +25,7 @@ let hidden = false;
 let frames = 0;
 let lastFrameAt = 0;
 let loop: number | null = null;
+let running = false;
 let pointer: { x: number; y: number } | null = null;
 
 const frameGapMs = () => 1000 / Math.max(1, Math.min(MAX_BACKDROP_FPS, settings?.fps ?? MAX_BACKDROP_FPS));
@@ -36,12 +37,21 @@ function draw() {
   frames += 1;
 }
 
+/* A frame that is already requested must not draw after a stop: the loop checks `running` itself. */
 function stopLoop() {
+  running = false;
   if (loop !== null) cancelAnimationFrame(loop);
   loop = null;
 }
 
+function startLoop() {
+  if (running) return;
+  running = true;
+  loop = requestAnimationFrame(tick);
+}
+
 function tick(now: number) {
+  if (!running) return;
   loop = requestAnimationFrame(tick);
   if (now - lastFrameAt < frameGapMs() - 1) return;
   lastFrameAt = now;
@@ -59,7 +69,7 @@ function schedule() {
     return;
   }
   if (hidden) stopLoop();
-  else if (loop === null) loop = requestAnimationFrame(tick);
+  else startLoop();
 }
 
 /** The scene's config, with crt.barrel turned from window pixels into canvas pixels (UI-34). */
