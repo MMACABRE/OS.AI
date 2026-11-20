@@ -30,23 +30,13 @@ Updated 2026-11-20 after test round 1. Read this, `CLAUDE.md`, last `PROGRESS.md
 
 Git title bar button (needs title bar slot); "Go to terminal" (SESS-32); `graph.open` opens 2nd graph as dock tab; page switch from module (widgets to Notes/Code); demo transport doesn't emit `projectChanged` null (welcome view unseen); graph steam (GRAPH-52); Kinds/Roots/Tags filters; no CodeMirror language packages (FILE-70 colours); gallery shares module singleton stores across states; notes sheet doesn't fill column.
 
-## Subagents
+## Rules, subagents, environment
 
-- Ask owner before each spawn. Reuse via SendMessage until 7 prompts, then replace (memory `subagent-reuse-seven-prompts`). Ids don't carry across sessions.
-- Worktree + junction workflow, junction removal: see `CLAUDE.md` "Parallel lane rules".
+See `CLAUDE.md` (run rules, parallel lane rules, build gotchas) and `PROGRESS.md` "Environment on this device". Only extras here:
 
-## Run rules
-
-- Build 001 to 037, stop at 037 gate.
-- No tests from implementers (owner 2026-11-18); plans in `untested.md`; testing round writes them (round 1 done 2026-11-20).
-- Lead does look work; coders the rest; only Lead writes `PROGRESS.md`, `features.json`, `untested.md`.
-- Screens without mockup: options to owner first.
-- End each reply with % of plan done (memory `report-percent-done`).
-
-## Environment
-
-- No `pwsh`: `powershell -ExecutionPolicy Bypass -File scripts/init.ps1`, then `env -u NoDefaultCurrentDirectoryInExePath npm ci`.
 - App screenshots: `npm run build`, Playwright `_electron.launch({ args: ['.', '--hsos-demo'] })` (add `'--gallery'` for state gallery); click page names, run palette commands via "Show all commands".
 - Mockups: `msedge --headless=new --screenshot=<png> --window-size=1600,950 <file url>?still=1`.
 - `npm run demo` opens demo; `npm run demo -- --gallery` state gallery.
-- Skills disabled here, skipped on owner's word: interview-me, idea-refine, context-engineering, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, surgical-patch, verify-and-stop, babysit, handoff.
+- Subagent ids don't carry across sessions.
+- Skills disabled here, skipped on owner's word: interview-me, idea-refine, context-engineering, ci-cd-and-automation, deprecation-and-migration, documentation-and-adrs, surgical-patch, verify-and-stop, babysit, handoff (owner runs `/mattpocock-skills:handoff` itself).
+- End each reply with % of plan done (memory `report-percent-done`).

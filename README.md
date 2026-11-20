@@ -18,6 +18,6 @@ This repo holds the complete specification, written so that a smaller coding mod
 
 - `spec/README.md`: what the spec contains and the order to read it
 - `CLAUDE.md`: instructions for the model that builds HSOS
-- `tasks/`: the 90 task cards
+- `tasks/`: the 118 task cards
 - `docs/JOURNAL.md`: every step and decision taken to write the spec
 - Map of the decisions: [HSOS spec map](https://github.com/MMACABRE/OS.AI/issues/1)

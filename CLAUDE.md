@@ -24,7 +24,7 @@ Rules:
 
 - `spec/contracts/` is real TypeScript. Import as `@hsos/contracts/...`. Never retype contract.
 - Copy `spec/reference/` files exactly where card says.
-- Tests first, from module spec test table. Test name starts with rule id. (Owner override 2026-11-18: implementers write no tests; plans go to `untested.md`.)
+- Tests first, from module spec test table. Test name starts with rule id. (Owner override 2026-11-18: implementers write no tests; plans go to `untested.md`; tester rounds write them.)
 - Change only files card lists. Others: report in `PROGRESS.md` under `Deviations`.
 - Spec silent or contradictory: stop, write `blocked` entry in `PROGRESS.md`. Don't choose.
 - No test may run real `claude` with prompt (spends owner usage). Before test calls `claude`, check `Get-Command claude -CommandType Application` resolves to stub: Git Bash can reorder `PATH`.
@@ -81,6 +81,6 @@ Gotchas: working copies CRLF (`core.autocrlf true`): strip `\r` before scripted 
 
 ## /hsdevloop amendments
 
-- 2026-11-18: owner asked hsdevloop run over 001 to 037, stop at 037 gate. Replaces "one card, then stop" for that run. Each card own commit and `PROGRESS.md` entry.
-- 2026-11-18 round 2: implementers write no tests; plans to `untested.md` for later testing agent.
-- 2026-11-19: run resumed, cards 030 to 036 built (lanes B to G, Haiku coder + Sonnet reviewer/fixer). Paused before 037 for mockup gap. Resume with `docs/handoff.md`.
+- 2026-11-18: run over 001 to 037, stop at 037 gate; each card own commit and `PROGRESS.md` entry (replaces "one card, then stop").
+- 2026-11-19: 030 to 036 built by lanes B to G (Haiku coder + Sonnet reviewer/fixer); paused before 037 for mockup gap.
+- 2026-11-20: test round 1 by 3 Sonnet tester lanes (worktrees as above); testers report src bugs, Lead fixes them and re-adds the test.
