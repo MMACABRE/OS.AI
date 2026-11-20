@@ -41,10 +41,11 @@ export function DiffView({
   const [cursor, setCursor] = useState(-1);
   const container = useRef<HTMLDivElement>(null);
   const items = useMemo(() => (rows === null ? [] : foldRows(rows, expanded)), [rows, expanded]);
-  const changed = useMemo(
-    () => (rows ?? []).flatMap((row, index) => (row.kind === 'same' ? [] : [index])),
-    [rows],
-  );
+  // REV-21: a hunk is a run of changed rows, so a replaced line (removed plus added) is one stop, on its first row.
+  const changed = useMemo(() => {
+    const list = rows ?? [];
+    return list.flatMap((row, index) => (row.kind !== 'same' && (index === 0 || list[index - 1]?.kind === 'same') ? [index] : []));
+  }, [rows]);
 
   if (rows === null) return <p className={styles.note}>This diff is too large to show.</p>;
   if (changed.length === 0) return <p className={styles.note}>No differences.</p>;

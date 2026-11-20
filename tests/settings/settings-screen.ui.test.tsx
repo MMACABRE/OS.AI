@@ -71,6 +71,17 @@ const fileA = zAbsPath.parse('C:\\Users\\x\\AppData\\Roaming\\HSOS\\settings\\se
 const fileB = zAbsPath.parse('C:\\Users\\x\\AppData\\Roaming\\HSOS\\settings\\keybindings.json');
 
 describe('P-32 and SET-6 invalid input on the settings screen', () => {
+  it('SET-6 typing 400 into the terminal font size (max 32) shows the schema message and sends no setValue', async () => {
+    const { setCalls } = await openScreen();
+    await openSection('Terminal');
+    const field = screen.getByRole('spinbutton', { name: 'Font size' });
+    fireEvent.change(field, { target: { value: '400' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
+    await advance(SAVE_DELAY_MS + 100);
+    expect(screen.getAllByRole('alert').length).toBeGreaterThan(0);
+    expect(setCalls).toEqual([]);
+  });
+
   it('P-32 invalid text in a field shows the schema message under the control and sends no setValue after 400 ms', async () => {
     const { setCalls } = await openScreen();
     await openSection('Terminal');

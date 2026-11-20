@@ -84,6 +84,23 @@ describe('DiffView (ui-kit)', () => {
     expect(activeRow()).toMatch(/\+d$/);
   });
 
+  it('REV-21 F7 treats a replaced line (removed plus added) as one change', () => {
+    const before = ['a1', 'b', 'a2', 'a3', 'd', 'a4', 'a5', 'f', 'a6'].join('\n');
+    const after = ['a1', 'B', 'a2', 'a3', 'D', 'a4', 'a5', 'F', 'a6'].join('\n');
+    render(<DiffView before={before} after={after} />);
+    const region = screen.getByRole('region', { name: 'Diff' });
+    region.focus();
+    const press = (shiftKey: boolean) => fireEvent.keyDown(document.activeElement ?? region, { key: 'F7', shiftKey });
+    press(false);
+    expect(activeRow()).toMatch(/b$/);
+    press(false);
+    expect(activeRow()).toMatch(/d$/);
+    press(false);
+    expect(activeRow()).toMatch(/f$/);
+    press(true);
+    expect(activeRow()).toMatch(/d$/);
+  });
+
   it('REV-23 C on a focused added line runs onLineAction with that row, Ctrl+C does nothing', () => {
     const onLineAction = vi.fn();
     render(<DiffView before={'a\nb'} after={'a\nnew\nb'} onLineAction={onLineAction} />);

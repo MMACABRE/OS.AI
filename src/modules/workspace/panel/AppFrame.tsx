@@ -54,10 +54,15 @@ export function AppFrame({ bus, registry, log, keyFor, message }: AppFrameProps)
 
   useEffect(() => {
     if (bus === null) return undefined;
+    // WS-44: with no project open, the Dashboard page shows, with the welcome view as its first screen.
+    const applyProject = (next: ProjectInfo | null) => {
+      setProject(next);
+      if (next === null) usePageStore.getState().show('dashboard');
+    };
     void bus.call(workspaceChannels.getCurrentProject, {}).then((result) => {
-      if (result.ok) setProject(result.value);
+      if (result.ok) applyProject(result.value);
     });
-    return bus.on(workspaceChannels.projectChanged, setProject);
+    return bus.on(workspaceChannels.projectChanged, applyProject);
   }, [bus]);
 
   const runCommand = useCallback(

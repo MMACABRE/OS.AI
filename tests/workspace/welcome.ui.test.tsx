@@ -123,6 +123,12 @@ describe('welcome on the Dashboard (card 036 part 1)', () => {
     expect(screen.queryByTestId('widget-screens')).toBeNull();
   });
 
+  it('WS-44 at start with no project open the Dashboard page is the active page, showing the welcome view', async () => {
+    frame(false);
+    expect(await screen.findByRole('button', { name: 'Open folder' })).toBeTruthy();
+    expect(usePageStore.getState().page).toBe('dashboard');
+  });
+
   it('WS-44 with a project open the Dashboard shows the widget screens', async () => {
     usePageStore.getState().show('dashboard');
     frame(true);

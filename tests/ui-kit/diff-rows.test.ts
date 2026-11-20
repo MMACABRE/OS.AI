@@ -29,6 +29,13 @@ describe('diff rows (ui-kit)', () => {
     expect(open.filter((item) => item.kind === 'row' && rows[item.index]?.kind === 'same')).toHaveLength(20);
   });
 
+  it('HIST-41 a text against an empty one is one added line', () => {
+    const rows = diffRows('', 'a');
+    expect(rows).not.toBeNull();
+    const changed = (rows ?? []).filter((row) => row.kind !== 'same');
+    expect(view(changed)).toEqual([['added', 'a', null, 1]]);
+  });
+
   it('UI-DIFF-2 pairs removed, removed, added as [r1,a1] and [r2,null]', () => {
     const rows: DiffRow[] = [
       { kind: 'removed', text: 'r1', before: 1, after: null },

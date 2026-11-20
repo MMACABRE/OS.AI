@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { useLift } from '../motion/motion';
+import { cx } from './cx';
 import styles from './NumberField.module.css';
 
 export type NumberFieldProps = {
@@ -11,6 +12,10 @@ export type NumberFieldProps = {
   readonly step: number;
   readonly label?: string;
   readonly disabled?: boolean;
+  /** Shown beneath the field when set; the field is marked invalid (SET-6). */
+  readonly invalidMessage?: string | null;
+  /** Clamps typed text to min and max (default). False passes it on as typed, so the caller can reject it (SET-6). */
+  readonly clampTyped?: boolean;
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -27,7 +32,17 @@ function tidy(value: number, step: number): number {
  * A number field with a stepper. Arrow Up and Down step by `step`; Home and End go to `min` and `max`.
  * Typed text is committed on Enter or blur; text that is not a number restores the value.
  */
-export function NumberField({ value, onChange, min, max, step, label, disabled = false }: NumberFieldProps) {
+export function NumberField({
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  label,
+  disabled = false,
+  invalidMessage,
+  clampTyped = true,
+}: NumberFieldProps) {
   const [text, setText] = useState(String(value));
   useEffect(() => setText(String(value)), [value]);
 
@@ -39,7 +54,8 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
   const commitText = () => {
     const parsed = Number(text.trim());
     if (text.trim() === '' || !Number.isFinite(parsed)) setText(String(value));
-    else commit(parsed);
+    else if (clampTyped) commit(parsed);
+    else if (parsed !== value) onChange(parsed);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     const moves: Record<string, () => number> = {
@@ -58,15 +74,18 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
   };
 
   const lift = useLift();
+  const invalid = invalidMessage !== undefined && invalidMessage !== null && invalidMessage !== '';
   return (
+    <span className={styles.wrap}>
     <span className={styles.field}>
       <input
         type="text"
         inputMode="decimal"
         role="spinbutton"
-        className={styles.input}
+        className={cx(styles.input, invalid && styles.invalid)}
         value={text}
         aria-label={label}
+        aria-invalid={invalid}
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
@@ -99,6 +118,12 @@ export function NumberField({ value, onChange, min, max, step, label, disabled =
           ▾
         </button>
       </span>
+    </span>
+    {invalid ? (
+      <span className={styles.message} role="alert">
+        {invalidMessage}
+      </span>
+    ) : null}
     </span>
   );
 }

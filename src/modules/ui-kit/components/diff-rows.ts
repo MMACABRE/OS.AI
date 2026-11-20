@@ -13,9 +13,12 @@ export type DiffRow = {
 /** Past this many milliseconds the diff gives up and the view says the files are too large. */
 export const DIFF_TIMEOUT_MS = 1000;
 
+/** An empty text has no lines (HIST-41), so a new file's diff is only added lines. */
+const linesOf = (text: string): string[] => (text === '' ? [] : text.split('\n'));
+
 /** The line diff of two texts (`diff` package), numbered on both sides; null when it took too long. */
 export function diffRows(before: string, after: string): DiffRow[] | null {
-  const changes = diffArrays(before.split('\n'), after.split('\n'), { timeout: DIFF_TIMEOUT_MS });
+  const changes = diffArrays(linesOf(before), linesOf(after), { timeout: DIFF_TIMEOUT_MS });
   if (changes === undefined) return null;
   const rows: DiffRow[] = [];
   let old = 1;
