@@ -10,3 +10,8 @@
 - File: tests/diagnostics/logging.test.ts
 - Covered: DIAG-1 (incl. readRecent across rotation, createBusLogger), DIAG-2 (rotation, four kept), DIAG-3 (unwritable folder, unserialisable record, bus logger never throws), DIAG-4, DIAG-5, DIAG-6.
 - Skipped: none.
+
+## 013 Crash reports and health (both sections)
+- File: tests/diagnostics/crash-reports.test.ts
+- Covered: DIAG-7 (200 records, exit code, time, version; no log; unwritable folder; death reporter wiring end to end), DIAG-9 (toHealth, getHealth with a contributed metrics source), DIAG-10 (50 left, none older than 30 days; cleanup at register).
+- Skipped: "a service that throws an uncaught exception exits with 70" (DIAG-8): needs the app (e2e).
