@@ -343,6 +343,27 @@ describe('spoken and shown alerts (card 031)', () => {
     expect(spokenText(done, 'needs-you', true)).toBe('Parser. Needs you. Permission: Bash.');
   });
 
+  it('HUD-16 the toggle command flips speakAlerts and toasts "Spoken alerts off", then "on"', async () => {
+    const bus = createStubBus();
+    bus.answer(settingsChannels.setValue, () => ok({}));
+    const ctx = createFakeUiContext('hud', bus);
+    register(ctx);
+    seedHud({ settings: HudSettings.parse({ speakAlerts: true }) });
+    render(
+      <ToastProvider>
+        <span />
+      </ToastProvider>,
+    );
+    act(() => ctx.command('hud.toggleSpokenAlerts').run() as undefined);
+    expect(await screen.findByText('Spoken alerts off')).toBeTruthy();
+    act(() => ctx.command('hud.toggleSpokenAlerts').run() as undefined);
+    expect(await screen.findByText('Spoken alerts on')).toBeTruthy();
+    expect(bus.payloadsOf(settingsChannels.setValue)).toEqual([
+      { moduleId: 'hud', key: 'speakAlerts', value: false },
+      { moduleId: 'hud', key: 'speakAlerts', value: true },
+    ]);
+  });
+
   it('HUD-16 choosing a voice saves speakVoice and speaks the test line with it', async () => {
     const bus = createStubBus();
     bus.answer(shellChannels.listVoices, () => ok(['Voice A', 'Voice B']));

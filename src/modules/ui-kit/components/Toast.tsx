@@ -16,11 +16,21 @@ export type ToastInput = {
   readonly tone?: 'info' | 'ok' | 'error';
   /** One button beside the message; pressing it runs `onPress` and dismisses the toast. */
   readonly action?: { readonly label: string; readonly onPress: () => void } | undefined;
+  /** How long the toast stays, in ms. Defaults to TOAST_MS. Errors stay until dismissed. */
+  readonly duration?: number;
 };
 
 type ShownToast = ToastInput & { readonly id: number };
 
 export type ToastApi = { show(toast: ToastInput): void };
+
+/** The providers mounted now, in mount order: the last one is where a toast from outside React goes. */
+const mountedProviders: ToastApi[] = [];
+
+/** Shows a toast from outside React, such as a command. It goes to the most recently mounted ToastProvider. */
+export function showToast(toast: ToastInput): void {
+  mountedProviders[mountedProviders.length - 1]?.show(toast);
+}
 
 const ToastContext = createContext<ToastApi>({ show: () => undefined });
 
@@ -35,9 +45,9 @@ function ToastView({ toast, dismiss }: ToastViewProps) {
   const isError = toast.tone === 'error';
   useEffect(() => {
     if (isError) return;
-    const timer = setTimeout(() => dismiss(toast.id), TOAST_MS);
+    const timer = setTimeout(() => dismiss(toast.id), toast.duration ?? TOAST_MS);
     return () => clearTimeout(timer);
-  }, [isError, dismiss, toast.id]);
+  }, [isError, dismiss, toast.id, toast.duration]);
   return (
     <div
       className={cx(styles.toast, isError && styles.toastError, toast.tone === 'ok' && styles.toastOk)}
@@ -85,6 +95,13 @@ export function ToastProvider({ children }: { readonly children: ReactNode }) {
     }),
     [],
   );
+  useEffect(() => {
+    mountedProviders.push(api);
+    return () => {
+      const index = mountedProviders.indexOf(api);
+      if (index >= 0) mountedProviders.splice(index, 1);
+    };
+  }, [api]);
   return (
     <ToastContext.Provider value={api}>
       {children}
