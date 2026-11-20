@@ -94,6 +94,18 @@ describe('files tree (card 030)', () => {
     expect(after).not.toContain(abs('docs'));
   });
 
+  it('FILE-61 reloads the root when the watcher lost events (rescanNeeded)', async () => {
+    const { bus } = setup({ [PROJECT.path]: [dirEntry('a.txt')] });
+    await screen.findByRole('treeitem', { name: 'a.txt' });
+    const before = bus.payloadsOf(filesChannels.listDir).length;
+    act(() => {
+      bus.emit(filesChannels.rescanNeeded, {});
+    });
+    await waitFor(() => expect(bus.payloadsOf(filesChannels.listDir).length).toBe(before + 1));
+    expect(listDirCalls(bus).at(-1)).toBe(PROJECT.path);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('FILE-63 Enter on a selected file opens it', async () => {
     const { openFile } = setup({ [PROJECT.path]: [dirEntry('src', 'dir'), dirEntry('README.md')] });
     const row = await screen.findByRole('treeitem', { name: 'README.md' });

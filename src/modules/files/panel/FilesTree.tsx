@@ -91,6 +91,16 @@ export function FilesTree({ bus, confirmTrash, openFile, showHistory }: FilesTre
     [bus, root],
   );
 
+  // FILE-43: the watcher lost events, so every folder shown is read again.
+  useEffect(
+    () =>
+      bus.on(filesChannels.rescanNeeded, () => {
+        if (root === null) return;
+        for (const dir of new Set([root, ...known.current])) load(dir);
+      }),
+    [bus, root],
+  );
+
   const { nodes, index } = useMemo(() => {
     const found = new Map<string, DirEntry>();
     const tree = root === null ? [] : buildNodes(root, listings, found);
