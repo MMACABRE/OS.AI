@@ -46,3 +46,8 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - Covered: MOT-1, MOT-2, MOT-3, MOT-4, MOT-8, MOT-12, UI-30, UI-31, UI-33 (aria, one pointer + one puff, no puff on a button or after a drag, no canvas listener), UI-34 (overlay rules read from the stylesheet, no url( filter, phosphor-dust 300 frames under brightnessLimit), UI-35 (jsdom has no layout, so getClientRects is stubbed: a box unless the element or an ancestor is display none), applyTheme raised alpha, SET-13, SET-15 applyMotion.
 - jsdom limits: CSS-module rules are not computed, so animation, pointer-events and composes rows read the stylesheet source (tests/ui-kit/css-composes.ts). MOT-4 checks dialog and dim compose dialogIn and dimIn and that the animation uses motion.slow.
 - Skipped: UI-32 (worker draws nothing while hidden, one frame under reduced; needs the app, e2e).
+
+## 028 App frame and pages
+- tests/workspace/pages.ui.test.tsx (18)
+- Covered: WS-40 (Ctrl+3 through the real key dispatcher and the real workspace commands, focus in data-hsos-terminal; pageBeside; switcher), MOT-5 (startViewTransition stubbed, called once, update runs at once), WS-41, WS-43 (dock of the visible page), WS-45 (jsdom does not blur an inert page, so the test blurs by hand), WS-11, WS-13 (the broken panel's tab is activated by hand to see its error state), UI-30 (same canvas node over two page changes), GIT-14 repoName, repo button present/absent, side tabs order with Settings last.
+- Skipped (e2e, tests/e2e/demo-pages.e2e.ts): MOT-5 timing of the Dashboard after motion.page, MOT-7 backdropStats frames never go down, MOT-11 key during transition, WS-41 3 s demo run.
