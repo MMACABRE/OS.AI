@@ -11,7 +11,7 @@ import { Mascot } from '../mascot/Mascot';
 import { QuickBar, tokensText } from '../QuickBar';
 import { cacheState, SessionsBoard } from '../SessionsSection';
 import { SkillsDeck } from '../SkillsSection';
-import { focusTerminal } from '../send-command';
+import { focusTerminalWhenShown } from '../send-command';
 import { useNow, UsageBars } from '../UsageSection';
 import widgetStyles from './HudWidgets.module.css';
 
@@ -106,10 +106,19 @@ export function hudWidgetTypes(deps: HudDeps): WidgetType[] {
     );
   };
 
+  // Activating a session widget goes to its terminal on the Code page, with the terminal focused (DASH-13).
   const focusTarget = () => {
     const state = useHudData.getState();
     const target = targetSession(state.sessions, state.focusOrder);
-    if (target?.terminalId) focusTerminal(target.terminalId);
+    if (target?.terminalId === undefined || target?.terminalId === null) return;
+    deps.openPanel('terminal.shell', {
+      terminalId: target.terminalId,
+      cwd: target.cwd,
+      worktree: null,
+      launch: null,
+      fontSizeDelta: 0,
+    });
+    focusTerminalWhenShown(target.terminalId);
   };
 
   const widget = (
