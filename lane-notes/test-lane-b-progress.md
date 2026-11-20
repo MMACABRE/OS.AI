@@ -24,3 +24,9 @@ Tooling note: vitest keeps only an element's own CSS-module class (composed clas
 - Covered: UI-11 (set, term, recency and registration order), UI-10 (list with keys), UI-12, UI-13 (reject and resolve), UI-14 (button and text field).
 - Row discrepancy (not a src bug): untested.md says query `set` matches "Restart service" as a subsequence. "restart service" holds s, e but no t after the e, so it is NOT a subsequence of s-e-t and the code rightly drops it. The test uses "Reset tasks" (s, e, t in order, no word starting with "set") as the subsequence case instead. Lead: fix the row in untested.md or the spec example.
 - Skipped: F-008 (e2e).
+
+## 024 Settings screen
+- tests/settings/settings-screen.ui.test.tsx (12)
+- Covered: P-32 invalid JSON text shows the message and saves nothing (shellArgs field), Reset only when changed and sends the default after 400 ms (SET-2), problems banner from getProblems and problemsChanged with Open file, one save 400 ms after the last edit (SET-6), fieldKindOf for boolean, enum, number, path, string.
+- Bug: the row "type 400 into the terminal font size" fails: NumberField clamps to the max and saves it. Moved to lane-notes/test-lane-b-bugs.md.
+- Skipped: F-009 (e2e). The row text says max 40; the real fontSize max is 32 (tests use that).
