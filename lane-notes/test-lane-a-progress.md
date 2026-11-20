@@ -25,3 +25,8 @@
 - Files: tests/shell/bounds.test.ts, tests/shell/system-channels.test.ts
 - Covered: SHELL-6 (outside displays, second display kept, offset primary, small display, writePlacement keeps keys, .bak, refuses version 2, round trip), SHELL-21, SHELL-22, SHELL-23 (focused, click restores/focuses/emits), SHELL-26 (ui refused, link-service gets token, never logged, random 64 hex), SHELL-27, SHELL-30.
 - Skipped: tests/e2e/window.e2e.ts rows SHELL-1 (second launch), SHELL-24 (navigation refused), F-005 move/restart/reopen: e2e. main-window.ts (createMainWindow, debounced save) needs Electron and is not unit tested.
+
+## 016 Settings files
+- File: tests/settings/settings-store.test.ts
+- Covered: SET-1 (missing file created, same reader twice), SET-2, SET-3, SET-4 (incl. module without section), SET-5 (bad JSON unchanged, invalid copy on setValue, version 2), SET-6, SET-7 (.bak, listener once, sectionChanged, default removed).
+- Skipped: none.
