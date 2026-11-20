@@ -40,3 +40,8 @@
 - Files: tests/settings/theme-store.test.ts, tests/settings/apply-theme.ui.test.tsx
 - Covered: SET-11, SET-12, SET-13 (test-light, jsdom), SET-14 (also url(, braces, semicolon, unknown token), SET-15, SET-16, save "My Theme 2" -> my-theme-2.json, load overwrites edited phosphor.json copy.
 - Skipped: F-007 e2e (copy test-light.json into themesDir, --color-bg-app changes without reload): e2e. Fonts, fonts.css, main's background/zoom are not unit tested.
+
+## 019 Key bindings
+- Files: tests/settings/keybindings.test.ts, tests/ui-kit/key-dispatcher.ui.test.tsx
+- Covered: SET-18, SET-19 (keyFromEvent, normalizeBinding, store problem and SET_INVALID, isKeyString), SET-20, UI-20 (dispose), UI-21, UI-22, UI-23 (2000 ms vs 1000 ms, cancel by other key).
+- Skipped: none. startKeys in src/ui/index.tsx is not unit tested (wiring of the real window).
